@@ -73,6 +73,20 @@ add to `.claude/settings.json`:
 { "permissions": { "deny": ["Edit(**/*.py)", "Write(**/*.py)", "Edit(**/*.ts)", "Write(**/*.ts)"] } }
 ```
 
+### Exempting files from the cycle
+
+Set `TDD_MCP_EXEMPT` in the server's `env` to a comma-separated list of
+[fnmatch](https://docs.python.org/3/library/fnmatch.html) patterns. Patterns match paths relative
+to the project root, with `/` separators, and `*` also matches across directories. Once a cycle
+has started, matching files can be written in any phase, with no failing test needed and no test run:
+
+```json
+"env": { "TDD_MCP_EXEMPT": "scripts/*, migrations/*, *.pyi" }
+```
+
+`"*"` exempts everything. An empty value, or leaving the variable unset, exempts nothing.
+Restart the server after changing it.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
