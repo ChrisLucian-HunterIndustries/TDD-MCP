@@ -56,6 +56,23 @@ def test_main_runs_the_server(monkeypatch):
     assert calls == ["run"]
 
 
+@pytest.mark.parametrize(
+    ("value", "patterns"),
+    [
+        (None, ()),
+        ("", ()),
+        ("scripts/*", ("scripts/*",)),
+        (" scripts/* , *.pyi ,", ("scripts/*", "*.pyi")),
+    ],
+)
+def test_exempt_patterns_come_from_environment(monkeypatch, value, patterns):
+    if value is None:
+        monkeypatch.delenv("TDD_MCP_EXEMPT", raising=False)
+    else:
+        monkeypatch.setenv("TDD_MCP_EXEMPT", value)
+    assert server.new_service().exempt == patterns
+
+
 def test_server_instructions_explain_the_cycle():
     assert mcp.instructions is not None
     for word in ("run_coverage", "write_file", "edit_file", "fail", "refactor"):

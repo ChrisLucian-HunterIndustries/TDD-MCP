@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 
@@ -10,6 +11,9 @@ from mcp.server.mcpserver.exceptions import ToolError
 
 from tdd_mcp.languages import ADAPTERS, LanguageName
 from tdd_mcp.service import TddService
+
+# Comma-separated fnmatch patterns of project paths that skip the TDD cycle.
+EXEMPT_ENV_VAR = "TDD_MCP_EXEMPT"
 
 mcp = MCPServer(
     "test-driven-development",
@@ -25,13 +29,15 @@ mcp = MCPServer(
         "breaks the tests is automatically reverted; then call "
         "`run_coverage` to start the next cycle. Call `tdd_status` any time "
         "to see the current phase and what is allowed. Non-code files (docs, "
-        "config) can be written in any phase and don't run the tests."
+        "config) can be written in any phase and don't run the tests. Neither "
+        "do paths matching the server's `TDD_MCP_EXEMPT` patterns."
     ),
 )
 
 
 def new_service() -> TddService:
-    return TddService(ADAPTERS)
+    raw = os.environ.get(EXEMPT_ENV_VAR, "")
+    return TddService(ADAPTERS, [p.strip() for p in raw.split(",") if p.strip()])
 
 
 service = new_service()
