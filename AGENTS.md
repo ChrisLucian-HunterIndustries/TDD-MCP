@@ -29,6 +29,7 @@ The resulting code should be easy to read, limited in file length, appropriately
 Complete the prompt considering YAGNI and DRY concepts in software development. 
 In this repo, write `.py` files only through the `tdd` MCP server (`run_coverage` -> failing test -> passing code -> refactor); see the `tdd-cycle` skill. Call `tdd` tools strictly sequentially, and confirm each red fails for the intended reason before writing production code. If the `tdd` tools aren't loaded in the current session, drive the server over stdio with an MCP client script rather than bypassing the cycle. VS Code loads MCP servers from `.vscode/mcp.json`, Claude Code from `.mcp.json`: register a server in both.
 The running `tdd` server keeps its code from when it was started. After changing the server's own code, ask the user to restart it before relying on the fix.
+When built-in file tools are disabled, write non-code files through the `tdd` server (allowed in any started phase), and pass one-off scripts to `python -` on stdin instead of saving them.
 Commit each green or refactor step with the `racn` MCP `commit` tool. Run `git add` and `commit` sequentially, never in the same parallel batch (it races and fails).
 For anything that spawns test subprocesses, run the suite both with and without `--cov`: timing differences expose caching and race bugs.
 
