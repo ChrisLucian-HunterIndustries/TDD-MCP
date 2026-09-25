@@ -28,6 +28,12 @@ def test_runs_in_given_directory(tmp_path: Path):
     assert str(tmp_path) in run.output
 
 
+def test_extra_env_is_added_to_inherited_environment(tmp_path: Path):
+    code = "import os; print(os.environ['TDD_EXTRA'], 'PATH' in os.environ)"
+    run = run_suite(_python(code), tmp_path, EXIT_OUTCOMES, env={"TDD_EXTRA": "yes"})
+    assert "yes True" in run.output
+
+
 def test_unmapped_exit_code_is_an_error(tmp_path: Path):
     run = run_suite(_python("raise SystemExit(7)"), tmp_path, EXIT_OUTCOMES)
     assert run.outcome is Outcome.ERROR

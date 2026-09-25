@@ -52,4 +52,11 @@ class PythonAdapter:
         return self._pytest(root, "--cov", "--cov-report=term-missing")
 
     def _pytest(self, root: Path, *args: str) -> SuiteRun:
-        return run_suite([python_for(root), "-m", "pytest", *args], root, PYTEST_OUTCOMES)
+        # .pyc validation uses whole-second mtime and size, so caching bytecode
+        # could run stale code after a quick same-size edit or revert.
+        return run_suite(
+            [python_for(root), "-m", "pytest", *args],
+            root,
+            PYTEST_OUTCOMES,
+            env={"PYTHONDONTWRITEBYTECODE": "1"},
+        )

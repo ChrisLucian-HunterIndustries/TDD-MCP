@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -36,11 +37,17 @@ def run_suite(
     cwd: Path,
     exit_outcomes: Mapping[int, Outcome],
     timeout: float = DEFAULT_TIMEOUT_SECONDS,
+    env: Mapping[str, str] | None = None,
 ) -> SuiteRun:
     """Run a test command, mapping its exit code to an `Outcome` (unmapped codes are errors)."""
     try:
         result = subprocess.run(
-            list(command), cwd=cwd, capture_output=True, text=True, timeout=timeout
+            list(command),
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            env={**os.environ, **(env or {})},
         )
     except subprocess.TimeoutExpired:
         return SuiteRun(Outcome.ERROR, f"Test command timed out after {timeout} seconds")

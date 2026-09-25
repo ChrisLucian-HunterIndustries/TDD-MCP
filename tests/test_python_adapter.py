@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path, PurePath
 
@@ -72,6 +73,21 @@ def test_import_error_counts_as_failing(tmp_path: Path):
 
 def test_empty_suite_passes(tmp_path: Path):
     assert adapter.run_tests(tmp_path).outcome is Outcome.PASSED
+
+
+def test_never_runs_stale_bytecode(tmp_path: Path):
+    """Python trusts cached bytecode when source mtime and size are unchanged, as after a quick revert."""
+    project = _project(tmp_path, "assert add(2, 2) == 4")
+    source = project / "calc.py"
+    source.write_text("def add(a, b):\n    return a * b\n")
+    stat = source.stat()
+    assert adapter.run_tests(project).outcome is Outcome.PASSED
+
+    source.write_text("def add(a, b):\n    return a - b\n")
+    os.utime(source, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+
+    assert adapter.run_tests(project).outcome is Outcome.FAILED
+    assert not (project / "__pycache__").exists()
 
 
 def test_coverage_reports_missing_lines(tmp_path: Path):
