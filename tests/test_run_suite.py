@@ -38,6 +38,12 @@ def test_extra_env_is_added_to_inherited_environment(tmp_path: Path):
     assert "yes True" in run.output
 
 
+def test_output_is_decoded_as_utf8(tmp_path: Path):
+    code = "import sys; sys.stdout.buffer.write('\u2713 \u276f'.encode('utf-8'))"
+    run = run_suite(_python(code), tmp_path, EXIT_OUTCOMES)
+    assert "\u2713 \u276f" in run.output
+
+
 def test_unmapped_exit_code_is_an_error(tmp_path: Path):
     run = run_suite(_python("raise SystemExit(7)"), tmp_path, EXIT_OUTCOMES)
     assert run.outcome is Outcome.ERROR
