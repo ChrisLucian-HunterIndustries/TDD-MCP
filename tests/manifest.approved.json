@@ -34,8 +34,11 @@
         "input_schema": {
             "properties": {
                 "language": {
-                    "const": "python",
                     "default": "python",
+                    "enum": [
+                        "python",
+                        "typescript"
+                    ],
                     "title": "Language",
                     "type": "string"
                 },
