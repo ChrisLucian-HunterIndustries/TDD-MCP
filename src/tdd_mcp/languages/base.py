@@ -43,6 +43,7 @@ def run_suite(
     try:
         result = subprocess.run(
             list(command),
+            check=False,
             cwd=cwd,
             capture_output=True,
             text=True,
