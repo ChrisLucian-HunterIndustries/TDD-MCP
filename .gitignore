@@ -1,0 +1,83 @@
+*.py[cod]
+__pycache__/
+.pytest_cache
+.ruff_cache
+venv/
+.venv/
+.cache/
+
+# C extensions
+*.so
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+
+# Installer logs
+pip-log.txt
+
+# Unit test / coverage reports
+.coverage
+.tox
+nosetests.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+
+*.received.*
+*.executed_results.*
+*.swp
+.ropeproject/*
+.idea/*
+
+## File-based project format:
+*.iws
+
+## Plugin-specific files:
+
+# IntelliJ
+/out/
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# caches
+.cache/
+.pytest_cache
+__pycache__/
+
+# virtual environments
+virtualenv
+venv
+.venv/
+*.sqlite3
+.mypy_cache
+.DS_Store
+
+tests/approved_files/VerifyTests.test_verify_automatic_approval.approved.txt
+tests/approved_files/VerifyTests.test_verify_automatic_approval.approved.txt
+/a.txt
+junit-reports/TEST-results.xml
+
+.ignore/
+
+/setup.py

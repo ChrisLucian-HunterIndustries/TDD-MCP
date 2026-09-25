@@ -1,0 +1,21 @@
+[tools]
+python = "3.14"
+uv = "latest"
+
+[tasks.build_and_test]
+description = "Install dependencies and run the test suite"
+run = [
+    "uv sync",
+    "uv run pytest --cov --cov-report=term-missing",
+]
+
+[tasks.run]
+description = "Run the MCP server on stdio"
+run = "uv run test-driven-development-mcp"
+
+[tasks.format]
+description = "Format all code"
+run = [
+    "uv sync",
+    "uv run ruff format .",
+]
