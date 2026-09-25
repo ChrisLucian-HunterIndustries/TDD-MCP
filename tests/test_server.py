@@ -49,6 +49,13 @@ def test_refusal_reasons_reach_the_client(tmp_path: Path):
         asyncio.run(mcp.call_tool("write_file", arguments))
 
 
+def test_main_runs_the_server(monkeypatch):
+    calls = []
+    monkeypatch.setattr(mcp, "run", lambda: calls.append("run"))
+    server.main()
+    assert calls == ["run"]
+
+
 def test_server_instructions_explain_the_cycle():
     assert mcp.instructions is not None
     for word in ("run_coverage", "write_file", "edit_file", "fail", "refactor"):
