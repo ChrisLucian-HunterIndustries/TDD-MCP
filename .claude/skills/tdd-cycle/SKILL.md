@@ -38,3 +38,7 @@ Prefer `edit_file` over `write_file` for existing files; every write runs the wh
   `run_coverage` fail, save the change as a patch, run coverage, then re-apply it.
 - `run_coverage` language `typescript` needs `npm install -D vitest @vitest/coverage-v8` in the
   project; a missing runner is reported as an error, never as a failing test.
+- Editing the server's own entry in `.mcp.json` / `.vscode/mcp.json` makes the client restart
+  it, which resets the phase. Call `run_coverage` again if you see "No TDD cycle started".
+- Paths matching the server's `TDD_MCP_EXEMPT` patterns (set in the config's `env`) skip the
+  cycle entirely; the write result says "exempt from the TDD cycle".
