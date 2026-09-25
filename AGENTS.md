@@ -27,10 +27,14 @@ The resulting code should be easy to read, limited in file length, appropriately
 
 ## Make the easy change
 Complete the prompt considering YAGNI and DRY concepts in software development. 
+In this repo, write `.py` files only through the `tdd` MCP server (`run_coverage` -> failing test -> passing code -> refactor); see the `tdd-cycle` skill. If the `tdd` tools aren't loaded in the current session, drive the server over stdio with an MCP client script rather than bypassing the cycle.
+Commit each green or refactor step with the `racn` MCP `commit` tool. Run `git add` and `commit` sequentially, never in the same parallel batch (it races and fails).
+For anything that spawns test subprocesses, run the suite both with and without `--cov`: timing differences expose caching and race bugs.
 
 ## Security Review
 Evaluate for common OWASP pitfalls.
-Run automated audits like pip audit, npm audit and correct package issues.
+Run automated audits like pip audit, npm audit and correct package issues. For uv projects: `uv export --format requirements-txt --no-hashes --all-groups -o <tmp>` then `uvx pip-audit -r <tmp>`.
+For tools that take a path, verify root confinement against `..`, absolute paths, and symlinks.
 Evaluate for harder to detect problems with the system such as IDOR vulnerabilities.
 
 ## Scout Rule
@@ -43,11 +47,13 @@ Always leave the code better than you found it. Perform one of the following in 
 Learn from the tasks you complete:
 Always end all of our chats with a list of skills that you used.
 Always create new skills in your skills folder that you wish you had before starting the prompt. Actually write the file now.
+Personal skills go in `~/.copilot/skills/<name>/SKILL.md`; skills that teach use of this repo's own tools go in `.claude/skills/<name>/SKILL.md` and are committed.
 
 ## Double Loop Learning
 Learn from the process improvement opportunities:
 Always evaluate the the process used here using a lens of Lean Software Development, Agile, Systems Thinking, Safety, Security, and Continuous Improvement. 
 Always make the changes to the AGENTS.md with these changes. Update this very list you are reading now.
+When delegating research to a subagent, verify exact import paths and API names in the source before relying on them. Summaries can paraphrase them incorrectly (seen: `approvaltests.namer` vs `approvaltests.namer.templated_custom_namer`).
 
 ## Canary
 Always end all of our chats with "# 🪁" Emoji. It should render as a markdown header so the Emoji will be large.
