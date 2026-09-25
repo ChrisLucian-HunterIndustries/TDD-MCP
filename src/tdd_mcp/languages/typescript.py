@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path, PurePath
 
 from tdd_mcp.cycle import FileKind, Outcome
-from tdd_mcp.languages.base import SuiteRun
+from tdd_mcp.languages.base import SuiteRun, run_suite
 
 CODE_SUFFIXES = frozenset(
     {".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"}
@@ -17,6 +17,8 @@ MISSING_VITEST = (
     f"vitest not found at {VITEST_ENTRY}. "
     "Install it in the project: npm install -D vitest @vitest/coverage-v8"
 )
+# vitest exits 1 for failing tests and for import or syntax errors alike.
+VITEST_OUTCOMES = {0: Outcome.PASSED, 1: Outcome.FAILED}
 
 
 class TypeScriptAdapter:
@@ -35,10 +37,15 @@ class TypeScriptAdapter:
         return self._vitest(root)
 
     def run_coverage(self, root: Path) -> SuiteRun:
-        return self._vitest(root)
+        return self._vitest(root, "--coverage.enabled", "--coverage.reporter=text")
 
-    def _vitest(self, root: Path) -> SuiteRun:
+    def _vitest(self, root: Path, *args: str) -> SuiteRun:
+        entry = root / VITEST_ENTRY
         # Node also exits 1 for a missing module, which would pass for a failing test.
-        if not (root / VITEST_ENTRY).is_file():
+        if not entry.is_file():
             return SuiteRun(Outcome.ERROR, MISSING_VITEST)
-        raise NotImplementedError
+        return run_suite(
+            ["node", str(entry), "run", "--passWithNoTests", *args],
+            root,
+            VITEST_OUTCOMES,
+        )
