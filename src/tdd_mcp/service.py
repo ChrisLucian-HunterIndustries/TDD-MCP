@@ -108,7 +108,8 @@ class TddService:
         if any(fnmatch(relative.as_posix(), pattern) for pattern in self.exempt):
             change(target)
             return Report(
-                session.phase, f"Wrote {path} (exempt from the TDD cycle; tests not run)."
+                session.phase,
+                f"Wrote {path} (exempt from the TDD cycle; tests not run).",
             )
 
         kind = session.adapter.classify(relative)
