@@ -91,6 +91,13 @@ def test_replace_once_requires_exactly_one_match(
     assert target.read_text() == content
 
 
+def test_replace_once_matches_lf_text_in_crlf_file(tmp_path: Path):
+    target = tmp_path / "a.py"
+    target.write_bytes(b"a = 1\r\nb = 2\r\n")
+    replace_once(target, "a = 1\nb = 2\n", "a = 1\nb = 3\n")
+    assert target.read_bytes() == b"a = 1\r\nb = 3\r\n"
+
+
 def test_write_preserves_line_endings_verbatim(tmp_path: Path):
     target = tmp_path / "a.py"
     write_text(target, "a\r\nb\n")

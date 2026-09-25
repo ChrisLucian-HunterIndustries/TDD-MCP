@@ -38,6 +38,8 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
     if not target.is_file():
         raise WorkspaceError(f"File {target} does not exist")
     content = target.read_bytes().decode("utf-8")
+    if "\r\n" in content and "\r\n" not in old:
+        old, new = old.replace("\n", "\r\n"), new.replace("\n", "\r\n")
     count = content.count(old)
     if count != 1:
         raise WorkspaceError(f"Expected exactly one match of old_string, found {count}")
