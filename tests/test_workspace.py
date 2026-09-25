@@ -51,6 +51,11 @@ def test_write_text_creates_parent_directories(tmp_path: Path):
     assert target.read_text() == "x = 1\n"
 
 
+def test_write_text_refuses_to_overwrite_a_directory(tmp_path: Path):
+    with pytest.raises(WorkspaceError, match="is a directory"):
+        write_text(tmp_path, "x = 1\n")
+
+
 def test_restore_after_write_to_new_file_deletes_it(tmp_path: Path):
     target = tmp_path / "a.py"
     snapshot = write_text(target, "x = 1\n")

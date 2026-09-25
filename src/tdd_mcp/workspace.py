@@ -28,6 +28,8 @@ def resolve_inside(root: Path, path: str) -> Path:
 
 
 def write_text(target: Path, content: str) -> Snapshot:
+    if target.is_dir():
+        raise WorkspaceError(f"{target} is a directory")
     snapshot = _snapshot(target)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(content.encode("utf-8"))
