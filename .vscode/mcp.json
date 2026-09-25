@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "tdd": {
+      "type": "stdio",
+      "command": "mise",
+      "args": ["-C", "${workspaceFolder}", "run", "run"]
+    }
+  }
+}
