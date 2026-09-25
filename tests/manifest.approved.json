@@ -1,0 +1,153 @@
+[
+    {
+        "description": "Show the current TDD phase for a project and what may be written in it.\n\nArgs:\n    location: Path to the project root.\n",
+        "input_schema": {
+            "properties": {
+                "location": {
+                    "title": "Location",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "location"
+            ],
+            "title": "tdd_statusArguments",
+            "type": "object"
+        },
+        "name": "tdd_status",
+        "output_schema": {
+            "properties": {
+                "result": {
+                    "title": "Result",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "result"
+            ],
+            "title": "tdd_statusOutput",
+            "type": "object"
+        }
+    },
+    {
+        "description": "Run the full test suite with coverage. Starts each TDD cycle.\n\nIf every test passes, the cycle moves to the red phase, where a failing\ntest must be written before production code can change.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
+        "input_schema": {
+            "properties": {
+                "language": {
+                    "const": "python",
+                    "default": "python",
+                    "title": "Language",
+                    "type": "string"
+                },
+                "location": {
+                    "title": "Location",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "location"
+            ],
+            "title": "run_coverageArguments",
+            "type": "object"
+        },
+        "name": "run_coverage",
+        "output_schema": {
+            "properties": {
+                "result": {
+                    "title": "Result",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "result"
+            ],
+            "title": "run_coverageOutput",
+            "type": "object"
+        }
+    },
+    {
+        "description": "Create or overwrite a file, if the current TDD phase allows it, then run the tests.\n\nTest files may be written in the red and refactor phases; production\nfiles in the green and refactor phases. The test results decide the\nnext phase.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    content: The complete new file content.\n",
+        "input_schema": {
+            "properties": {
+                "content": {
+                    "title": "Content",
+                    "type": "string"
+                },
+                "location": {
+                    "title": "Location",
+                    "type": "string"
+                },
+                "path": {
+                    "title": "Path",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "location",
+                "path",
+                "content"
+            ],
+            "title": "write_fileArguments",
+            "type": "object"
+        },
+        "name": "write_file",
+        "output_schema": {
+            "properties": {
+                "result": {
+                    "title": "Result",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "result"
+            ],
+            "title": "write_fileOutput",
+            "type": "object"
+        }
+    },
+    {
+        "description": "Replace exactly one occurrence of `old_string` in a file, if the TDD phase allows it.\n\nSame phase rules and test run as `write_file`.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    old_string: Exact text to replace; must occur exactly once in the file.\n    new_string: Replacement text.\n",
+        "input_schema": {
+            "properties": {
+                "location": {
+                    "title": "Location",
+                    "type": "string"
+                },
+                "new_string": {
+                    "title": "New String",
+                    "type": "string"
+                },
+                "old_string": {
+                    "title": "Old String",
+                    "type": "string"
+                },
+                "path": {
+                    "title": "Path",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "location",
+                "path",
+                "old_string",
+                "new_string"
+            ],
+            "title": "edit_fileArguments",
+            "type": "object"
+        },
+        "name": "edit_file",
+        "output_schema": {
+            "properties": {
+                "result": {
+                    "title": "Result",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "result"
+            ],
+            "title": "edit_fileOutput",
+            "type": "object"
+        }
+    }
+]
