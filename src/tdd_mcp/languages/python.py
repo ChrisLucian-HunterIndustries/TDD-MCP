@@ -58,5 +58,5 @@ class PythonAdapter:
             [python_for(root), "-m", "pytest", *args],
             root,
             PYTEST_OUTCOMES,
-            env={"PYTHONDONTWRITEBYTECODE": "1"},
+            env={"PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8"},
         )

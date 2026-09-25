@@ -67,6 +67,13 @@ def test_failing_suite(tmp_path: Path):
     assert "assert 3 == 4" in run.output
 
 
+def test_non_ascii_output_survives(tmp_path: Path):
+    (tmp_path / "test_calc.py").write_text(
+        "def test_it():\n    assert '\u2713' == 'x'\n", encoding="utf-8"
+    )
+    assert "\u2713" in adapter.run_tests(tmp_path).output
+
+
 def test_import_error_counts_as_failing(tmp_path: Path):
     project = _project(tmp_path, "pass")
     (project / "test_calc.py").write_text("from calc import subtract\n")
