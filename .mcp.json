@@ -6,7 +6,10 @@
     },
     "tdd": {
       "command": "mise",
-      "args": ["-C", "c:\\Code\\TDD-MCP", "run", "run"]
+      "args": ["-C", "c:\\Code\\TDD-MCP", "run", "run"],
+      "env": {
+        "TDD_MCP_EXEMPT": ""
+      }
     }
   }
 }

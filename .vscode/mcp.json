@@ -3,7 +3,10 @@
     "tdd": {
       "type": "stdio",
       "command": "mise",
-      "args": ["-C", "${workspaceFolder}", "run", "run"]
+      "args": ["-C", "${workspaceFolder}", "run", "run"],
+      "env": {
+        "TDD_MCP_EXEMPT": ""
+      }
     }
   }
 }
