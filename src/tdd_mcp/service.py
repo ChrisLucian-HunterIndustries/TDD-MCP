@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
+from fnmatch import fnmatch
 from pathlib import Path
 
 from tdd_mcp.cycle import (
@@ -50,8 +51,12 @@ class _Session:
 
 
 class TddService:
-    def __init__(self, adapters: Mapping[str, LanguageAdapter]) -> None:
+    def __init__(
+        self, adapters: Mapping[str, LanguageAdapter], exempt: Sequence[str] = ()
+    ) -> None:
         self._adapters = adapters
+        # fnmatch patterns on root-relative POSIX paths; `*` also matches `/`.
+        self.exempt = tuple(exempt)
         self._sessions: dict[Path, _Session] = {}
 
     def status(self, location: str) -> Report:
@@ -99,7 +104,14 @@ class TddService:
             )
 
         target = resolve_inside(root, path)
-        kind = session.adapter.classify(target.relative_to(root))
+        relative = target.relative_to(root)
+        if any(fnmatch(relative.as_posix(), pattern) for pattern in self.exempt):
+            change(target)
+            return Report(
+                session.phase, f"Wrote {path} (exempt from the TDD cycle; tests not run)."
+            )
+
+        kind = session.adapter.classify(relative)
         if not may_write(session.phase, kind):
             raise TddError(
                 f"Writing {kind} files is not allowed in the {session.phase} phase. "

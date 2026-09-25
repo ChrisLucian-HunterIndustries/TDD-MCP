@@ -160,6 +160,26 @@ def test_non_code_files_are_written_without_running_tests(
     assert adapter.test_runs == 0
 
 
+@pytest.mark.parametrize("path", ["scripts/deploy.code", "scripts/test_deploy"])
+def test_exempt_paths_skip_the_cycle(adapter: FakeAdapter, tmp_path: Path, path: str):
+    service = TddService({"fake": adapter}, exempt=("scripts/*",))
+    _start(service, tmp_path)
+
+    report = service.write_file(str(tmp_path), path, "x")
+
+    assert report.phase is Phase.RED
+    assert "exempt" in report.message
+    assert (tmp_path / path).read_text() == "x"
+    assert adapter.test_runs == 0
+
+
+def test_exempt_patterns_do_not_match_other_paths(adapter: FakeAdapter, tmp_path: Path):
+    service = TddService({"fake": adapter}, exempt=("scripts/*",))
+    _start(service, tmp_path)
+    with pytest.raises(TddError, match="not allowed in the red phase"):
+        service.write_file(str(tmp_path), "src/calc.code", "x")
+
+
 def test_paths_outside_root_are_refused(service, tmp_path: Path):
     root = tmp_path / "root"
     root.mkdir()
