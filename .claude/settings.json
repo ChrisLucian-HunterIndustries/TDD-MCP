@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git commit*)",
+      "Edit(**/*.py)",
+      "Edit(**/*.pyi)",
+      "Write(**/*.py)",
+      "Write(**/*.pyi)"
+    ]
+  }
+}

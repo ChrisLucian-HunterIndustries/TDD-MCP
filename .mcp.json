@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "racn": {
+      "command": "mise",
+      "args": ["-C", "c:\\Code\\RiskAwareCommitNotationMcp", "run", "run"]
+    },
+    "tdd": {
+      "command": "mise",
+      "args": ["-C", "c:\\Code\\TDD-MCP", "run", "run"]
+    }
+  }
+}
