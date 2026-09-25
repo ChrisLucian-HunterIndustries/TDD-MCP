@@ -1,0 +1,17 @@
+name: Format
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4
+      - run: mise run format
+      - uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: ". a Auto-format code"

@@ -1,0 +1,15 @@
+name: Build and test
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-slim]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v4
+      - run: ./build_and_test
