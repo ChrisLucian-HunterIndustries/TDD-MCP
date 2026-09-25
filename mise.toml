@@ -1,6 +1,7 @@
 [tools]
 python = "3.14"
 uv = "latest"
+node = "lts"
 
 [tasks.build_and_test]
 description = "Install dependencies and run the test suite"
