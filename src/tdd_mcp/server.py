@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+
 from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 
 from tdd_mcp.languages import ADAPTERS, LanguageName
 from tdd_mcp.service import TddService
@@ -33,6 +37,15 @@ def new_service() -> TddService:
 service = new_service()
 
 
+@contextmanager
+def _refusals_as_tool_errors() -> Iterator[None]:
+    # MCPServer hides the text of any exception that isn't a ToolError.
+    try:
+        yield
+    except ValueError as e:
+        raise ToolError(str(e)) from e
+
+
 @mcp.tool()
 def tdd_status(location: str) -> str:
     """Show the current TDD phase for a project and what may be written in it.
@@ -40,7 +53,8 @@ def tdd_status(location: str) -> str:
     Args:
         location: Path to the project root.
     """
-    return service.status(location).render()
+    with _refusals_as_tool_errors():
+        return service.status(location).render()
 
 
 @mcp.tool()
@@ -54,7 +68,8 @@ def run_coverage(location: str, language: LanguageName = "python") -> str:
         location: Path to the project root.
         language: The project's language, which decides how tests are run.
     """
-    return service.run_coverage(location, language).render()
+    with _refusals_as_tool_errors():
+        return service.run_coverage(location, language).render()
 
 
 @mcp.tool()
@@ -70,7 +85,8 @@ def write_file(location: str, path: str, content: str) -> str:
         path: File path, relative to `location` (or absolute, inside it).
         content: The complete new file content.
     """
-    return service.write_file(location, path, content).render()
+    with _refusals_as_tool_errors():
+        return service.write_file(location, path, content).render()
 
 
 @mcp.tool()
@@ -85,7 +101,8 @@ def edit_file(location: str, path: str, old_string: str, new_string: str) -> str
         old_string: Exact text to replace; must occur exactly once in the file.
         new_string: Replacement text.
     """
-    return service.edit_file(location, path, old_string, new_string).render()
+    with _refusals_as_tool_errors():
+        return service.edit_file(location, path, old_string, new_string).render()
 
 
 def main() -> None:
