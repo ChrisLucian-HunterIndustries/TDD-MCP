@@ -10,7 +10,9 @@ Install [mise](https://mise.jdx.dev/), then:
 ./build_and_test        # or build_and_test.cmd on Windows
 ```
 
-This installs Python and uv, syncs dependencies, and runs the tests with coverage.
+This installs Python, uv, and Node, syncs dependencies, and runs the tests with coverage. The
+TypeScript adapter tests `npm install` vitest into a temporary project once per run, and are
+skipped when npm isn't available.
 
 Other tasks: `mise run run` (start the server on stdio), `mise run format` (ruff format).
 

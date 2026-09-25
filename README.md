@@ -27,7 +27,7 @@ trigger a test run.
 ## Tools
 
 - `tdd_status(location)` — current phase and what it allows.
-- `run_coverage(location, language="python")` — run the whole suite with coverage; starts each cycle.
+- `run_coverage(location, language="python")` — run the whole suite with coverage; starts each cycle. `language` is `python` or `typescript`.
 - `write_file(location, path, content)` — create or overwrite a file, then run the tests.
 - `edit_file(location, path, old_string, new_string)` — replace exactly one occurrence, then run the tests.
 
@@ -39,9 +39,11 @@ server starts again at `coverage_required`.
 | Language | Test files | Tests run with |
 |---|---|---|
 | `python` | `test_*.py`, `*_test.py`, `conftest.py`, anything under `test/` or `tests/` | the project's `.venv` interpreter (or the server's) running `pytest`, with `pytest-cov` for coverage |
+| `typescript` | `*.test.*`, `*.spec.*`, anything under `__tests__/`, `test/` or `tests/` (`.ts`, `.tsx`, `.mts`, `.cts`, and the `.js` equivalents) | the project's own `node_modules/vitest` via `node`, with `@vitest/coverage-v8` for coverage |
 
-A pytest collection error (such as importing a function that doesn't exist yet) counts as a failing
-test.
+A collection error (such as importing a function that doesn't exist yet) counts as a failing
+test. For TypeScript, install the runner in the project first: `npm install -D vitest @vitest/coverage-v8`.
+If vitest is missing, the run is reported as an error rather than a failing test.
 
 ## Running the server
 
@@ -68,7 +70,7 @@ For the cycle to be enforced, block the agent's built-in editing of code files. 
 add to `.claude/settings.json`:
 
 ```json
-{ "permissions": { "deny": ["Edit(**/*.py)", "Write(**/*.py)"] } }
+{ "permissions": { "deny": ["Edit(**/*.py)", "Write(**/*.py)", "Edit(**/*.ts)", "Write(**/*.ts)"] } }
 ```
 
 ## Contributing
