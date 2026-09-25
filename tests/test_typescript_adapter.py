@@ -1,8 +1,8 @@
-from pathlib import PurePath
+from pathlib import Path, PurePath
 
 import pytest
 
-from tdd_mcp.cycle import FileKind
+from tdd_mcp.cycle import FileKind, Outcome
 from tdd_mcp.languages.typescript import TypeScriptAdapter
 
 adapter = TypeScriptAdapter()
@@ -37,3 +37,10 @@ def test_classify(path: str, kind: FileKind):
 
 def test_name():
     assert adapter.name == "typescript"
+
+
+@pytest.mark.parametrize("run", [adapter.run_tests, adapter.run_coverage])
+def test_missing_vitest_is_an_error_not_a_failing_test(tmp_path: Path, run):
+    result = run(tmp_path)
+    assert result.outcome is Outcome.ERROR
+    assert "npm install -D vitest @vitest/coverage-v8" in result.output
