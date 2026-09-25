@@ -15,7 +15,13 @@ from tdd_mcp.cycle import (
     may_write,
 )
 from tdd_mcp.languages.base import LanguageAdapter
-from tdd_mcp.workspace import Snapshot, replace_once, resolve_inside, restore, write_text
+from tdd_mcp.workspace import (
+    Snapshot,
+    replace_once,
+    resolve_inside,
+    restore,
+    write_text,
+)
 
 OUTPUT_TAIL_CHARS = 6_000
 
@@ -67,22 +73,30 @@ class TddService:
         run = adapter.run_coverage(root)
         session.phase = after_coverage(session.phase, run.outcome)
         return Report(
-            session.phase, f"Coverage run {run.outcome}. {PHASE_GUIDANCE[session.phase]}", run.output
+            session.phase,
+            f"Coverage run {run.outcome}. {PHASE_GUIDANCE[session.phase]}",
+            run.output,
         )
 
     def write_file(self, location: str, path: str, content: str) -> Report:
         return self._apply(location, path, lambda target: write_text(target, content))
 
-    def edit_file(self, location: str, path: str, old_string: str, new_string: str) -> Report:
+    def edit_file(
+        self, location: str, path: str, old_string: str, new_string: str
+    ) -> Report:
         return self._apply(
             location, path, lambda target: replace_once(target, old_string, new_string)
         )
 
-    def _apply(self, location: str, path: str, change: Callable[[Path], Snapshot]) -> Report:
+    def _apply(
+        self, location: str, path: str, change: Callable[[Path], Snapshot]
+    ) -> Report:
         root = _root(location)
         session = self._sessions.get(root)
         if session is None:
-            raise TddError("No TDD cycle started for this location. Call run_coverage first.")
+            raise TddError(
+                "No TDD cycle started for this location. Call run_coverage first."
+            )
 
         target = resolve_inside(root, path)
         kind = session.adapter.classify(target.relative_to(root))
@@ -103,7 +117,9 @@ class TddService:
         if transition.revert:
             restore(snapshot)
             message += f" Refactoring must keep tests passing, so {path} was reverted."
-        return Report(session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output)
+        return Report(
+            session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
+        )
 
 
 def _root(location: str) -> Path:

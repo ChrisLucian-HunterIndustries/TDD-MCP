@@ -50,7 +50,9 @@ def test_python_for_prefers_project_venv(tmp_path: Path, relative: str):
 
 def _project(tmp_path: Path, test_body: str) -> Path:
     (tmp_path / "calc.py").write_text("def add(a, b):\n    return a + b\n")
-    (tmp_path / "test_calc.py").write_text(f"from calc import *\n\n\ndef test_it():\n    {test_body}\n")
+    (tmp_path / "test_calc.py").write_text(
+        f"from calc import *\n\n\ndef test_it():\n    {test_body}\n"
+    )
     return tmp_path
 
 

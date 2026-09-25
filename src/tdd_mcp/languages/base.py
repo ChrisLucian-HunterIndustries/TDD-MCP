@@ -50,12 +50,16 @@ def run_suite(
             env={**os.environ, **(env or {})},
         )
     except subprocess.TimeoutExpired:
-        return SuiteRun(Outcome.ERROR, f"Test command timed out after {timeout} seconds")
+        return SuiteRun(
+            Outcome.ERROR, f"Test command timed out after {timeout} seconds"
+        )
     except OSError as e:
         return SuiteRun(Outcome.ERROR, f"Could not run test command: {e}")
 
     output = result.stdout + result.stderr
     outcome = exit_outcomes.get(result.returncode)
     if outcome is None:
-        return SuiteRun(Outcome.ERROR, f"{output}\nUnexpected exit code {result.returncode}")
+        return SuiteRun(
+            Outcome.ERROR, f"{output}\nUnexpected exit code {result.returncode}"
+        )
     return SuiteRun(outcome, output)

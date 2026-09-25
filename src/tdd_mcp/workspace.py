@@ -21,7 +21,9 @@ def resolve_inside(root: Path, path: str) -> Path:
     resolved_root = root.resolve()
     target = (resolved_root / path).resolve()
     if not target.is_relative_to(resolved_root):
-        raise WorkspaceError(f"Path {path!r} is outside the project root {resolved_root}")
+        raise WorkspaceError(
+            f"Path {path!r} is outside the project root {resolved_root}"
+        )
     return target
 
 

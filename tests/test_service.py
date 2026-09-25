@@ -100,7 +100,10 @@ def test_full_cycle(service: TddService, adapter: FakeAdapter, tmp_path: Path):
     adapter.outcome = Outcome.PASSED
     assert service.write_file(location, "calc.code", "impl").phase is Phase.REFACTOR
 
-    assert service.edit_file(location, "calc.code", "impl", "better").phase is Phase.REFACTOR
+    assert (
+        service.edit_file(location, "calc.code", "impl", "better").phase
+        is Phase.REFACTOR
+    )
     assert (tmp_path / "calc.code").read_text() == "better"
 
     assert _start(service, tmp_path).phase is Phase.RED
@@ -133,7 +136,9 @@ def test_breaking_refactor_is_reverted(service, adapter, tmp_path: Path):
     assert (tmp_path / "calc.code").read_text() == "impl"
 
 
-def test_breaking_refactor_creating_new_file_is_removed(service, adapter, tmp_path: Path):
+def test_breaking_refactor_creating_new_file_is_removed(
+    service, adapter, tmp_path: Path
+):
     _to_refactor(service, adapter, tmp_path)
     adapter.outcome = Outcome.ERROR
 
@@ -142,7 +147,9 @@ def test_breaking_refactor_creating_new_file_is_removed(service, adapter, tmp_pa
     assert not (tmp_path / "extracted.code").exists()
 
 
-def test_non_code_files_are_written_without_running_tests(service, adapter, tmp_path: Path):
+def test_non_code_files_are_written_without_running_tests(
+    service, adapter, tmp_path: Path
+):
     adapter.outcome = Outcome.FAILED
     _start(service, tmp_path)
 

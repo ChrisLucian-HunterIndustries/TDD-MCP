@@ -1,6 +1,13 @@
 import pytest
 
-from tdd_mcp.cycle import FileKind, Outcome, Phase, after_coverage, after_write, may_write
+from tdd_mcp.cycle import (
+    FileKind,
+    Outcome,
+    Phase,
+    after_coverage,
+    after_write,
+    may_write,
+)
 
 
 @pytest.mark.parametrize(

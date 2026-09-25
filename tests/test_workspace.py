@@ -68,7 +68,9 @@ def test_replace_once_requires_existing_file(tmp_path: Path):
 
 
 @pytest.mark.parametrize(("content", "count"), [("x\n", 0), ("a\na\n", 2)])
-def test_replace_once_requires_exactly_one_match(tmp_path: Path, content: str, count: int):
+def test_replace_once_requires_exactly_one_match(
+    tmp_path: Path, content: str, count: int
+):
     target = tmp_path / "a.py"
     target.write_text(content)
     with pytest.raises(WorkspaceError, match=f"found {count}"):
