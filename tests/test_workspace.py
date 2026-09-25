@@ -32,6 +32,19 @@ def test_rejects_absolute_path_outside_root(tmp_path: Path):
         resolve_inside(tmp_path / "root", str(tmp_path / "other.py"))
 
 
+def test_rejects_symlink_escaping_root(tmp_path: Path):
+    root = tmp_path / "root"
+    root.mkdir()
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    try:
+        (root / "link").symlink_to(outside, target_is_directory=True)
+    except OSError:
+        pytest.skip("symlinks not permitted")
+    with pytest.raises(WorkspaceError, match="outside"):
+        resolve_inside(root, "link/escape.py")
+
+
 def test_write_text_creates_parent_directories(tmp_path: Path):
     target = tmp_path / "pkg" / "a.py"
     write_text(target, "x = 1\n")
