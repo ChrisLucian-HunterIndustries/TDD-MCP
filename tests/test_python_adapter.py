@@ -104,6 +104,17 @@ def test_run_reports_test_and_failure_counts(tmp_path: Path):
     assert (run.counts.tests, run.counts.failures) == (3, 1)
 
 
+def test_unimportable_test_file_counts_each_of_its_tests(tmp_path: Path):
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_calc.py").write_text(
+        "from calc import add, sub\n\n\n"
+        "def test_add():\n    assert add(1, 2) == 3\n\n\n"
+        "def test_sub():\n    assert sub(3, 2) == 1\n"
+    )
+    run = adapter.run_tests(tmp_path)
+    assert (run.counts.tests, run.counts.failures) == (2, 2)
+
+
 def test_unstartable_interpreter_is_an_error_without_counts(tmp_path: Path):
     for relative in (".venv/Scripts/python.exe", ".venv/bin/python"):
         (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
