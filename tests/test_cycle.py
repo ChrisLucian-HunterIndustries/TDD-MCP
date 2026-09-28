@@ -76,6 +76,14 @@ def test_disallowed_write_transition_is_rejected():
         after_write(Phase.RED, FileKind.PRODUCTION, Outcome.PASSED)
 
 
+def test_red_needs_exactly_one_failing_test():
+    transition = after_write(
+        Phase.RED, FileKind.TEST, Outcome.FAILED, failing=2, added=1
+    )
+    assert transition.phase is Phase.RED
+    assert "2 tests fail" in transition.reason
+
+
 def test_non_code_writes_cannot_advance_the_cycle():
     with pytest.raises(ValueError, match="only code files"):
         after_write(Phase.RED, FileKind.OTHER, Outcome.FAILED)
