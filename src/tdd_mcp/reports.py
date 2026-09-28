@@ -28,8 +28,10 @@ def uncovered_from_coverage_py(report: str, root: Path) -> dict[str, frozenset[i
     """Missing lines per file from a coverage.py JSON report, keyed by root-relative POSIX path."""
     uncovered = {}
     for name, data in json.loads(report)["files"].items():
-        if data["missing_lines"]:
-            uncovered[_relative(name, root)] = frozenset(data["missing_lines"])
+        partial = {source for source, _ in data.get("missing_branches", [])}
+        lines = frozenset(data["missing_lines"]) | partial
+        if lines:
+            uncovered[_relative(name, root)] = lines
     return uncovered
 
 
