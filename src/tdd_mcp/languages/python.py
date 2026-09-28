@@ -9,7 +9,7 @@ from pathlib import Path, PurePath
 
 from tdd_mcp.cycle import FileKind, Outcome
 from tdd_mcp.languages.base import SuiteRun, run_suite
-from tdd_mcp.reports import count_junit
+from tdd_mcp.reports import count_junit, uncovered_from_coverage_py
 
 CODE_SUFFIXES = frozenset({".py", ".pyi"})
 TEST_DIRECTORIES = frozenset({"test", "tests"})
@@ -57,14 +57,20 @@ class PythonAdapter:
         return self._pytest(root, *selection)
 
     def run_coverage(self, root: Path) -> SuiteRun:
-        # Keep coverage's data file out of the project so the working tree stays clean.
+        # Keep coverage's data and reports out of the project so the working tree stays clean.
         with tempfile.TemporaryDirectory(prefix="tdd-mcp-coverage-") as data_dir:
-            return self._pytest(
+            report = Path(data_dir) / "coverage.json"
+            run = self._pytest(
                 root,
                 "--cov",
                 "--cov-report=term-missing",
+                f"--cov-report=json:{report}",
                 extra_env={"COVERAGE_FILE": str(Path(data_dir) / ".coverage")},
             )
+            if not report.is_file():
+                return run
+            uncovered = uncovered_from_coverage_py(report.read_text(encoding="utf-8"), root)
+            return replace(run, uncovered=uncovered)
 
     def _pytest(
         self, root: Path, *args: str, extra_env: dict[str, str] | None = None
