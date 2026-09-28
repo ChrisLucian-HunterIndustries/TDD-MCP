@@ -104,6 +104,15 @@ def test_run_reports_test_and_failure_counts(tmp_path: Path):
     assert (run.counts.tests, run.counts.failures) == (3, 1)
 
 
+def test_unstartable_interpreter_is_an_error_without_counts(tmp_path: Path):
+    for relative in (".venv/Scripts/python.exe", ".venv/bin/python"):
+        (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / relative).write_text("not an executable")
+    run = adapter.run_tests(tmp_path)
+    assert run.outcome is Outcome.ERROR
+    assert run.counts is None
+
+
 def test_run_tests_in_one_folder(tmp_path: Path):
     run = adapter.run_tests(_two_test_files(tmp_path), path="tests")
     assert run.outcome is Outcome.PASSED
