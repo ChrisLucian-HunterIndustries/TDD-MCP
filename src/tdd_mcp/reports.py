@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import xml.etree.ElementTree as ElementTree
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass(frozen=True)
@@ -20,3 +22,17 @@ def count_junit(xml: str) -> SuiteCounts:
         tests += int(suite.get("tests", 0))
         failures += int(suite.get("failures", 0)) + int(suite.get("errors", 0))
     return SuiteCounts(tests=tests, failures=failures)
+
+
+def uncovered_from_coverage_py(report: str, root: Path) -> dict[str, frozenset[int]]:
+    """Missing lines per file from a coverage.py JSON report, keyed by root-relative POSIX path."""
+    uncovered = {}
+    for name, data in json.loads(report)["files"].items():
+        if data["missing_lines"]:
+            uncovered[_relative(name, root)] = frozenset(data["missing_lines"])
+    return uncovered
+
+
+def _relative(name: str, root: Path) -> str:
+    path = Path(name)
+    return (path.relative_to(root) if path.is_absolute() else path).as_posix()
