@@ -92,6 +92,15 @@ def test_red_rejects_adding_more_than_one_test():
     assert "3 tests were added" in transition.reason
 
 
+def test_refactor_that_adds_tests_is_reverted():
+    transition = after_write(
+        Phase.REFACTOR, FileKind.TEST, Outcome.PASSED, failing=0, added=1
+    )
+    assert transition.phase is Phase.REFACTOR
+    assert transition.revert is True
+    assert "must not add tests" in transition.reason
+
+
 def test_non_code_writes_cannot_advance_the_cycle():
     with pytest.raises(ValueError, match="only code files"):
         after_write(Phase.RED, FileKind.OTHER, Outcome.FAILED)
