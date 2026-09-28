@@ -301,7 +301,9 @@ def test_an_uncommitted_red_step_can_be_amended(service, adapter, tree, tmp_path
     assert (tmp_path / "test_calc").read_text() == "failing for the right one"
 
 
-def test_a_coverage_run_ends_the_uncommitted_step(service, adapter, tree, tmp_path: Path):
+def test_a_coverage_run_ends_the_uncommitted_step(
+    service, adapter, tree, tmp_path: Path
+):
     _to_refactor(service, adapter, tmp_path)
     service.edit_file(str(tmp_path), "calc.code", "impl", "tidy")
     tree.changes = [" M calc.code"]
