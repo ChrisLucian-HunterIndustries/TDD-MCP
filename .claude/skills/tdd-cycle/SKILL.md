@@ -7,16 +7,21 @@ description: Use when changing code files in a repository that has the `tdd` MCP
 
 1. `run_coverage(location)` — must pass. Read the Missing column: untested lines are
    candidates for the next test.
-2. **Red**: `write_file`/`edit_file` a test file. Keep going until the response says
-   `Phase: green`. A collection error (importing something that doesn't exist yet) counts.
+2. **Red**: add exactly **one** test that fails. Red only advances when exactly one test fails
+   and at most one test was added since the coverage run, so never write a batch. A collection
+   error (importing something that doesn't exist yet) counts; a Python file that can't import
+   counts as every `test*` function in it.
    A test that already passes keeps you in red — that's a characterization test; fine to keep.
    Commit the failing test on its own: `. t` (racn `test_only`, `proven_safe`).
 3. **Green**: change production code only, as little as possible, until `Phase: refactor`.
-   Tests are locked — don't try to weaken the test to get green.
+   Tests are locked — don't try to weaken the test to get green. Don't write code for cases no
+   test exercises yet: the next `run_coverage` refuses to start a cycle while any production
+   line changed this cycle is uncovered.
    Commit the code alone: `^ f` (racn `feature`, `validated`), or `^ b` for a bugfix.
-4. **Refactor**: tidy test or production code. A write that breaks the suite is reverted
-   automatically; read the output and make a smaller step. Commit each step: `. r`.
-5. `run_coverage` to start the next cycle.
+4. **Refactor**: tidy test or production code. A write that breaks the suite or adds a test is
+   reverted automatically; read the output and make a smaller step. Commit each step: `. r`.
+5. `run_coverage` to start the next cycle. If it lists uncovered changed lines
+   ("calc.py: 6"), delete that code in refactor (adding a test there is reverted), commit, rerun.
 
 The server refuses every edit while `git status` shows uncommitted changes under the
 project, so each step has to be committed before the next edit.
