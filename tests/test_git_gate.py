@@ -3,11 +3,13 @@ from pathlib import Path
 
 import pytest
 
-from tdd_mcp.git_gate import GitError, uncommitted_changes
+from tdd_mcp.git_gate import GitError, head_commit, uncommitted_changes
 
 
-def _git(cwd: Path, *args: str) -> None:
-    subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
+def _git(cwd: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", *args], cwd=cwd, check=True, capture_output=True, text=True
+    ).stdout
 
 
 @pytest.fixture
@@ -57,3 +59,7 @@ def test_only_considers_changes_under_the_given_directory(repo: Path):
 def test_outside_a_repository_is_an_error(tmp_path: Path):
     with pytest.raises(GitError, match="not a git repository"):
         uncommitted_changes(tmp_path)
+
+
+def test_head_commit_is_the_checked_out_commit(repo: Path):
+    assert head_commit(repo) == _git(repo, "rev-parse", "HEAD").strip()
