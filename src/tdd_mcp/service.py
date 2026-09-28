@@ -185,7 +185,7 @@ class TddService:
             message += f" {transition.reason}"
         if transition.revert:
             restore(snapshot)
-            message += f" Refactoring must keep tests passing, so {path} was reverted."
+            message += f" {path} was reverted."
         return Report(
             session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
         )
