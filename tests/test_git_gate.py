@@ -73,3 +73,9 @@ def test_changed_lines_lists_added_and_modified_lines_since_a_commit(repo: Path)
     _git(repo, "commit", "-am", "change")
 
     assert changed_lines(repo, base) == {"a.txt": frozenset({2, 4})}
+
+
+def test_changed_lines_counts_every_line_of_untracked_files(repo: Path):
+    (repo / "src").mkdir()
+    (repo / "src" / "new.py").write_text("x = 1\ny = 2\n")
+    assert changed_lines(repo, head_commit(repo)) == {"src/new.py": frozenset({1, 2})}
