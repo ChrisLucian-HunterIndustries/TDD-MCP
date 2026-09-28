@@ -5,17 +5,19 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from fnmatch import fnmatch
-from pathlib import Path
+from pathlib import Path, PurePath
+from typing import Protocol
 
 from tdd_mcp.cycle import (
     PHASE_GUIDANCE,
     FileKind,
+    Outcome,
     Phase,
     after_coverage,
     after_write,
     may_write,
 )
-from tdd_mcp.languages.base import LanguageAdapter
+from tdd_mcp.languages.base import LanguageAdapter, SuiteRun
 from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.workspace import (
     Snapshot,
@@ -30,6 +32,12 @@ OUTPUT_TAIL_CHARS = 6_000
 
 class TddError(ValueError):
     """Raised when a request would break the TDD cycle or is otherwise invalid."""
+
+
+class History(Protocol):
+    def head_commit(self, root: Path) -> str: ...
+
+    def changed_lines(self, root: Path, base: str) -> dict[str, frozenset[int]]: ...
 
 
 @dataclass(frozen=True)
@@ -51,6 +59,8 @@ class _Session:
     phase: Phase = Phase.COVERAGE_REQUIRED
     # Test count at the last coverage run: the baseline new tests are counted against.
     tests: int = 0
+    # Commit the current cycle started from; its changes must all be covered by tests.
+    base: str | None = None
 
 
 class TddService:
@@ -59,10 +69,12 @@ class TddService:
         adapters: Mapping[str, LanguageAdapter],
         *,
         pending_changes: Callable[[Path], list[str]],
+        history: History | None = None,
         exempt: Sequence[str] = (),
     ) -> None:
         self._adapters = adapters
         self._pending_changes = pending_changes
+        self._history = history
         # fnmatch patterns on root-relative POSIX paths; `*` also matches `/`.
         self.exempt = tuple(exempt)
         self._sessions: dict[Path, _Session] = {}
@@ -84,13 +96,27 @@ class TddService:
             session = self._sessions[root] = _Session(adapter)
 
         run = adapter.run_coverage(root)
-        session.phase = after_coverage(session.phase, run.outcome)
+        untested = self._untested_changes(session, root, run)
+        session.phase = after_coverage(
+            session.phase, run.outcome, untested_changes=bool(untested)
+        )
         if run.counts:
             session.tests = run.counts.tests
+        if session.phase is Phase.RED and self._history:
+            session.base = self._history.head_commit(root)
+        message = f"Coverage run {run.outcome}."
+        if untested:
+            listed = "; ".join(
+                f"{path}: {', '.join(map(str, sorted(lines)))}"
+                for path, lines in sorted(untested.items())
+            )
+            message += (
+                " Production lines changed this cycle aren't covered by any test: "
+                f"{listed}. Remove code no test requires; the next cycle can't start "
+                "until every changed line is covered."
+            )
         return Report(
-            session.phase,
-            f"Coverage run {run.outcome}. {PHASE_GUIDANCE[session.phase]}",
-            run.output,
+            session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
         )
 
     def write_file(self, location: str, path: str, content: str) -> Report:
@@ -125,6 +151,20 @@ class TddService:
             f"Tests {run.outcome} (not a coverage run; phase unchanged).",
             run.output,
         )
+
+    def _untested_changes(
+        self, session: _Session, root: Path, run: SuiteRun
+    ) -> dict[str, frozenset[int]]:
+        if not self._history or session.base is None or run.outcome is not Outcome.PASSED:
+            return {}
+        untested = {}
+        for path, lines in self._history.changed_lines(root, session.base).items():
+            if session.adapter.classify(PurePath(path)) is not FileKind.PRODUCTION:
+                continue
+            missed = lines & run.uncovered.get(path, frozenset())
+            if missed:
+                untested[path] = missed
+        return untested
 
     def _started(self, root: Path) -> _Session:
         session = self._sessions.get(root)
