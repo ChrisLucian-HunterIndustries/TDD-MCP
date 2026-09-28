@@ -45,8 +45,13 @@ class PythonAdapter:
         )
         return FileKind.TEST if is_test else FileKind.PRODUCTION
 
-    def run_tests(self, root: Path) -> SuiteRun:
-        return self._pytest(root)
+    def run_tests(
+        self, root: Path, path: str | None = None, test_name: str | None = None
+    ) -> SuiteRun:
+        selection = [path] if path else []
+        if test_name:
+            selection += ["-k", test_name]
+        return self._pytest(root, *selection)
 
     def run_coverage(self, root: Path) -> SuiteRun:
         return self._pytest(root, "--cov", "--cov-report=term-missing")

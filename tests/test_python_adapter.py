@@ -84,6 +84,40 @@ def test_empty_suite_passes(tmp_path: Path):
     assert adapter.run_tests(tmp_path).outcome is Outcome.PASSED
 
 
+def _two_test_files(tmp_path: Path) -> Path:
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_good.py").write_text(
+        "def test_one():\n    pass\n\n\ndef test_two():\n    pass\n"
+    )
+    (tmp_path / "test_bad.py").write_text("def test_bad():\n    assert False\n")
+    return tmp_path
+
+
+def test_run_tests_in_one_file(tmp_path: Path):
+    run = adapter.run_tests(_two_test_files(tmp_path), path="tests/test_good.py")
+    assert run.outcome is Outcome.PASSED
+    assert "2 passed" in run.output
+
+
+def test_run_tests_in_one_folder(tmp_path: Path):
+    run = adapter.run_tests(_two_test_files(tmp_path), path="tests")
+    assert run.outcome is Outcome.PASSED
+    assert "2 passed" in run.output
+
+
+def test_run_single_test_by_name(tmp_path: Path):
+    run = adapter.run_tests(_two_test_files(tmp_path), test_name="test_two")
+    assert run.outcome is Outcome.PASSED
+    assert "1 passed" in run.output
+
+
+def test_run_single_test_in_file(tmp_path: Path):
+    project = _two_test_files(tmp_path)
+    run = adapter.run_tests(project, path="test_bad.py", test_name="test_bad")
+    assert run.outcome is Outcome.FAILED
+    assert "1 failed" in run.output
+
+
 def test_never_runs_stale_bytecode(tmp_path: Path):
     """Python trusts cached bytecode when source mtime and size are unchanged, as after a quick revert."""
     project = _project(tmp_path, "assert add(2, 2) == 4")
