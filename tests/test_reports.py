@@ -1,7 +1,12 @@
 import json
 from pathlib import Path
 
-from tdd_mcp.reports import SuiteCounts, count_junit, uncovered_from_coverage_py
+from tdd_mcp.reports import (
+    SuiteCounts,
+    count_junit,
+    uncovered_from_coverage_py,
+    uncovered_from_istanbul,
+)
 
 PYTEST_JUNIT = """<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests">
 <testsuite name="pytest" errors="1" failures="1" skipped="2" tests="5">
@@ -26,4 +31,25 @@ def test_coverage_py_json_lists_missing_lines_by_root_relative_path(tmp_path: Pa
     assert uncovered_from_coverage_py(report, tmp_path) == {
         "src/calc.py": frozenset({6, 7}),
         "other.py": frozenset({2}),
+    }
+
+
+def test_istanbul_json_lists_lines_of_unexecuted_statements(tmp_path: Path):
+    def statement(line: int) -> dict:
+        return {"start": {"line": line, "column": 0}, "end": {"line": line}}
+
+    report = json.dumps(
+        {
+            str(tmp_path / "src" / "calc.ts"): {
+                "statementMap": {"0": statement(1), "1": statement(3), "2": statement(4)},
+                "s": {"0": 1, "1": 0, "2": 0},
+            },
+            str(tmp_path / "covered.ts"): {
+                "statementMap": {"0": statement(1)},
+                "s": {"0": 2},
+            },
+        }
+    )
+    assert uncovered_from_istanbul(report, tmp_path) == {
+        "src/calc.ts": frozenset({3, 4})
     }
