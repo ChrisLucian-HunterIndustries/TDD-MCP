@@ -186,3 +186,11 @@ def test_coverage_reports_uncovered_lines_by_file(tmp_path: Path):
         "def add(a, b):\n    return a + b\n\n\ndef unused():\n    return 0\n"
     )
     assert adapter.run_coverage(project).uncovered["calc.py"] == frozenset({6})
+
+
+def test_coverage_reports_lines_with_untaken_branches(tmp_path: Path):
+    project = _project(tmp_path, "assert add(1, 2) == 3")
+    (project / "calc.py").write_text(
+        "def add(a, b):\n    if a > 0:\n        b += 0\n    return a + b\n"
+    )
+    assert adapter.run_coverage(project).uncovered["calc.py"] == frozenset({2})
