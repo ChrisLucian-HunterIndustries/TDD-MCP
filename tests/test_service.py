@@ -4,6 +4,7 @@ import pytest
 
 from tdd_mcp.cycle import FileKind, Outcome, Phase
 from tdd_mcp.languages.base import SuiteRun
+from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.service import Report, TddError, TddService
 from tdd_mcp.workspace import WorkspaceError
 
@@ -15,6 +16,8 @@ class FakeAdapter:
 
     def __init__(self) -> None:
         self.outcome = Outcome.PASSED
+        self.counts = SuiteCounts(tests=0, failures=0)
+        self.uncovered: dict[str, frozenset[int]] = {}
         self.test_runs = 0
         self.selections: list[tuple[str | None, str | None]] = []
 
@@ -30,10 +33,10 @@ class FakeAdapter:
     ) -> SuiteRun:
         self.test_runs += 1
         self.selections.append((path, test_name))
-        return SuiteRun(self.outcome, "test output")
+        return SuiteRun(self.outcome, "test output", self.counts)
 
     def run_coverage(self, root: Path) -> SuiteRun:
-        return SuiteRun(self.outcome, "coverage output")
+        return SuiteRun(self.outcome, "coverage output", self.counts, self.uncovered)
 
 
 class FakeTree:
