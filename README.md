@@ -28,6 +28,7 @@ trigger a test run.
 
 - `tdd_status(location)` — current phase and what it allows.
 - `run_coverage(location, language="python")` — run the whole suite with coverage; starts each cycle. `language` is `python` or `typescript`.
+- `run_tests(location, path=None, test_name=None)` — run tests without coverage, for fast iteration. By default it runs every test; `path` narrows it to a test file or folder, and `test_name` to matching tests (pytest `-k`, vitest `-t`). It never changes the phase: only `run_coverage` and the test runs that writes trigger do that.
 - `write_file(location, path, content)` — create or overwrite a file, then run the tests.
 - `edit_file(location, path, old_string, new_string)` — replace exactly one occurrence, then run the tests.
 
