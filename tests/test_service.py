@@ -169,6 +169,35 @@ def test_refactor_counts_the_cycles_new_test_as_existing(
     assert (tmp_path / "calc.code").read_text() == "tidy"
 
 
+class FakeHistory:
+    def __init__(self) -> None:
+        self.head = "base"
+        self.changed: dict[str, frozenset[int]] = {}
+
+    def head_commit(self, root: Path) -> str:
+        return self.head
+
+    def changed_lines(self, root: Path, base: str) -> dict[str, frozenset[int]]:
+        assert base == "base"
+        return self.changed
+
+
+def test_coverage_holds_the_phase_while_changed_production_lines_are_untested(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    history.changed = {"calc.code": frozenset({1, 2, 3}), "test_calc": frozenset({1})}
+    adapter.uncovered = {"calc.code": frozenset({3, 9}), "test_calc": frozenset({1})}
+
+    report = _start(service, tmp_path)
+
+    assert report.phase is Phase.REFACTOR
+    assert "calc.code: 3." in report.message
+    assert "test_calc" not in report.message
+
+
 def _to_refactor(service: TddService, adapter: FakeAdapter, root: Path) -> None:
     _start(service, root)
     adapter.outcome = Outcome.FAILED
