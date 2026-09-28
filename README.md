@@ -35,6 +35,22 @@ trigger a test run.
 Paths must resolve inside `location`. Cycle state is kept in memory per project, so restarting the
 server starts again at `coverage_required`.
 
+### Commit every step
+
+`write_file` and `edit_file` refuse to run while `git status` shows uncommitted changes (staged,
+unstaged, or untracked; ignored files don't count) anywhere under `location`. This applies to
+every file, including non-code and exempt files. Each step must be committed before the next
+edit, which gives a history like:
+
+```
+. t Add failing test for add()
+^ f Implement add()
+. r Extract helper
+```
+
+The project must be a git repository. `run_coverage`, `run_tests`, and `tdd_status` aren't gated,
+and Python coverage data is written to a temp directory so coverage runs don't dirty the tree.
+
 ## Languages
 
 | Language | Test files | Tests run with |
