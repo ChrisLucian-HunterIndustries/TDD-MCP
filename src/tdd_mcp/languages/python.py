@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import sys
 import tempfile
+from dataclasses import replace
 from pathlib import Path, PurePath
 
 from tdd_mcp.cycle import FileKind, Outcome
 from tdd_mcp.languages.base import SuiteRun, run_suite
+from tdd_mcp.reports import count_junit
 
 CODE_SUFFIXES = frozenset({".py", ".pyi"})
 TEST_DIRECTORIES = frozenset({"test", "tests"})
@@ -67,15 +69,28 @@ class PythonAdapter:
     def _pytest(
         self, root: Path, *args: str, extra_env: dict[str, str] | None = None
     ) -> SuiteRun:
-        # .pyc validation uses whole-second mtime and size, so caching bytecode
-        # could run stale code after a quick same-size edit or revert.
-        return run_suite(
-            [python_for(root), "-m", "pytest", *args],
-            root,
-            PYTEST_OUTCOMES,
-            env={
-                "PYTHONDONTWRITEBYTECODE": "1",
-                "PYTHONIOENCODING": "utf-8",
-                **(extra_env or {}),
-            },
-        )
+        with tempfile.TemporaryDirectory(prefix="tdd-mcp-junit-") as report_dir:
+            junit = Path(report_dir) / "junit.xml"
+            # .pyc validation uses whole-second mtime and size, so caching bytecode
+            # could run stale code after a quick same-size edit or revert.
+            run = run_suite(
+                [
+                    python_for(root),
+                    "-m",
+                    "pytest",
+                    # Otherwise one import error hides every other test from the count.
+                    "--continue-on-collection-errors",
+                    f"--junitxml={junit}",
+                    *args,
+                ],
+                root,
+                PYTEST_OUTCOMES,
+                env={
+                    "PYTHONDONTWRITEBYTECODE": "1",
+                    "PYTHONIOENCODING": "utf-8",
+                    **(extra_env or {}),
+                },
+            )
+            if not junit.is_file():
+                return run
+            return replace(run, counts=count_junit(junit.read_text(encoding="utf-8")))
