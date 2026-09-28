@@ -150,7 +150,9 @@ def test_run_single_test_by_name(project: Path):
 
 
 def test_run_single_test_in_file(project: Path):
-    run = adapter.run_tests(_two_test_files(project), path="bad.test.ts", test_name="bad")
+    run = adapter.run_tests(
+        _two_test_files(project), path="bad.test.ts", test_name="bad"
+    )
     assert run.outcome is Outcome.FAILED
     assert "1 failed" in run.output
 
