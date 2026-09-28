@@ -31,6 +31,8 @@ In this repo, write `.py` files only through the `tdd` MCP server (`run_coverage
 The running `tdd` server keeps its code from when it was started. After changing the server's own code, ask the user to restart it before relying on the fix.
 When built-in file tools are disabled, write non-code files through the `tdd` server (allowed in any started phase), and pass one-off scripts to `python -` on stdin instead of saving them.
 Commit each green or refactor step with the `racn` MCP `commit` tool. Run `git add` and `commit` sequentially, never in the same parallel batch (it races and fails).
+When one request spans several commits, group them with an inline racn theme (`theme_slug` + `theme_mode="inline"`).
+Before relying on a new test, reread its assertions: one that can never fail (e.g. `x == [...] or x`) is a false red/green.
 For anything that spawns test subprocesses, run the suite both with and without `--cov`: timing differences expose caching and race bugs.
 
 ## Security Review
