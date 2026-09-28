@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import tempfile
 from pathlib import Path, PurePath
 
 from tdd_mcp.cycle import FileKind, Outcome
@@ -54,14 +55,27 @@ class PythonAdapter:
         return self._pytest(root, *selection)
 
     def run_coverage(self, root: Path) -> SuiteRun:
-        return self._pytest(root, "--cov", "--cov-report=term-missing")
+        # Keep coverage's data file out of the project so the working tree stays clean.
+        with tempfile.TemporaryDirectory(prefix="tdd-mcp-coverage-") as data_dir:
+            return self._pytest(
+                root,
+                "--cov",
+                "--cov-report=term-missing",
+                extra_env={"COVERAGE_FILE": str(Path(data_dir) / ".coverage")},
+            )
 
-    def _pytest(self, root: Path, *args: str) -> SuiteRun:
+    def _pytest(
+        self, root: Path, *args: str, extra_env: dict[str, str] | None = None
+    ) -> SuiteRun:
         # .pyc validation uses whole-second mtime and size, so caching bytecode
         # could run stale code after a quick same-size edit or revert.
         return run_suite(
             [python_for(root), "-m", "pytest", *args],
             root,
             PYTEST_OUTCOMES,
-            env={"PYTHONDONTWRITEBYTECODE": "1", "PYTHONIOENCODING": "utf-8"},
+            env={
+                "PYTHONDONTWRITEBYTECODE": "1",
+                "PYTHONIOENCODING": "utf-8",
+                **(extra_env or {}),
+            },
         )
