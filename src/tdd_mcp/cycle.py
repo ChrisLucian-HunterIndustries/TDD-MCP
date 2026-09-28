@@ -76,6 +76,11 @@ def after_write(
     if not may_write(phase, kind):
         raise ValueError(f"Writing {kind} files is not allowed in the {phase} phase")
     if phase is Phase.RED:
+        if added > 1:
+            return Transition(
+                Phase.RED,
+                reason=f"{added} tests were added since the last coverage run; add exactly one.",
+            )
         if outcome is Outcome.FAILED and failing > 1:
             return Transition(
                 Phase.RED,
