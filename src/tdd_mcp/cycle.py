@@ -89,4 +89,10 @@ def after_write(
         return Transition(Phase.GREEN if outcome is Outcome.FAILED else Phase.RED)
     if phase is Phase.GREEN:
         return Transition(Phase.REFACTOR if outcome is Outcome.PASSED else Phase.GREEN)
+    if added > 0:
+        return Transition(
+            Phase.REFACTOR,
+            revert=True,
+            reason=f"Refactoring must not add tests ({added} added); new behaviour needs its own red phase.",
+        )
     return Transition(Phase.REFACTOR, revert=outcome is not Outcome.PASSED)
