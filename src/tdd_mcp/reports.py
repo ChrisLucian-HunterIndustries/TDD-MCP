@@ -36,17 +36,28 @@ def uncovered_from_coverage_py(report: str, root: Path) -> dict[str, frozenset[i
 
 
 def uncovered_from_istanbul(report: str, root: Path) -> dict[str, frozenset[int]]:
-    """Start lines of unexecuted statements per file from an istanbul JSON report."""
+    """Start lines of unexecuted statements and untaken branches per file from an istanbul JSON report."""
     uncovered = {}
     for name, data in json.loads(report).items():
         lines = frozenset(
             data["statementMap"][statement]["start"]["line"]
             for statement, hits in data["s"].items()
             if hits == 0
-        )
+        ) | _untaken_branch_lines(data)
         if lines:
             uncovered[_relative(name, root)] = lines
     return uncovered
+
+
+def _untaken_branch_lines(data: dict) -> frozenset[int]:
+    lines = set()
+    for branch, counts in data.get("b", {}).items():
+        mapping = data["branchMap"][branch]
+        for location, hits in zip(mapping["locations"], counts):
+            if hits == 0:
+                start = location["start"] or mapping["loc"]["start"]
+                lines.add(start["line"])
+    return frozenset(lines)
 
 
 def _relative(name: str, root: Path) -> str:
