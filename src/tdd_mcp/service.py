@@ -98,6 +98,7 @@ class TddService:
             session = self._sessions[root] = _Session(adapter)
 
         run = adapter.run_coverage(root)
+        session.step = None
         untested = self._untested_changes(session, root, run)
         session.phase = after_coverage(
             session.phase, run.outcome, untested_changes=bool(untested)
