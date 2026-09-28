@@ -10,8 +10,9 @@ refactor. Call `tdd_status` if unsure what the current phase allows.
 Always use the `racn` MCP server's `commit` tool to commit changes in this
 repository. Never run `git commit` from the command line — it is blocked.
 Stage with `git add` and commit in separate, sequential steps (never in
-parallel). Prefer small, focused microcommits: typically one per completed
-green or refactor step.
+parallel). Commit every TDD step separately: the failing test as `. t`, the
+code that passes it as `^ f` (or `^ b`), each refactoring as `. r`. The `tdd`
+server refuses edits until the previous step is committed.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, running the server, and
 development notes.

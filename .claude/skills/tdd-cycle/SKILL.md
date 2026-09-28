@@ -10,14 +10,21 @@ description: Use when changing code files in a repository that has the `tdd` MCP
 2. **Red**: `write_file`/`edit_file` a test file. Keep going until the response says
    `Phase: green`. A collection error (importing something that doesn't exist yet) counts.
    A test that already passes keeps you in red — that's a characterization test; fine to keep.
+   Commit the failing test on its own: `. t` (racn `test_only`, `proven_safe`).
 3. **Green**: change production code only, as little as possible, until `Phase: refactor`.
    Tests are locked — don't try to weaken the test to get green.
+   Commit the code alone: `^ f` (racn `feature`, `validated`), or `^ b` for a bugfix.
 4. **Refactor**: tidy test or production code. A write that breaks the suite is reverted
-   automatically; read the output and make a smaller step.
-5. Commit (e.g. with the `racn` MCP), then `run_coverage` to start the next cycle.
+   automatically; read the output and make a smaller step. Commit each step: `. r`.
+5. `run_coverage` to start the next cycle.
+
+The server refuses every edit while `git status` shows uncommitted changes under the
+project, so each step has to be committed before the next edit.
 
 ## When refused
 
+- "Uncommitted changes in ..." — commit the listed changes (sequentially: `git add`, then the
+  racn `commit` tool), then retry the edit.
 - "No TDD cycle started" — call `run_coverage` first (server restarts reset state).
 - "not allowed in the red phase" for production code — write the failing test first.
 - "not allowed in the green phase" for a test — finish green first; fix the test in refactor.
