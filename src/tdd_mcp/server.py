@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
 
+from tdd_mcp.git_gate import uncommitted_changes
 from tdd_mcp.languages import ADAPTERS, LanguageName
 from tdd_mcp.service import TddService
 
@@ -41,7 +42,7 @@ def new_service() -> TddService:
     raw = os.environ.get(EXEMPT_ENV_VAR, "")
     return TddService(
         ADAPTERS,
-        pending_changes=lambda root: [],
+        pending_changes=uncommitted_changes,
         exempt=[p.strip() for p in raw.split(",") if p.strip()],
     )
 
