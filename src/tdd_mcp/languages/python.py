@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import ast
 import sys
 import tempfile
 from dataclasses import replace
 from pathlib import Path, PurePath
+from xml.etree import ElementTree
 
 from tdd_mcp.cycle import FileKind, Outcome
 from tdd_mcp.languages.base import SuiteRun, run_suite
-from tdd_mcp.reports import count_junit, uncovered_from_coverage_py
+from tdd_mcp.reports import SuiteCounts, count_junit, uncovered_from_coverage_py
 
 CODE_SUFFIXES = frozenset({".py", ".pyi"})
 TEST_DIRECTORIES = frozenset({"test", "tests"})
@@ -32,6 +34,32 @@ def python_for(root: Path) -> str:
         if candidate.is_file():
             return str(candidate)
     return sys.executable
+
+
+def count_pytest_junit(xml: str, root: Path) -> SuiteCounts:
+    """JUnit counts, with an unimportable test file counted as the tests it defines.
+
+    pytest reports a test file that fails to import as a single errored entry,
+    which would hide how many tests the file adds.
+    """
+    counts = count_junit(xml)
+    hidden = 0
+    for case in ElementTree.fromstring(xml).iter("testcase"):
+        error = case.find("error")
+        if error is None or error.get("message") != "collection failure":
+            continue
+        module = ".".join(part for part in (case.get("classname"), case.get("name")) if part)
+        hidden += _defined_tests(root / (module.replace(".", "/") + ".py")) - 1
+    return SuiteCounts(counts.tests + hidden, counts.failures + hidden)
+
+
+def _defined_tests(path: Path) -> int:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    return sum(
+        isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
+        and node.name.startswith("test")
+        for node in ast.walk(tree)
+    )
 
 
 class PythonAdapter:
@@ -101,4 +129,5 @@ class PythonAdapter:
             )
             if not junit.is_file():
                 return run
-            return replace(run, counts=count_junit(junit.read_text(encoding="utf-8")))
+            counts = count_pytest_junit(junit.read_text(encoding="utf-8"), root)
+            return replace(run, counts=counts)
