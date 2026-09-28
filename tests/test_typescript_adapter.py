@@ -118,6 +118,43 @@ def test_empty_suite_passes(project: Path):
     assert adapter.run_tests(project).outcome is Outcome.PASSED
 
 
+def _two_test_files(project: Path) -> Path:
+    (project / "tests").mkdir()
+    (project / "tests" / "good.test.ts").write_text(
+        'import { test } from "vitest";\n\n'
+        'test("one", () => {});\ntest("two", () => {});\n'
+    )
+    (project / "bad.test.ts").write_text(
+        'import { expect, test } from "vitest";\n\n'
+        'test("bad", () => { expect(1).toBe(2); });\n'
+    )
+    return project
+
+
+def test_run_tests_in_one_file(project: Path):
+    run = adapter.run_tests(_two_test_files(project), path="tests/good.test.ts")
+    assert run.outcome is Outcome.PASSED
+    assert "2 passed" in run.output
+
+
+def test_run_tests_in_one_folder(project: Path):
+    run = adapter.run_tests(_two_test_files(project), path="tests")
+    assert run.outcome is Outcome.PASSED
+    assert "2 passed" in run.output
+
+
+def test_run_single_test_by_name(project: Path):
+    run = adapter.run_tests(_two_test_files(project), test_name="two")
+    assert run.outcome is Outcome.PASSED
+    assert "1 passed" in run.output
+
+
+def test_run_single_test_in_file(project: Path):
+    run = adapter.run_tests(_two_test_files(project), path="bad.test.ts", test_name="bad")
+    assert run.outcome is Outcome.FAILED
+    assert "1 failed" in run.output
+
+
 def test_coverage_reports_uncovered_lines_without_writing_reports(project: Path):
     _write_test(project, "expect(add(1, 2)).toBe(3);")
     run = adapter.run_coverage(project)

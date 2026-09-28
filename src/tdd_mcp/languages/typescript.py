@@ -33,8 +33,13 @@ class TypeScriptAdapter:
         is_test = in_test_directory or not TEST_MARKERS.isdisjoint(inner_suffixes)
         return FileKind.TEST if is_test else FileKind.PRODUCTION
 
-    def run_tests(self, root: Path) -> SuiteRun:
-        return self._vitest(root)
+    def run_tests(
+        self, root: Path, path: str | None = None, test_name: str | None = None
+    ) -> SuiteRun:
+        selection = [path] if path else []
+        if test_name:
+            selection += ["-t", test_name]
+        return self._vitest(root, *selection)
 
     def run_coverage(self, root: Path) -> SuiteRun:
         return self._vitest(root, "--coverage.enabled", "--coverage.reporter=text")
