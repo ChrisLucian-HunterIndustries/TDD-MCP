@@ -33,6 +33,20 @@ def uncovered_from_coverage_py(report: str, root: Path) -> dict[str, frozenset[i
     return uncovered
 
 
+def uncovered_from_istanbul(report: str, root: Path) -> dict[str, frozenset[int]]:
+    """Start lines of unexecuted statements per file from an istanbul JSON report."""
+    uncovered = {}
+    for name, data in json.loads(report).items():
+        lines = frozenset(
+            data["statementMap"][statement]["start"]["line"]
+            for statement, hits in data["s"].items()
+            if hits == 0
+        )
+        if lines:
+            uncovered[_relative(name, root)] = lines
+    return uncovered
+
+
 def _relative(name: str, root: Path) -> str:
     path = Path(name)
     return (path.relative_to(root) if path.is_absolute() else path).as_posix()
