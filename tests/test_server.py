@@ -74,6 +74,32 @@ def test_edits_outside_a_git_repository_are_refused(tmp_path: Path):
         write_file(str(tmp_path), "notes.md", "x")
 
 
+def test_untested_production_code_blocks_the_next_cycle(repo: Path):
+    location = str(repo)
+    run_coverage(location)
+    write_file(
+        location,
+        "test_calc.py",
+        "from calc import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n",
+    )
+    _commit_all(repo)
+    write_file(
+        location,
+        "calc.py",
+        "def add(a, b):\n    return a + b\n\n\ndef unused():\n    return 0\n",
+    )
+    _commit_all(repo)
+
+    blocked = run_coverage(location)
+
+    assert blocked.startswith("Phase: refactor")
+    assert "calc.py: 6." in blocked
+
+    edit_file(location, "calc.py", "\n\n\ndef unused():\n    return 0\n", "\n")
+    _commit_all(repo)
+    assert run_coverage(location).startswith("Phase: red")
+
+
 def test_refusal_reasons_reach_the_client(tmp_path: Path):
     arguments = {"location": str(tmp_path), "path": "a.py", "content": ""}
     with pytest.raises(ToolError, match="No TDD cycle started"):
