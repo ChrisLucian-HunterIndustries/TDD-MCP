@@ -96,6 +96,7 @@ class PythonAdapter:
             run = self._pytest(
                 root,
                 "--cov",
+                "--cov-branch",
                 "--cov-report=term-missing",
                 f"--cov-report=json:{report}",
                 extra_env={"COVERAGE_FILE": str(Path(data_dir) / ".coverage")},
