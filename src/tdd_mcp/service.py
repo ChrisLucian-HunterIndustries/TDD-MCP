@@ -16,6 +16,7 @@ from tdd_mcp.cycle import (
     may_write,
 )
 from tdd_mcp.languages.base import LanguageAdapter
+from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.workspace import (
     Snapshot,
     replace_once,
@@ -48,6 +49,8 @@ class Report:
 class _Session:
     adapter: LanguageAdapter
     phase: Phase = Phase.COVERAGE_REQUIRED
+    # Test count at the last coverage run: the baseline new tests are counted against.
+    tests: int = 0
 
 
 class TddService:
@@ -82,6 +85,8 @@ class TddService:
 
         run = adapter.run_coverage(root)
         session.phase = after_coverage(session.phase, run.outcome)
+        if run.counts:
+            session.tests = run.counts.tests
         return Report(
             session.phase,
             f"Coverage run {run.outcome}. {PHASE_GUIDANCE[session.phase]}",
@@ -164,9 +169,18 @@ class TddService:
             return Report(session.phase, f"Wrote {path} (not code; tests not run).")
 
         run = session.adapter.run_tests(root)
-        transition = after_write(session.phase, kind, run.outcome)
+        counts = run.counts or SuiteCounts(tests=session.tests, failures=0)
+        transition = after_write(
+            session.phase,
+            kind,
+            run.outcome,
+            failing=counts.failures,
+            added=counts.tests - session.tests,
+        )
         session.phase = transition.phase
         message = f"Tests {run.outcome}."
+        if transition.reason:
+            message += f" {transition.reason}"
         if transition.revert:
             restore(snapshot)
             message += f" Refactoring must keep tests passing, so {path} was reverted."
