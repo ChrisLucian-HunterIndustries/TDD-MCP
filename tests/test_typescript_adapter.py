@@ -157,6 +157,11 @@ def test_run_single_test_in_file(project: Path):
     assert "1 failed" in run.output
 
 
+def test_run_reports_test_and_failure_counts(project: Path):
+    run = adapter.run_tests(_two_test_files(project))
+    assert (run.counts.tests, run.counts.failures) == (3, 1)
+
+
 def test_coverage_reports_uncovered_lines_without_writing_reports(project: Path):
     _write_test(project, "expect(add(1, 2)).toBe(3);")
     run = adapter.run_coverage(project)
