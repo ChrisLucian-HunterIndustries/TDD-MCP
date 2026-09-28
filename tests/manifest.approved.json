@@ -69,6 +69,60 @@
         }
     },
     {
+        "description": "Run tests without coverage: faster, for iterating. Never changes the TDD phase.\n\nUse this to check progress while writing a test or code. Only `run_coverage`\nand the test runs that `write_file`/`edit_file` trigger advance the cycle, so\na passing or failing result here unlocks nothing.\n\nRuns the whole suite by default. Narrow it with `path` (a test file or\nfolder) and/or `test_name` (matched against test names: pytest `-k`,\nvitest `-t`) to run all tests in a file or folder, or a single test.\nRequires a cycle started with `run_coverage`.\n\nArgs:\n    location: Path to the project root.\n    path: Test file or folder, relative to `location` (or absolute, inside it).\n    test_name: Name, or part of a name, of the test(s) to run.\n",
+        "input_schema": {
+            "properties": {
+                "location": {
+                    "title": "Location",
+                    "type": "string"
+                },
+                "path": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Path"
+                },
+                "test_name": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Test Name"
+                }
+            },
+            "required": [
+                "location"
+            ],
+            "title": "run_testsArguments",
+            "type": "object"
+        },
+        "name": "run_tests",
+        "output_schema": {
+            "properties": {
+                "result": {
+                    "title": "Result",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "result"
+            ],
+            "title": "run_testsOutput",
+            "type": "object"
+        }
+    },
+    {
         "description": "Create or overwrite a file, if the current TDD phase allows it, then run the tests.\n\nTest files may be written in the red and refactor phases; production\nfiles in the green and refactor phases. The test results decide the\nnext phase.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    content: The complete new file content.\n",
         "input_schema": {
             "properties": {

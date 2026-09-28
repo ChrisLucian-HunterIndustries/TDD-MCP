@@ -49,6 +49,26 @@ def test_refusal_reasons_reach_the_client(tmp_path: Path):
         asyncio.run(mcp.call_tool("write_file", arguments))
 
 
+def test_run_tests_tool_runs_a_selection_without_changing_phase(tmp_path: Path):
+    location = str(tmp_path)
+    (tmp_path / "test_calc.py").write_text(
+        "def test_add():\n    pass\n\n\ndef test_sub():\n    assert False\n"
+    )
+    run_coverage(location)
+
+    result = asyncio.run(
+        mcp.call_tool(
+            "run_tests",
+            {"location": location, "path": "test_calc.py", "test_name": "test_add"},
+        )
+    )
+
+    text = result.content[0].text
+    assert text.startswith("Phase: coverage_required")
+    assert "Tests passed (not a coverage run; phase unchanged)." in text
+    assert "1 passed, 1 deselected" in text
+
+
 def test_main_runs_the_server(monkeypatch):
     calls = []
     monkeypatch.setattr(mcp, "run", lambda: calls.append("run"))
@@ -75,5 +95,12 @@ def test_exempt_patterns_come_from_environment(monkeypatch, value, patterns):
 
 def test_server_instructions_explain_the_cycle():
     assert mcp.instructions is not None
-    for word in ("run_coverage", "write_file", "edit_file", "fail", "refactor"):
+    for word in (
+        "run_coverage",
+        "run_tests",
+        "write_file",
+        "edit_file",
+        "fail",
+        "refactor",
+    ):
         assert word in mcp.instructions

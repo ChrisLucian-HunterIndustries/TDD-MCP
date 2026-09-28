@@ -28,7 +28,9 @@ mcp = MCPServer(
         "meanwhile); (4) refactor test or production code — any edit that "
         "breaks the tests is automatically reverted; then call "
         "`run_coverage` to start the next cycle. Call `tdd_status` any time "
-        "to see the current phase and what is allowed. Non-code files (docs, "
+        "to see the current phase and what is allowed. To iterate faster, "
+        "`run_tests` runs all tests, a file or folder, or a single test "
+        "without coverage; it never advances the phase. Non-code files (docs, "
         "config) can be written in any phase and don't run the tests. Neither "
         "do paths matching the server's `TDD_MCP_EXEMPT` patterns."
     ),
@@ -76,6 +78,30 @@ def run_coverage(location: str, language: LanguageName = "python") -> str:
     """
     with _refusals_as_tool_errors():
         return service.run_coverage(location, language).render()
+
+
+@mcp.tool()
+def run_tests(
+    location: str, path: str | None = None, test_name: str | None = None
+) -> str:
+    """Run tests without coverage: faster, for iterating. Never changes the TDD phase.
+
+    Use this to check progress while writing a test or code. Only `run_coverage`
+    and the test runs that `write_file`/`edit_file` trigger advance the cycle, so
+    a passing or failing result here unlocks nothing.
+
+    Runs the whole suite by default. Narrow it with `path` (a test file or
+    folder) and/or `test_name` (matched against test names: pytest `-k`,
+    vitest `-t`) to run all tests in a file or folder, or a single test.
+    Requires a cycle started with `run_coverage`.
+
+    Args:
+        location: Path to the project root.
+        path: Test file or folder, relative to `location` (or absolute, inside it).
+        test_name: Name, or part of a name, of the test(s) to run.
+    """
+    with _refusals_as_tool_errors():
+        return service.run_tests(location, path, test_name).render()
 
 
 @mcp.tool()
