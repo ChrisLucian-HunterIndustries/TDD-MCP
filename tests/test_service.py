@@ -36,14 +36,31 @@ class FakeAdapter:
         return SuiteRun(self.outcome, "coverage output")
 
 
+class FakeTree:
+    """Reports `changes` as uncommitted, recording which roots were checked."""
+
+    def __init__(self) -> None:
+        self.changes: list[str] = []
+        self.checked: list[Path] = []
+
+    def __call__(self, root: Path) -> list[str]:
+        self.checked.append(root)
+        return list(self.changes)
+
+
 @pytest.fixture
 def adapter() -> FakeAdapter:
     return FakeAdapter()
 
 
 @pytest.fixture
-def service(adapter: FakeAdapter) -> TddService:
-    return TddService({"fake": adapter})
+def tree() -> FakeTree:
+    return FakeTree()
+
+
+@pytest.fixture
+def service(adapter: FakeAdapter, tree: FakeTree) -> TddService:
+    return TddService({"fake": adapter}, pending_changes=tree)
 
 
 def _start(service: TddService, root: Path) -> Report:
@@ -165,8 +182,10 @@ def test_non_code_files_are_written_without_running_tests(
 
 
 @pytest.mark.parametrize("path", ["scripts/deploy.code", "scripts/test_deploy"])
-def test_exempt_paths_skip_the_cycle(adapter: FakeAdapter, tmp_path: Path, path: str):
-    service = TddService({"fake": adapter}, exempt=("scripts/*",))
+def test_exempt_paths_skip_the_cycle(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path, path: str
+):
+    service = TddService({"fake": adapter}, pending_changes=tree, exempt=("scripts/*",))
     _start(service, tmp_path)
 
     report = service.write_file(str(tmp_path), path, "x")
@@ -177,11 +196,48 @@ def test_exempt_paths_skip_the_cycle(adapter: FakeAdapter, tmp_path: Path, path:
     assert adapter.test_runs == 0
 
 
-def test_exempt_patterns_do_not_match_other_paths(adapter: FakeAdapter, tmp_path: Path):
-    service = TddService({"fake": adapter}, exempt=("scripts/*",))
+def test_exempt_patterns_do_not_match_other_paths(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    service = TddService({"fake": adapter}, pending_changes=tree, exempt=("scripts/*",))
     _start(service, tmp_path)
     with pytest.raises(TddError, match="not allowed in the red phase"):
         service.write_file(str(tmp_path), "src/calc.code", "x")
+
+
+@pytest.mark.parametrize("edit", ["write_file", "edit_file"])
+@pytest.mark.parametrize("path", ["test_calc", "notes.md", "scripts/tool.code"])
+def test_edits_are_refused_while_changes_are_uncommitted(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path, edit: str, path: str
+):
+    service = TddService({"fake": adapter}, pending_changes=tree, exempt=("scripts/*",))
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / path).write_text("old")
+    _start(service, tmp_path)
+    tree.changes = [" M test_calc", "?? notes.md"]
+
+    with pytest.raises(
+        TddError, match=r"Uncommitted changes .*: M test_calc, \?\? notes\.md\. Commit"
+    ):
+        if edit == "write_file":
+            service.write_file(str(tmp_path), path, "new")
+        else:
+            service.edit_file(str(tmp_path), path, "old", "new")
+
+    assert (tmp_path / path).read_text() == "old"
+    assert adapter.test_runs == 0
+    assert tree.checked == [tmp_path.resolve()]
+
+
+def test_only_edits_are_gated(service, adapter, tree, tmp_path: Path):
+    tree.changes = ["?? notes.md"]
+
+    _start(service, tmp_path)
+    service.run_tests(str(tmp_path))
+    service.status(str(tmp_path))
+
+    assert adapter.test_runs == 1
+    assert tree.checked == []
 
 
 def test_run_tests_requires_a_started_cycle(service: TddService, tmp_path: Path):
