@@ -162,6 +162,15 @@ def test_run_reports_test_and_failure_counts(project: Path):
     assert (run.counts.tests, run.counts.failures) == (3, 1)
 
 
+def test_runner_that_writes_no_report_has_no_counts(tmp_path: Path):
+    fake = tmp_path / "node_modules" / "vitest" / "vitest.mjs"
+    fake.parent.mkdir(parents=True)
+    fake.write_text("process.exit(0);\n")
+    run = adapter.run_tests(tmp_path)
+    assert run.outcome is Outcome.PASSED
+    assert run.counts is None
+
+
 def test_coverage_reports_uncovered_lines_without_writing_reports(project: Path):
     _write_test(project, "expect(add(1, 2)).toBe(3);")
     run = adapter.run_coverage(project)
