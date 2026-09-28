@@ -153,6 +153,21 @@ def test_red_write_adding_two_tests_stays_red(service, adapter, tmp_path: Path):
     assert "2 tests were added" in report.message
 
 
+def test_coverage_run_without_counts_keeps_the_test_baseline(
+    service, adapter, tmp_path: Path
+):
+    adapter.counts = SuiteCounts(tests=5, failures=0)
+    _start(service, tmp_path)
+    adapter.counts = None
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    adapter.counts = SuiteCounts(tests=6, failures=1)
+
+    report = service.write_file(str(tmp_path), "test_calc", "one new test")
+
+    assert report.phase is Phase.GREEN
+
+
 def test_refactor_counts_the_cycles_new_test_as_existing(
     service, adapter, tmp_path: Path
 ):
