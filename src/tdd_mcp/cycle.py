@@ -47,6 +47,7 @@ _WRITABLE: dict[Phase, frozenset[FileKind]] = {
 class Transition:
     phase: Phase
     revert: bool = False
+    reason: str = ""
 
 
 def may_write(phase: Phase, kind: FileKind) -> bool:
@@ -61,13 +62,25 @@ def after_coverage(phase: Phase, outcome: Outcome) -> Phase:
     return Phase.COVERAGE_REQUIRED
 
 
-def after_write(phase: Phase, kind: FileKind, outcome: Outcome) -> Transition:
+def after_write(
+    phase: Phase,
+    kind: FileKind,
+    outcome: Outcome,
+    *,
+    failing: int = 1,
+    added: int = 0,
+) -> Transition:
     """The phase that follows writing a code file of `kind` and running the tests."""
     if kind is FileKind.OTHER:
         raise ValueError("Transitions apply to only code files")
     if not may_write(phase, kind):
         raise ValueError(f"Writing {kind} files is not allowed in the {phase} phase")
     if phase is Phase.RED:
+        if outcome is Outcome.FAILED and failing > 1:
+            return Transition(
+                Phase.RED,
+                reason=f"{failing} tests fail; exactly one failing test may drive the next change.",
+            )
         return Transition(Phase.GREEN if outcome is Outcome.FAILED else Phase.RED)
     if phase is Phase.GREEN:
         return Transition(Phase.REFACTOR if outcome is Outcome.PASSED else Phase.GREEN)
