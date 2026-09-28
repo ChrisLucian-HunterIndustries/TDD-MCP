@@ -84,6 +84,14 @@ def test_red_needs_exactly_one_failing_test():
     assert "2 tests fail" in transition.reason
 
 
+def test_red_rejects_adding_more_than_one_test():
+    transition = after_write(
+        Phase.RED, FileKind.TEST, Outcome.FAILED, failing=1, added=3
+    )
+    assert transition.phase is Phase.RED
+    assert "3 tests were added" in transition.reason
+
+
 def test_non_code_writes_cannot_advance_the_cycle():
     with pytest.raises(ValueError, match="only code files"):
         after_write(Phase.RED, FileKind.OTHER, Outcome.FAILED)
