@@ -161,3 +161,11 @@ def test_coverage_reports_missing_lines(tmp_path: Path):
 def test_coverage_leaves_no_data_file_in_the_project(tmp_path: Path):
     adapter.run_coverage(_project(tmp_path, "assert add(1, 2) == 3"))
     assert not list(tmp_path.glob(".coverage*"))
+
+
+def test_coverage_reports_uncovered_lines_by_file(tmp_path: Path):
+    project = _project(tmp_path, "assert add(1, 2) == 3")
+    (project / "calc.py").write_text(
+        "def add(a, b):\n    return a + b\n\n\ndef unused():\n    return 0\n"
+    )
+    assert adapter.run_coverage(project).uncovered["calc.py"] == frozenset({6})
