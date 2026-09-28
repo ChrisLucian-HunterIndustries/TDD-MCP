@@ -93,15 +93,42 @@ class TddService:
             location, path, lambda target: replace_once(target, old_string, new_string)
         )
 
-    def _apply(
-        self, location: str, path: str, change: Callable[[Path], Snapshot]
+    def run_tests(
+        self, location: str, path: str | None = None, test_name: str | None = None
     ) -> Report:
         root = _root(location)
+        session = self._started(root)
+        relative = None
+        if path is not None:
+            target = resolve_inside(root, path)
+            if not target.exists():
+                raise TddError(f"Path {path!r} does not exist")
+            relative = target.relative_to(root).as_posix()
+        for value in (relative, test_name):
+            # The runner would parse it as an option (e.g. pytest's `-p` loads plugins).
+            if value and value.startswith("-"):
+                raise TddError(f"Test selection {value!r} must not start with '-'")
+
+        run = session.adapter.run_tests(root, relative, test_name)
+        return Report(
+            session.phase,
+            f"Tests {run.outcome} (not a coverage run; phase unchanged).",
+            run.output,
+        )
+
+    def _started(self, root: Path) -> _Session:
         session = self._sessions.get(root)
         if session is None:
             raise TddError(
                 "No TDD cycle started for this location. Call run_coverage first."
             )
+        return session
+
+    def _apply(
+        self, location: str, path: str, change: Callable[[Path], Snapshot]
+    ) -> Report:
+        root = _root(location)
+        session = self._started(root)
 
         target = resolve_inside(root, path)
         relative = target.relative_to(root)

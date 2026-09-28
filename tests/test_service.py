@@ -16,6 +16,7 @@ class FakeAdapter:
     def __init__(self) -> None:
         self.outcome = Outcome.PASSED
         self.test_runs = 0
+        self.selections: list[tuple[str | None, str | None]] = []
 
     def classify(self, relative_path: PurePath) -> FileKind:
         if relative_path.name.startswith("test"):
@@ -24,8 +25,11 @@ class FakeAdapter:
             return FileKind.PRODUCTION
         return FileKind.OTHER
 
-    def run_tests(self, root: Path) -> SuiteRun:
+    def run_tests(
+        self, root: Path, path: str | None = None, test_name: str | None = None
+    ) -> SuiteRun:
         self.test_runs += 1
+        self.selections.append((path, test_name))
         return SuiteRun(self.outcome, "test output")
 
     def run_coverage(self, root: Path) -> SuiteRun:
@@ -178,6 +182,69 @@ def test_exempt_patterns_do_not_match_other_paths(adapter: FakeAdapter, tmp_path
     _start(service, tmp_path)
     with pytest.raises(TddError, match="not allowed in the red phase"):
         service.write_file(str(tmp_path), "src/calc.code", "x")
+
+
+def test_run_tests_requires_a_started_cycle(service: TddService, tmp_path: Path):
+    with pytest.raises(TddError, match="run_coverage"):
+        service.run_tests(str(tmp_path))
+
+
+def test_run_tests_never_advances_the_phase(service, adapter, tmp_path: Path):
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    service.write_file(str(tmp_path), "test_calc", "test")
+    adapter.outcome = Outcome.PASSED
+
+    report = service.run_tests(str(tmp_path))
+
+    assert report.phase is Phase.GREEN
+    assert "phase unchanged" in report.message
+    assert report.output == "test output"
+
+
+def test_run_tests_passes_root_relative_selection(service, adapter, tmp_path: Path):
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_calc").write_text("")
+    _start(service, tmp_path)
+
+    service.run_tests(str(tmp_path))
+    service.run_tests(str(tmp_path), str(tmp_path / "tests" / "test_calc"), "adds")
+    service.run_tests(str(tmp_path), "tests", None)
+    service.run_tests(str(tmp_path), test_name="adds")
+
+    assert adapter.selections == [
+        (None, None),
+        ("tests/test_calc", "adds"),
+        ("tests", None),
+        (None, "adds"),
+    ]
+
+
+def test_run_tests_rejects_missing_path(service, tmp_path: Path):
+    _start(service, tmp_path)
+    with pytest.raises(TddError, match="does not exist"):
+        service.run_tests(str(tmp_path), "tests/missing")
+
+
+def test_run_tests_rejects_path_outside_root(service, tmp_path: Path):
+    root = tmp_path / "root"
+    root.mkdir()
+    _start(service, root)
+    with pytest.raises(WorkspaceError, match="outside"):
+        service.run_tests(str(root), "..")
+
+
+@pytest.mark.parametrize(
+    ("path", "test_name"), [("-p", None), (None, "-p evil"), (None, "--co")]
+)
+def test_run_tests_rejects_option_like_selections(
+    service, adapter, tmp_path: Path, path, test_name
+):
+    (tmp_path / "-p").write_text("")
+    _start(service, tmp_path)
+    with pytest.raises(TddError, match="must not start with '-'"):
+        service.run_tests(str(tmp_path), path, test_name)
+    assert adapter.test_runs == 0
 
 
 def test_paths_outside_root_are_refused(service, tmp_path: Path):
