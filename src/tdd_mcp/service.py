@@ -178,6 +178,8 @@ class TddService:
             added=counts.tests - session.tests,
         )
         session.phase = transition.phase
+        if session.phase is Phase.REFACTOR and not transition.revert:
+            session.tests = counts.tests
         message = f"Tests {run.outcome}."
         if transition.reason:
             message += f" {transition.reason}"
