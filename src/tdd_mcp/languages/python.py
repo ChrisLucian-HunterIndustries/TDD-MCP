@@ -48,7 +48,9 @@ def count_pytest_junit(xml: str, root: Path) -> SuiteCounts:
         error = case.find("error")
         if error is None or error.get("message") != "collection failure":
             continue
-        module = ".".join(part for part in (case.get("classname"), case.get("name")) if part)
+        module = ".".join(
+            part for part in (case.get("classname"), case.get("name")) if part
+        )
         hidden += _defined_tests(root / (module.replace(".", "/") + ".py")) - 1
     return SuiteCounts(counts.tests + hidden, counts.failures + hidden)
 
