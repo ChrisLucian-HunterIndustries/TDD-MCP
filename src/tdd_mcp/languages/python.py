@@ -69,7 +69,9 @@ class PythonAdapter:
             )
             if not report.is_file():
                 return run
-            uncovered = uncovered_from_coverage_py(report.read_text(encoding="utf-8"), root)
+            uncovered = uncovered_from_coverage_py(
+                report.read_text(encoding="utf-8"), root
+            )
             return replace(run, uncovered=uncovered)
 
     def _pytest(

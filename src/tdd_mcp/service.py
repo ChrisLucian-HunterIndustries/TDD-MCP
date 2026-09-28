@@ -155,7 +155,11 @@ class TddService:
     def _untested_changes(
         self, session: _Session, root: Path, run: SuiteRun
     ) -> dict[str, frozenset[int]]:
-        if not self._history or session.base is None or run.outcome is not Outcome.PASSED:
+        if (
+            not self._history
+            or session.base is None
+            or run.outcome is not Outcome.PASSED
+        ):
             return {}
         untested = {}
         for path, lines in self._history.changed_lines(root, session.base).items():

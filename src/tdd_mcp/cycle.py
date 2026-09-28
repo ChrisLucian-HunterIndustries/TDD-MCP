@@ -100,5 +100,7 @@ def after_write(
     return Transition(
         Phase.REFACTOR,
         revert=outcome is not Outcome.PASSED,
-        reason="" if outcome is Outcome.PASSED else "Refactoring must keep tests passing.",
+        reason=""
+        if outcome is Outcome.PASSED
+        else "Refactoring must keep tests passing.",
     )

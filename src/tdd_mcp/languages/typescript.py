@@ -57,7 +57,9 @@ class TypeScriptAdapter:
             report = Path(report_dir) / "coverage-final.json"
             if not report.is_file():
                 return run
-            uncovered = uncovered_from_istanbul(report.read_text(encoding="utf-8"), root)
+            uncovered = uncovered_from_istanbul(
+                report.read_text(encoding="utf-8"), root
+            )
             return replace(run, uncovered=uncovered)
 
     def _vitest(self, root: Path, *args: str) -> SuiteRun:

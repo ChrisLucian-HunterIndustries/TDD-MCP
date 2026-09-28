@@ -41,7 +41,11 @@ def test_istanbul_json_lists_lines_of_unexecuted_statements(tmp_path: Path):
     report = json.dumps(
         {
             str(tmp_path / "src" / "calc.ts"): {
-                "statementMap": {"0": statement(1), "1": statement(3), "2": statement(4)},
+                "statementMap": {
+                    "0": statement(1),
+                    "1": statement(3),
+                    "2": statement(4),
+                },
                 "s": {"0": 1, "1": 0, "2": 0},
             },
             str(tmp_path / "covered.ts"): {
