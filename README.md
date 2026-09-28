@@ -8,18 +8,29 @@ allows each kind of change when the cycle permits it:
 stateDiagram-v2
     [*] --> coverage_required
     coverage_required --> red: run_coverage passes
-    red --> green: a test write makes the suite fail
+    red --> green: exactly one new failing test
     green --> refactor: a production write makes the suite pass
-    refactor --> red: run_coverage passes
-    refactor --> refactor: edit keeps tests passing (or is reverted)
+    refactor --> red: run_coverage passes and every changed production line is covered
+    refactor --> refactor: edit keeps tests passing and adds none (or is reverted)
 ```
 
 | Phase | Test files | Production files | Leaves when |
 |---|---|---|---|
 | `coverage_required` | locked | locked | `run_coverage` passes |
-| `red` | writable | locked | a test write makes the suite fail |
+| `red` | writable | locked | a test write leaves exactly one failing test, with at most one test added since the coverage run |
 | `green` | locked | writable | a production write makes the suite pass |
-| `refactor` | writable | writable | `run_coverage` passes; any write that breaks tests is reverted |
+| `refactor` | writable | writable | `run_coverage` passes and covers every production line changed this cycle; any write that breaks tests or adds a test is reverted |
+
+### One test at a time, no speculative code
+
+The server counts tests from the runner's JUnit report. Red only advances when exactly one test
+fails and no more than one test was added since the last coverage run. Write one test, not a batch.
+A Python test file that can't be imported yet counts as every `test*` function it defines.
+
+The next cycle only starts when every production line changed since the cycle began (per `git diff`
+against the commit at the start of the cycle, plus untracked files) is executed by some test. Code
+written for tests that don't exist yet shows up as uncovered and has to be removed. Refactoring
+can't add tests to cover it either, because that's new behaviour, and new behaviour needs its own red.
 
 Non-code files (docs, config, data) can be written in any phase once a cycle has started, and don't
 trigger a test run.
