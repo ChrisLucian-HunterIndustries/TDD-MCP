@@ -36,9 +36,11 @@ mcp = MCPServer(
         "`run_tests` runs all tests, a file or folder, or a single test "
         "without coverage; it never advances the phase. Non-code files (docs, "
         "config) can be written in any phase and don't run the tests. Neither "
-        "do paths matching the server's `TDD_MCP_EXEMPT` patterns. Every edit "
-        "requires a clean git working tree: commit each step first (e.g. "
-        "'. t' for a new failing test, then '^ f' for the code that passes it)."
+        "do paths matching the server's `TDD_MCP_EXEMPT` patterns. Coverage "
+        "includes branches. Commit each step before the next phase's edits "
+        "(e.g. '. t' for a new failing test, then '^ f' for the code that "
+        "passes it); repeat edits within one phase amend the uncommitted step, "
+        "and a coverage run ends it."
     ),
 )
 
