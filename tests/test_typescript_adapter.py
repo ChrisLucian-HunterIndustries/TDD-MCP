@@ -178,3 +178,8 @@ def test_coverage_reports_uncovered_lines_without_writing_reports(project: Path)
     assert "Uncovered Line" in run.output
     assert "calc.ts" in run.output
     assert not (project / "coverage").exists()
+
+
+def test_coverage_reports_uncovered_lines_by_file(project: Path):
+    _write_test(project, "expect(add(1, 2)).toBe(3);")
+    assert adapter.run_coverage(project).uncovered["calc.ts"] == frozenset({3})
