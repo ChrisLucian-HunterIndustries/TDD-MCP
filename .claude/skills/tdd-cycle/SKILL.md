@@ -49,6 +49,11 @@ without coverage. It never changes the phase, so a green result there unlocks no
   and approve the received file. The next production edit re-runs the suite and reaches refactor.
 - Refactor in steps that each stay green: add a new helper first, then switch callers one edit
   at a time. An edit that references something not yet defined is reverted.
+- When a red test needs changes in several places (e.g. a new required constructor argument
+  used by many tests), make them in one `write_file` of the whole test file. The first
+  failing edit locks the tests, so there is no second chance to update the rest.
+- A production change that would break tests you can't touch yet (locked in green) can be
+  "faked" first (e.g. a no-op collaborator), then driven out by the next cycle's red test.
 - `run_coverage` language `typescript` needs `npm install -D vitest @vitest/coverage-v8` in the
   project; a missing runner is reported as an error, never as a failing test.
 - Editing the server's own entry in `.mcp.json` / `.vscode/mcp.json` makes the client restart
