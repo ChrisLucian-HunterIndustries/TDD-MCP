@@ -23,8 +23,10 @@ description: Use when changing code files in a repository that has the `tdd` MCP
 5. `run_coverage` to start the next cycle. If it lists uncovered changed lines
    ("calc.py: 6"), delete that code in refactor (adding a test there is reverted), commit, rerun.
 
-The server refuses every edit while `git status` shows uncommitted changes under the
-project, so each step has to be committed before the next edit.
+Uncommitted changes belong to the step (phase) that was active when the tree was last clean.
+Repeat edits within that step are fine, so a test or a change can take several `edit_file`
+calls. Commit before the next phase's edits; `run_coverage` also ends the step, so commit
+before running it. Coverage measures branches: an `if` with an untaken path is uncovered.
 
 ## When refused
 
@@ -45,16 +47,15 @@ without coverage. It never changes the phase, so a green result there unlocks no
 - Call `tdd` tools strictly one at a time. A write sent in parallel with `run_coverage` can run
   against the previous phase and be refused. Likewise never batch a racn `commit` with the
   next `tdd` edit: the edit races the commit and is refused as "Uncommitted changes".
-- Each red and each green is one edit (the commit gate refuses a second one until you commit).
-  If the change touches distant parts of a file (e.g. an import and a function), use one
-  `write_file` of the whole file rather than several `edit_file` calls.
+- A change touching distant parts of a file (e.g. an import and a function) can be several
+  `edit_file` calls in the same step; prefer that to rewriting the whole file.
 - Don't use a no-op `edit_file` (identical strings) to "locate" text; read the file instead.
 - When `old_string` ends on the first line of the next function (e.g. `def next_test(...):`)
   and `new_string` doesn't repeat it, that function's header is deleted and its body merges
   into yours. Anchor on lines inside the block you're extending instead.
 - Before moving on, check that red failed for the *intended* reason. A `NameError` or a broken
-  test helper also counts as red, and then the test is locked in green. Fix: `git restore` the
-  uncommitted test, `run_coverage`, and write it again.
+  test helper also counts as red. While the red step is uncommitted, just edit the test again
+  to fix it. Only restore it if you already moved on.
 - Approved snapshot files that must change alongside a test (e.g. `manifest.approved.json`)
   are non-code: update them during red, before the failing test. If that would make
   `run_coverage` fail, save the change as a patch, run coverage, then re-apply it.
@@ -63,8 +64,7 @@ without coverage. It never changes the phase, so a green result there unlocks no
 - Refactor in steps that each stay green: add a new helper first, then switch callers one edit
   at a time. An edit that references something not yet defined is reverted.
 - When a red test needs changes in several places (e.g. a new required constructor argument
-  used by many tests), make them in one `write_file` of the whole test file. The first
-  failing edit locks the tests, so there is no second chance to update the rest.
+  used by many tests), make them as several edits before committing the red step.
 - A production change that would break tests you can't touch yet (locked in green) can be
   "faked" first (e.g. a no-op collaborator), then driven out by the next cycle's red test.
 - `run_coverage` language `typescript` needs `npm install -D vitest @vitest/coverage-v8` in the

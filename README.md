@@ -28,7 +28,9 @@ fails and no more than one test was added since the last coverage run. Write one
 A Python test file that can't be imported yet counts as every `test*` function it defines.
 
 The next cycle only starts when every production line changed since the cycle began (per `git diff`
-against the commit at the start of the cycle, plus untracked files) is executed by some test. Code
+against the commit at the start of the cycle, plus untracked files) is executed by some test, with
+every branch on it taken. Coverage is measured with branches (`--cov-branch` for pytest; istanbul
+branch counts for vitest), so an `if` whose false path no test takes counts as uncovered. Code
 written for tests that don't exist yet shows up as uncovered and has to be removed. Refactoring
 can't add tests to cover it either, because that's new behaviour, and new behaviour needs its own red.
 
@@ -48,10 +50,17 @@ server starts again at `coverage_required`.
 
 ### Commit every step
 
-`write_file` and `edit_file` refuse to run while `git status` shows uncommitted changes (staged,
-unstaged, or untracked; ignored files don't count) anywhere under `location`. This applies to
-every file, including non-code and exempt files. Each step must be committed before the next
-edit, which gives a history like:
+Each step's edits must be committed before the next step starts. Uncommitted changes (staged,
+unstaged, or untracked; ignored files don't count) anywhere under `location` belong to the step
+that was active when the tree was last clean. Repeat edits within that step are allowed, so a
+red test or a green change can take several `edit_file` calls. The server refuses an edit when:
+
+- the tree is dirty and no step is open (e.g. after a server restart or a `run_coverage` run,
+  which ends the step), or
+- the edit belongs to a later phase than the open step (e.g. production code after an
+  uncommitted red test).
+
+This applies to every file, including non-code and exempt files, and gives a history like:
 
 ```
 . t Add failing test for add()

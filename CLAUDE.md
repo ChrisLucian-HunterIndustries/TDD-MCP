@@ -12,7 +12,8 @@ repository. Never run `git commit` from the command line — it is blocked.
 Stage with `git add` and commit in separate, sequential steps (never in
 parallel). Commit every TDD step separately: the failing test as `. t`, the
 code that passes it as `^ f` (or `^ b`), each refactoring as `. r`. The `tdd`
-server refuses edits until the previous step is committed.
+server refuses the next phase's edits until the previous step is committed;
+repeat edits within one step are allowed.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, running the server, and
 development notes.
