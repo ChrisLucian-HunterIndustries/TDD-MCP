@@ -99,6 +99,11 @@ def test_run_tests_in_one_file(tmp_path: Path):
     assert "2 passed" in run.output
 
 
+def test_run_reports_test_and_failure_counts(tmp_path: Path):
+    run = adapter.run_tests(_two_test_files(tmp_path))
+    assert (run.counts.tests, run.counts.failures) == (3, 1)
+
+
 def test_run_tests_in_one_folder(tmp_path: Path):
     run = adapter.run_tests(_two_test_files(tmp_path), path="tests")
     assert run.outcome is Outcome.PASSED
