@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from tdd_mcp.git_gate import GitError, head_commit, uncommitted_changes
+from tdd_mcp.git_gate import GitError, changed_lines, head_commit, uncommitted_changes
 
 
 def _git(cwd: Path, *args: str) -> str:
@@ -63,3 +63,13 @@ def test_outside_a_repository_is_an_error(tmp_path: Path):
 
 def test_head_commit_is_the_checked_out_commit(repo: Path):
     assert head_commit(repo) == _git(repo, "rev-parse", "HEAD").strip()
+
+
+def test_changed_lines_lists_added_and_modified_lines_since_a_commit(repo: Path):
+    (repo / "a.txt").write_text("one\ntwo\nthree\n")
+    _git(repo, "commit", "-am", "base")
+    base = head_commit(repo)
+    (repo / "a.txt").write_text("one\nTWO\nthree\nfour\n")
+    _git(repo, "commit", "-am", "change")
+
+    assert changed_lines(repo, base) == {"a.txt": frozenset({2, 4})}
