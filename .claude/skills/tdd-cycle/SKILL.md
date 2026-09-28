@@ -25,6 +25,8 @@ description: Use when changing code files in a repository that has the `tdd` MCP
 
 Non-code files (docs, config) are written without running tests in any started cycle.
 Prefer `edit_file` over `write_file` for existing files; every write runs the whole suite.
+Use `run_tests(location, path, test_name)` to iterate quickly on one file, folder, or test
+without coverage. It never changes the phase, so a green result there unlocks nothing.
 
 ## Pitfalls
 
