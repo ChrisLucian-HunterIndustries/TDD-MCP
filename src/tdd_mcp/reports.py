@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
-import xml.etree.ElementTree as ElementTree
 from dataclasses import dataclass
 from pathlib import Path
+from xml.etree import ElementTree
 
 
 @dataclass(frozen=True)
