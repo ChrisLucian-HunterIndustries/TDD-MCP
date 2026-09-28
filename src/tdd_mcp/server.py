@@ -39,7 +39,11 @@ mcp = MCPServer(
 
 def new_service() -> TddService:
     raw = os.environ.get(EXEMPT_ENV_VAR, "")
-    return TddService(ADAPTERS, [p.strip() for p in raw.split(",") if p.strip()])
+    return TddService(
+        ADAPTERS,
+        pending_changes=lambda root: [],
+        exempt=[p.strip() for p in raw.split(",") if p.strip()],
+    )
 
 
 service = new_service()

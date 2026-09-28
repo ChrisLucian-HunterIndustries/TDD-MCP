@@ -52,9 +52,14 @@ class _Session:
 
 class TddService:
     def __init__(
-        self, adapters: Mapping[str, LanguageAdapter], exempt: Sequence[str] = ()
+        self,
+        adapters: Mapping[str, LanguageAdapter],
+        *,
+        pending_changes: Callable[[Path], list[str]],
+        exempt: Sequence[str] = (),
     ) -> None:
         self._adapters = adapters
+        self._pending_changes = pending_changes
         # fnmatch patterns on root-relative POSIX paths; `*` also matches `/`.
         self.exempt = tuple(exempt)
         self._sessions: dict[Path, _Session] = {}
@@ -129,6 +134,14 @@ class TddService:
     ) -> Report:
         root = _root(location)
         session = self._started(root)
+        changes = self._pending_changes(root)
+        if changes:
+            raise TddError(
+                f"Uncommitted changes in {root}: "
+                f"{', '.join(line.strip() for line in changes)}. "
+                "Commit them before the next edit, e.g. '. t' for a new failing "
+                "test, then '^ f' for the code that passes it."
+            )
 
         target = resolve_inside(root, path)
         relative = target.relative_to(root)
