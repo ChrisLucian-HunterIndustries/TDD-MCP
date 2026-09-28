@@ -289,6 +289,18 @@ def test_edits_are_refused_while_changes_are_uncommitted(
     assert tree.checked == [tmp_path.resolve()]
 
 
+def test_an_uncommitted_red_step_can_be_amended(service, adapter, tree, tmp_path: Path):
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=1, failures=1)
+    service.write_file(str(tmp_path), "test_calc", "failing for the wrong reason")
+    tree.changes = ["?? test_calc"]
+
+    report = service.write_file(str(tmp_path), "test_calc", "failing for the right one")
+
+    assert report.phase is Phase.GREEN
+    assert (tmp_path / "test_calc").read_text() == "failing for the right one"
+
+
 def test_only_edits_are_gated(service, adapter, tree, tmp_path: Path):
     tree.changes = ["?? notes.md"]
 
