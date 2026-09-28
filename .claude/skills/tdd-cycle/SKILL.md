@@ -38,6 +38,10 @@ without coverage. It never changes the phase, so a green result there unlocks no
 - Approved snapshot files that must change alongside a test (e.g. `manifest.approved.json`)
   are non-code: update them during red, before the failing test. If that would make
   `run_coverage` fail, save the change as a patch, run coverage, then re-apply it.
+  Alternatively, in green, once the code change leaves only the snapshot failing, review
+  and approve the received file. The next production edit re-runs the suite and reaches refactor.
+- Refactor in steps that each stay green: add a new helper first, then switch callers one edit
+  at a time. An edit that references something not yet defined is reverted.
 - `run_coverage` language `typescript` needs `npm install -D vitest @vitest/coverage-v8` in the
   project; a missing runner is reported as an error, never as a failing test.
 - Editing the server's own entry in `.mcp.json` / `.vscode/mcp.json` makes the client restart
