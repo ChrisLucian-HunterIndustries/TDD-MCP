@@ -5,11 +5,12 @@ from __future__ import annotations
 import os
 import subprocess
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 from typing import Protocol
 
 from tdd_mcp.cycle import FileKind, Outcome
+from tdd_mcp.reports import SuiteCounts
 
 DEFAULT_TIMEOUT_SECONDS = 600
 
@@ -18,6 +19,9 @@ DEFAULT_TIMEOUT_SECONDS = 600
 class SuiteRun:
     outcome: Outcome
     output: str
+    counts: SuiteCounts | None = None
+    # Root-relative POSIX path -> line numbers not executed; coverage runs only.
+    uncovered: Mapping[str, frozenset[int]] = field(default_factory=dict)
 
 
 class LanguageAdapter(Protocol):
