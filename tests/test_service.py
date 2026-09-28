@@ -141,6 +141,18 @@ def test_passing_new_test_stays_red_and_keeps_file(service, tmp_path: Path):
     assert (tmp_path / "test_calc").read_text() == "test"
 
 
+def test_red_write_adding_two_tests_stays_red(service, adapter, tmp_path: Path):
+    adapter.counts = SuiteCounts(tests=5, failures=0)
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    adapter.counts = SuiteCounts(tests=7, failures=1)
+
+    report = service.write_file(str(tmp_path), "test_calc", "two new tests")
+
+    assert report.phase is Phase.RED
+    assert "2 tests were added" in report.message
+
+
 def _to_refactor(service: TddService, adapter: FakeAdapter, root: Path) -> None:
     _start(service, root)
     adapter.outcome = Outcome.FAILED
