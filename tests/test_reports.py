@@ -34,6 +34,19 @@ def test_coverage_py_json_lists_missing_lines_by_root_relative_path(tmp_path: Pa
     }
 
 
+def test_coverage_py_json_counts_partial_branch_lines_as_uncovered(tmp_path: Path):
+    report = json.dumps(
+        {
+            "files": {
+                "calc.py": {"missing_lines": [9], "missing_branches": [[3, 5], [7, -1]]}
+            }
+        }
+    )
+    assert uncovered_from_coverage_py(report, tmp_path) == {
+        "calc.py": frozenset({3, 7, 9})
+    }
+
+
 def test_istanbul_json_lists_lines_of_unexecuted_statements(tmp_path: Path):
     def statement(line: int) -> dict:
         return {"start": {"line": line, "column": 0}, "end": {"line": line}}
