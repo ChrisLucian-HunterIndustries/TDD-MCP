@@ -24,3 +24,14 @@ def uncommitted_changes(root: Path) -> list[str]:
     if result.returncode != 0:
         raise GitError(f"git status failed in {root}: {result.stderr.strip()}")
     return result.stdout.splitlines()
+
+
+def head_commit(root: Path) -> str:
+    result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        check=False,
+        cwd=root,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
