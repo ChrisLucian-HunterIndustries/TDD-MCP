@@ -61,6 +61,8 @@ class _Session:
     tests: int = 0
     # Commit the current cycle started from; its changes must all be covered by tests.
     base: str | None = None
+    # Phase the uncommitted step began in; further edits amend that step.
+    step: Phase | None = None
 
 
 class TddService:
@@ -184,13 +186,11 @@ class TddService:
         root = _root(location)
         session = self._started(root)
         changes = self._pending_changes(root)
-        if changes:
-            raise TddError(
-                f"Uncommitted changes in {root}: "
-                f"{', '.join(line.strip() for line in changes)}. "
-                "Commit them before the next edit, e.g. '. t' for a new failing "
-                "test, then '^ f' for the code that passes it."
-            )
+        if not changes:
+            session.step = session.phase
+        elif session.step is None:
+            raise _uncommitted(root, changes)
+        phase = session.step
 
         target = resolve_inside(root, path)
         relative = target.relative_to(root)
@@ -202,10 +202,12 @@ class TddService:
             )
 
         kind = session.adapter.classify(relative)
-        if not may_write(session.phase, kind):
+        if not may_write(phase, kind):
+            if changes and may_write(session.phase, kind):
+                raise _uncommitted(root, changes)
             raise TddError(
-                f"Writing {kind} files is not allowed in the {session.phase} phase. "
-                f"{PHASE_GUIDANCE[session.phase]}"
+                f"Writing {kind} files is not allowed in the {phase} phase. "
+                f"{PHASE_GUIDANCE[phase]}"
             )
 
         snapshot = change(target)
@@ -215,7 +217,7 @@ class TddService:
         run = session.adapter.run_tests(root)
         counts = run.counts or SuiteCounts(tests=session.tests, failures=0)
         transition = after_write(
-            session.phase,
+            phase,
             kind,
             run.outcome,
             failing=counts.failures,
@@ -233,6 +235,15 @@ class TddService:
         return Report(
             session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
         )
+
+
+def _uncommitted(root: Path, changes: list[str]) -> TddError:
+    return TddError(
+        f"Uncommitted changes in {root}: "
+        f"{', '.join(line.strip() for line in changes)}. "
+        "Commit them before the next edit, e.g. '. t' for a new failing "
+        "test, then '^ f' for the code that passes it."
+    )
 
 
 def _root(location: str) -> Path:
