@@ -115,6 +115,12 @@ def test_unimportable_test_file_counts_each_of_its_tests(tmp_path: Path):
     assert (run.counts.tests, run.counts.failures) == (2, 2)
 
 
+def test_test_file_with_syntax_error_counts_as_one_failing_test(tmp_path: Path):
+    (tmp_path / "test_calc.py").write_text("def test_add(:\n    pass\n")
+    run = adapter.run_tests(tmp_path)
+    assert (run.counts.tests, run.counts.failures) == (1, 1)
+
+
 def test_unstartable_interpreter_is_an_error_without_counts(tmp_path: Path):
     for relative in (".venv/Scripts/python.exe", ".venv/bin/python"):
         (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
