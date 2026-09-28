@@ -70,3 +70,24 @@ def test_istanbul_json_lists_lines_of_unexecuted_statements(tmp_path: Path):
     assert uncovered_from_istanbul(report, tmp_path) == {
         "src/calc.ts": frozenset({3, 4})
     }
+
+
+def test_istanbul_json_counts_untaken_branch_lines_as_uncovered(tmp_path: Path):
+    def at(line: int) -> dict:
+        return {"start": {"line": line, "column": 2}, "end": {"line": line}}
+
+    report = json.dumps(
+        {
+            "calc.ts": {
+                "statementMap": {},
+                "s": {},
+                "branchMap": {
+                    "0": {"loc": at(2), "locations": [at(2), {"start": {}, "end": {}}]},
+                    "1": {"loc": at(5), "locations": [at(6), at(8)]},
+                    "2": {"loc": at(9), "locations": [at(9), at(10)]},
+                },
+                "b": {"0": [1, 0], "1": [0, 3], "2": [1, 1]},
+            }
+        }
+    )
+    assert uncovered_from_istanbul(report, tmp_path) == {"calc.ts": frozenset({2, 6})}
