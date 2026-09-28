@@ -43,7 +43,15 @@ without coverage. It never changes the phase, so a green result there unlocks no
 ## Pitfalls
 
 - Call `tdd` tools strictly one at a time. A write sent in parallel with `run_coverage` can run
-  against the previous phase and be refused.
+  against the previous phase and be refused. Likewise never batch a racn `commit` with the
+  next `tdd` edit: the edit races the commit and is refused as "Uncommitted changes".
+- Each red and each green is one edit (the commit gate refuses a second one until you commit).
+  If the change touches distant parts of a file (e.g. an import and a function), use one
+  `write_file` of the whole file rather than several `edit_file` calls.
+- Don't use a no-op `edit_file` (identical strings) to "locate" text; read the file instead.
+- When `old_string` ends on the first line of the next function (e.g. `def next_test(...):`)
+  and `new_string` doesn't repeat it, that function's header is deleted and its body merges
+  into yours. Anchor on lines inside the block you're extending instead.
 - Before moving on, check that red failed for the *intended* reason. A `NameError` or a broken
   test helper also counts as red, and then the test is locked in green. Fix: `git restore` the
   uncommitted test, `run_coverage`, and write it again.
