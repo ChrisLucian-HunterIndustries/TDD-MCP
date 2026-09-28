@@ -50,6 +50,11 @@ def test_after_coverage(phase, outcome, expected):
     assert after_coverage(phase, outcome) is expected
 
 
+def test_passing_coverage_with_untested_changes_does_not_start_a_cycle():
+    phase = after_coverage(Phase.REFACTOR, Outcome.PASSED, untested_changes=True)
+    assert phase is Phase.REFACTOR
+
+
 @pytest.mark.parametrize(
     ("phase", "kind", "outcome", "expected_phase", "revert"),
     [
