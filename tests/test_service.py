@@ -153,6 +153,22 @@ def test_red_write_adding_two_tests_stays_red(service, adapter, tmp_path: Path):
     assert "2 tests were added" in report.message
 
 
+def test_refactor_counts_the_cycles_new_test_as_existing(
+    service, adapter, tmp_path: Path
+):
+    adapter.counts = SuiteCounts(tests=1, failures=0)
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=2, failures=1)
+    service.write_file(str(tmp_path), "test_calc", "test")
+    adapter.outcome, adapter.counts = Outcome.PASSED, SuiteCounts(tests=2, failures=0)
+    service.write_file(str(tmp_path), "calc.code", "impl")
+
+    report = service.edit_file(str(tmp_path), "calc.code", "impl", "tidy")
+
+    assert "was reverted" not in report.message
+    assert (tmp_path / "calc.code").read_text() == "tidy"
+
+
 def _to_refactor(service: TddService, adapter: FakeAdapter, root: Path) -> None:
     _start(service, root)
     adapter.outcome = Outcome.FAILED
