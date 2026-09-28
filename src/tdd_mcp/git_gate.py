@@ -60,4 +60,16 @@ def changed_lines(root: Path, base: str) -> dict[str, frozenset[int]]:
         elif path and (hunk := _HUNK.match(line)):
             start, count = int(hunk[1]), int(hunk[2] or 1)
             changed.setdefault(path, set()).update(range(start, start + count))
+    untracked = subprocess.run(
+        ["git", "ls-files", "--others", "--exclude-standard", "--", "."],
+        check=False,
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    ).stdout
+    for path in untracked.splitlines():
+        line_count = len((root / path).read_bytes().splitlines())
+        changed[path] = set(range(1, line_count + 1))
     return {path: frozenset(lines) for path, lines in changed.items() if lines}
