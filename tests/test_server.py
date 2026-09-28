@@ -1,4 +1,5 @@
 import asyncio
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -13,9 +14,27 @@ def fresh_service(monkeypatch):
     monkeypatch.setattr(server, "service", server.new_service())
 
 
-def test_python_red_green_refactor_cycle(tmp_path: Path):
-    location = str(tmp_path)
+def _git(cwd: Path, *args: str) -> None:
+    subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
+
+
+def _commit_all(repo: Path) -> None:
+    _git(repo, "add", "-A")
+    _git(repo, "commit", "-m", "step")
+
+
+@pytest.fixture
+def repo(tmp_path: Path) -> Path:
+    _git(tmp_path, "init")
+    _git(tmp_path, "config", "user.email", "test@example.com")
+    _git(tmp_path, "config", "user.name", "Test")
     (tmp_path / "calc.py").write_text("")
+    _commit_all(tmp_path)
+    return tmp_path
+
+
+def test_python_red_green_refactor_cycle(repo: Path):
+    location = str(repo)
 
     assert tdd_status(location).startswith("Phase: coverage_required")
     assert run_coverage(location).startswith("Phase: red")
@@ -30,17 +49,29 @@ def test_python_red_green_refactor_cycle(tmp_path: Path):
     )
     assert red.startswith("Phase: green")
 
+    with pytest.raises(ToolError, match=r"Uncommitted changes .*\?\? test_calc\.py"):
+        write_file(location, "calc.py", "def add(a, b):\n    return a + b\n")
+    _commit_all(repo)
+
     green = write_file(location, "calc.py", "def add(a, b):\n    return a - b\n")
     assert green.startswith("Phase: green")
+    _commit_all(repo)
 
     fixed = edit_file(location, "calc.py", "a - b", "a + b")
     assert fixed.startswith("Phase: refactor")
+    _commit_all(repo)
 
     reverted = edit_file(location, "calc.py", "a + b", "a * b")
     assert "reverted" in reverted
-    assert "a + b" in (tmp_path / "calc.py").read_text()
+    assert "a + b" in (repo / "calc.py").read_text()
 
     assert run_coverage(location).startswith("Phase: red")
+
+
+def test_edits_outside_a_git_repository_are_refused(tmp_path: Path):
+    run_coverage(str(tmp_path))
+    with pytest.raises(ToolError, match="not a git repository"):
+        write_file(str(tmp_path), "notes.md", "x")
 
 
 def test_refusal_reasons_reach_the_client(tmp_path: Path):
