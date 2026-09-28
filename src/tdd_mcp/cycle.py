@@ -54,9 +54,11 @@ def may_write(phase: Phase, kind: FileKind) -> bool:
     return kind in _WRITABLE[phase]
 
 
-def after_coverage(phase: Phase, outcome: Outcome) -> Phase:
+def after_coverage(
+    phase: Phase, outcome: Outcome, *, untested_changes: bool = False
+) -> Phase:
     if outcome is Outcome.PASSED:
-        return Phase.RED
+        return phase if untested_changes else Phase.RED
     if phase is Phase.GREEN:
         return Phase.GREEN
     return Phase.COVERAGE_REQUIRED
