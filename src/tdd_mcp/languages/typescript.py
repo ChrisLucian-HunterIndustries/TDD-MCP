@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import tempfile
+from dataclasses import replace
 from pathlib import Path, PurePath
 
 from tdd_mcp.cycle import FileKind, Outcome
 from tdd_mcp.languages.base import SuiteRun, run_suite
+from tdd_mcp.reports import count_junit
 
 CODE_SUFFIXES = frozenset(
     {".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"}
@@ -49,8 +52,22 @@ class TypeScriptAdapter:
         # Node also exits 1 for a missing module, which would pass for a failing test.
         if not entry.is_file():
             return SuiteRun(Outcome.ERROR, MISSING_VITEST)
-        return run_suite(
-            ["node", str(entry), "run", "--passWithNoTests", *args],
-            root,
-            VITEST_OUTCOMES,
-        )
+        with tempfile.TemporaryDirectory(prefix="tdd-mcp-junit-") as report_dir:
+            junit = Path(report_dir) / "junit.xml"
+            run = run_suite(
+                [
+                    "node",
+                    str(entry),
+                    "run",
+                    "--passWithNoTests",
+                    "--reporter=default",
+                    "--reporter=junit",
+                    f"--outputFile.junit={junit}",
+                    *args,
+                ],
+                root,
+                VITEST_OUTCOMES,
+            )
+            if not junit.is_file():
+                return run
+            return replace(run, counts=count_junit(junit.read_text(encoding="utf-8")))
