@@ -50,6 +50,11 @@ without coverage. It never changes the phase, so a green result there unlocks no
 - A change touching distant parts of a file (e.g. an import and a function) can be several
   `edit_file` calls in the same step; prefer that to rewriting the whole file.
 - Don't use a no-op `edit_file` (identical strings) to "locate" text; read the file instead.
+- A characterization test (passes immediately) belongs in red: call `run_coverage` first.
+  Added in refactor, a current server reverts it; a stale server may silently accept it.
+- To tell which build a running server is, compare the server process's start time with
+  `git log --format="%h %ci"`. Mind the timezones: process times are local, commit times
+  carry their own offset.
 - When `old_string` ends on the first line of the next function (e.g. `def next_test(...):`)
   and `new_string` doesn't repeat it, that function's header is deleted and its body merges
   into yours. Anchor on lines inside the block you're extending instead.
