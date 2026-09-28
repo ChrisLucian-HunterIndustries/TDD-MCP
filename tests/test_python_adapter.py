@@ -142,3 +142,8 @@ def test_coverage_reports_missing_lines(tmp_path: Path):
     assert run.outcome is Outcome.PASSED
     assert "Missing" in run.output
     assert "calc.py" in run.output
+
+
+def test_coverage_leaves_no_data_file_in_the_project(tmp_path: Path):
+    adapter.run_coverage(_project(tmp_path, "assert add(1, 2) == 3"))
+    assert not list(tmp_path.glob(".coverage*"))
