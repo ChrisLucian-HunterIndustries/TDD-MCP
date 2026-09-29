@@ -1,6 +1,7 @@
 import pytest
 
 from tdd_mcp.cycle import (
+    PHASE_GUIDANCE,
     FileKind,
     Outcome,
     Phase,
@@ -29,6 +30,14 @@ from tdd_mcp.cycle import (
 )
 def test_may_write(phase, kind, allowed):
     assert may_write(phase, kind) is allowed
+
+
+def test_every_phase_names_itself_and_the_next_step():
+    """Weaker models lose track of the cycle, so every reply restates where they are."""
+    for phase in Phase:
+        guidance = PHASE_GUIDANCE[phase]
+        assert f"You are in the {phase} phase." in guidance
+        assert "Next:" in guidance
 
 
 @pytest.mark.parametrize(
