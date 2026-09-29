@@ -104,6 +104,13 @@ def test_failing_coverage_stays_coverage_required(service, adapter, tmp_path: Pa
     assert _start(service, tmp_path).phase is Phase.COVERAGE_REQUIRED
 
 
+def test_advancing_with_exactly_one_failing_test_resumes_green(
+    service, adapter, tmp_path: Path
+):
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=3, failures=1)
+    assert _start(service, tmp_path).phase is Phase.GREEN
+
+
 def test_run_coverage_reports_without_advancing_the_phase(service, tmp_path: Path):
     report = service.run_coverage(str(tmp_path), "fake")
 
