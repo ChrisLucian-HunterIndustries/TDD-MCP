@@ -2,7 +2,7 @@
 
 Always use the `tdd` MCP server's `write_file` / `edit_file` tools to change
 `.py` files in this repository. Built-in editing of Python files is blocked.
-Start each cycle with `run_coverage`, write a failing test, make it pass, then
+Start each cycle with `advance_tdd_phase`, write a failing test, make it pass, then
 refactor. Call `tdd_status` if unsure what the current phase allows.
 
 # Committing

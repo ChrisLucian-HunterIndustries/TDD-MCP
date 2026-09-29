@@ -7,25 +7,32 @@ allows each kind of change when the cycle permits it:
 ```mermaid
 stateDiagram-v2
     [*] --> coverage_required
-    coverage_required --> red: run_coverage passes
-    red --> green: exactly one new failing test
+    coverage_required --> red: advance_tdd_phase, all tests pass
+    coverage_required --> green: advance_tdd_phase, exactly one test fails
+    red --> green: a test write leaves exactly one failing test, or the run errors
     green --> refactor: a production write makes the suite pass
-    refactor --> red: run_coverage passes and every changed production line is covered
+    refactor --> red: advance_tdd_phase passes and every changed production line is covered
     refactor --> refactor: edit keeps tests passing and adds none (or is reverted)
 ```
 
 | Phase | Test files | Production files | Leaves when |
 |---|---|---|---|
-| `coverage_required` | locked | locked | `run_coverage` passes |
-| `red` | writable | locked | a test write leaves exactly one failing test, with at most one test added since the coverage run |
+| `coverage_required` | locked | locked | `advance_tdd_phase` passes (red) or finds exactly one failing test (green) |
+| `red` | writable | locked | a test write leaves exactly one failing test, or the tests can't be collected or run, with at most one test added since the cycle started |
 | `green` | locked | writable | a production write makes the suite pass |
-| `refactor` | writable | writable | `run_coverage` passes and covers every production line changed this cycle; any write that breaks tests or adds a test is reverted |
+| `refactor` | writable | writable | `advance_tdd_phase` passes and covers every production line changed this cycle; any write that breaks tests or adds a test is reverted |
+
+Every reply starts with `Phase: <phase>` and ends with what to do next, and every refusal says how
+to get unstuck, so agents (including small local models) always know where they are in the cycle.
 
 ### One test at a time, no speculative code
 
 The server counts tests from the runner's JUnit report. Red only advances when exactly one test
-fails and no more than one test was added since the last coverage run. Write one test, not a batch.
+fails and no more than one test was added since the cycle started. Write one test, not a batch.
 A Python test file that can't be imported yet counts as every `test*` function it defines.
+A test run that can't collect or run the tests at all (e.g. a `conftest.py` importing code that
+doesn't exist yet) also counts as the failing test, so programming by intention works from the
+very first test.
 
 The next cycle only starts when every production line changed since the cycle began (per `git diff`
 against the commit at the start of the cycle, plus untracked files) is executed by some test, with
@@ -68,7 +75,7 @@ This applies to every file, including non-code and exempt files, and gives a his
 . r Extract helper
 ```
 
-The project must be a git repository. `run_coverage`, `run_tests`, and `tdd_status` aren't gated,
+The project must be a git repository. `advance_tdd_phase`, `run_coverage`, `run_tests`, and `tdd_status` aren't gated,
 and Python coverage data is written to a temp directory so coverage runs don't dirty the tree.
 
 ## Languages
