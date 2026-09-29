@@ -66,7 +66,6 @@ def test_coverage_with_exactly_one_failing_test_resumes_green_from_any_phase():
     [
         (Phase.RED, FileKind.TEST, Outcome.FAILED, Phase.GREEN, False),
         (Phase.RED, FileKind.TEST, Outcome.PASSED, Phase.RED, False),
-        (Phase.RED, FileKind.TEST, Outcome.ERROR, Phase.RED, False),
         (Phase.GREEN, FileKind.PRODUCTION, Outcome.PASSED, Phase.REFACTOR, False),
         (Phase.GREEN, FileKind.PRODUCTION, Outcome.FAILED, Phase.GREEN, False),
         (Phase.GREEN, FileKind.PRODUCTION, Outcome.ERROR, Phase.GREEN, False),
@@ -80,6 +79,13 @@ def test_after_write(phase, kind, outcome, expected_phase, revert):
     transition = after_write(phase, kind, outcome)
     assert transition.phase is expected_phase
     assert transition.revert is revert
+
+
+def test_red_counts_a_test_run_that_errors_as_the_failing_test():
+    """E.g. pytest can't load a conftest.py that imports code that doesn't exist yet."""
+    transition = after_write(Phase.RED, FileKind.TEST, Outcome.ERROR, failing=0)
+    assert transition.phase is Phase.GREEN
+    assert "couldn't be collected or run" in transition.reason
 
 
 def test_disallowed_write_transition_is_rejected():
