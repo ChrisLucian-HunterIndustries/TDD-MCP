@@ -67,7 +67,7 @@ def service(adapter: FakeAdapter, tree: FakeTree) -> TddService:
 
 
 def _start(service: TddService, root: Path) -> Report:
-    return service.run_coverage(str(root), "fake")
+    return service.advance_tdd_phase(str(root), "fake")
 
 
 def test_status_before_coverage_requires_coverage(service: TddService, tmp_path: Path):
