@@ -92,7 +92,7 @@ def advance_tdd_phase(location: str, language: LanguageName = "python") -> str:
         language: The project's language, which decides how tests are run.
     """
     with _refusals_as_tool_errors():
-        return service.run_coverage(location, language).render()
+        return service.advance_tdd_phase(location, language).render()
 
 
 @mcp.tool()
