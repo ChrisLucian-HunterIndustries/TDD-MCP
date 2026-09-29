@@ -6,7 +6,7 @@ import pytest
 from mcp.server.mcpserver.exceptions import ToolError
 
 from tdd_mcp import server
-from tdd_mcp.server import edit_file, mcp, run_coverage, tdd_status, write_file
+from tdd_mcp.server import advance_tdd_phase, edit_file, mcp, tdd_status, write_file
 
 
 @pytest.fixture(autouse=True)
@@ -37,7 +37,7 @@ def test_python_red_green_refactor_cycle(repo: Path):
     location = str(repo)
 
     assert tdd_status(location).startswith("Phase: coverage_required")
-    assert run_coverage(location).startswith("Phase: red")
+    assert advance_tdd_phase(location).startswith("Phase: red")
 
     with pytest.raises(ToolError, match="not allowed in the red phase"):
         write_file(location, "calc.py", "def add(a, b):\n    return a + b\n")
@@ -65,7 +65,7 @@ def test_python_red_green_refactor_cycle(repo: Path):
     assert "reverted" in reverted
     assert "a + b" in (repo / "calc.py").read_text()
 
-    assert run_coverage(location).startswith("Phase: red")
+    assert advance_tdd_phase(location).startswith("Phase: red")
 
 
 def test_advance_tdd_phase_starts_the_cycle(repo: Path):
@@ -73,14 +73,14 @@ def test_advance_tdd_phase_starts_the_cycle(repo: Path):
 
 
 def test_edits_outside_a_git_repository_are_refused(tmp_path: Path):
-    run_coverage(str(tmp_path))
+    advance_tdd_phase(str(tmp_path))
     with pytest.raises(ToolError, match="not a git repository"):
         write_file(str(tmp_path), "notes.md", "x")
 
 
 def test_untested_production_code_blocks_the_next_cycle(repo: Path):
     location = str(repo)
-    run_coverage(location)
+    advance_tdd_phase(location)
     write_file(
         location,
         "test_calc.py",
@@ -94,14 +94,14 @@ def test_untested_production_code_blocks_the_next_cycle(repo: Path):
     )
     _commit_all(repo)
 
-    blocked = run_coverage(location)
+    blocked = advance_tdd_phase(location)
 
     assert blocked.startswith("Phase: refactor")
     assert "calc.py: 6." in blocked
 
     edit_file(location, "calc.py", "\n\n\ndef unused():\n    return 0\n", "\n")
     _commit_all(repo)
-    assert run_coverage(location).startswith("Phase: red")
+    assert advance_tdd_phase(location).startswith("Phase: red")
 
 
 def test_refusal_reasons_reach_the_client(tmp_path: Path):
@@ -115,7 +115,7 @@ def test_run_tests_tool_runs_a_selection_without_changing_phase(tmp_path: Path):
     (tmp_path / "test_calc.py").write_text(
         "def test_add():\n    pass\n\n\ndef test_sub():\n    assert False\n"
     )
-    run_coverage(location)
+    advance_tdd_phase(location)
 
     result = asyncio.run(
         mcp.call_tool(
