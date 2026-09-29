@@ -55,6 +55,12 @@ def test_passing_coverage_with_untested_changes_does_not_start_a_cycle():
     assert phase is Phase.REFACTOR
 
 
+def test_coverage_with_exactly_one_failing_test_resumes_green_from_any_phase():
+    """E.g. after a git reset to a commit that holds a failing test."""
+    for phase in Phase:
+        assert after_coverage(phase, Outcome.FAILED, failing=1) is Phase.GREEN
+
+
 @pytest.mark.parametrize(
     ("phase", "kind", "outcome", "expected_phase", "revert"),
     [
