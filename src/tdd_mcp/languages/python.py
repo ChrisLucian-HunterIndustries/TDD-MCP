@@ -58,7 +58,7 @@ def count_pytest_junit(xml: str, root: Path) -> SuiteCounts:
 def _defined_tests(path: Path) -> int:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
-    except SyntaxError:
+    except (SyntaxError, OSError):
         return 1
     return sum(
         isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
