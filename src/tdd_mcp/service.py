@@ -86,7 +86,7 @@ class TddService:
         phase = session.phase if session else Phase.COVERAGE_REQUIRED
         return Report(phase, PHASE_GUIDANCE[phase])
 
-    def run_coverage(self, location: str, language: str) -> Report:
+    def advance_tdd_phase(self, location: str, language: str) -> Report:
         root = _root(location)
         adapter = self._adapters.get(language)
         if adapter is None:
