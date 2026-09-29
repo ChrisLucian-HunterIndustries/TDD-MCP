@@ -68,6 +68,10 @@ def test_python_red_green_refactor_cycle(repo: Path):
     assert run_coverage(location).startswith("Phase: red")
 
 
+def test_advance_tdd_phase_starts_the_cycle(repo: Path):
+    assert server.advance_tdd_phase(str(repo)).startswith("Phase: red")
+
+
 def test_edits_outside_a_git_repository_are_refused(tmp_path: Path):
     run_coverage(str(tmp_path))
     with pytest.raises(ToolError, match="not a git repository"):
