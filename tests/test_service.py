@@ -205,9 +205,13 @@ class FakeHistory:
     def __init__(self) -> None:
         self.head = "base"
         self.changed: dict[str, frozenset[int]] = {}
+        self.ancestor = True
 
     def head_commit(self, root: Path) -> str:
         return self.head
+
+    def is_ancestor(self, root: Path, commit: str) -> bool:
+        return self.ancestor
 
     def changed_lines(self, root: Path, base: str) -> dict[str, frozenset[int]]:
         assert base == "base"
