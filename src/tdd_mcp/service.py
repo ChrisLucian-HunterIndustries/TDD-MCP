@@ -179,6 +179,7 @@ class TddService:
             not self._history
             or session.base is None
             or run.outcome is not Outcome.PASSED
+            or not self._history.is_ancestor(root, session.base)
         ):
             return {}
         untested = {}
