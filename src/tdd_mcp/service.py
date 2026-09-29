@@ -116,7 +116,8 @@ class TddService:
             )
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
-                f"{listed}. Remove code no test requires; the next cycle can't start "
+                f"{listed}. Delete code no test requires (still in refactor), commit, "
+                "then call advance_tdd_phase again; the next cycle can't start "
                 "until every changed line is covered."
             )
         return Report(
@@ -160,12 +161,18 @@ class TddService:
         if path is not None:
             target = resolve_inside(root, path)
             if not target.exists():
-                raise TddError(f"Path {path!r} does not exist")
+                raise TddError(
+                    f"Path {path!r} does not exist. Pass an existing test file or "
+                    "folder relative to location, or omit path to run every test."
+                )
             relative = target.relative_to(root).as_posix()
         for value in (relative, test_name):
             # The runner would parse it as an option (e.g. pytest's `-p` loads plugins).
             if value and value.startswith("-"):
-                raise TddError(f"Test selection {value!r} must not start with '-'")
+                raise TddError(
+                    f"Test selection {value!r} must not start with '-'. Pass a test "
+                    "file, folder, or name without the leading '-'."
+                )
 
         run = session.adapter.run_tests(root, relative, test_name)
         return Report(
@@ -197,7 +204,9 @@ class TddService:
         session = self._sessions.get(root)
         if session is None:
             raise TddError(
-                "No TDD cycle started for this location. Call run_coverage first."
+                "No TDD cycle started for this location (you are in the "
+                "coverage_required phase). Next: call advance_tdd_phase with this "
+                "location, then retry."
             )
         return session
 
@@ -210,7 +219,7 @@ class TddService:
         if not changes:
             session.step = session.phase
         elif session.step is None:
-            raise _uncommitted(root, changes)
+            raise _uncommitted(root, changes, session.phase)
         phase = session.step
 
         target = resolve_inside(root, path)
@@ -225,7 +234,7 @@ class TddService:
         kind = session.adapter.classify(relative)
         if not may_write(phase, kind):
             if changes and may_write(session.phase, kind):
-                raise _uncommitted(root, changes)
+                raise _uncommitted(root, changes, session.phase)
             raise TddError(
                 f"Writing {kind} files is not allowed in the {phase} phase. "
                 f"{PHASE_GUIDANCE[phase]}"
@@ -258,17 +267,21 @@ class TddService:
         )
 
 
-def _uncommitted(root: Path, changes: list[str]) -> TddError:
+def _uncommitted(root: Path, changes: list[str], phase: Phase) -> TddError:
     return TddError(
         f"Uncommitted changes in {root}: "
         f"{', '.join(line.strip() for line in changes)}. "
-        "Commit them before the next edit, e.g. '. t' for a new failing "
-        "test, then '^ f' for the code that passes it."
+        "Commit them first (git add, then commit: '. t' for a new failing test, "
+        "'^ f' for the code that passes it, '. r' for a refactoring), then retry "
+        f"this edit. You are in the {phase} phase."
     )
 
 
 def _root(location: str) -> Path:
     root = Path(location).resolve()
     if not root.is_dir():
-        raise TddError(f"Location does not exist or is not a directory: {location}")
+        raise TddError(
+            f"Location does not exist or is not a directory: {location}. "
+            "Pass the absolute path of the project root."
+        )
     return root
