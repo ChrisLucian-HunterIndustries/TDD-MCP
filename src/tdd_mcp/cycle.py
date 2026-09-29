@@ -92,6 +92,15 @@ def after_write(
                 Phase.RED,
                 reason=f"{failing} tests fail; exactly one failing test may drive the next change.",
             )
+        if outcome is Outcome.ERROR:
+            return Transition(
+                Phase.GREEN,
+                reason=(
+                    "The tests couldn't be collected or run, which counts as your "
+                    "failing test. Check the output shows it fails for the intended "
+                    "reason (e.g. code that doesn't exist yet)."
+                ),
+            )
         return Transition(Phase.GREEN if outcome is Outcome.FAILED else Phase.RED)
     if phase is Phase.GREEN:
         return Transition(Phase.REFACTOR if outcome is Outcome.PASSED else Phase.GREEN)
