@@ -79,6 +79,23 @@ def tdd_status(location: str) -> str:
 
 
 @mcp.tool()
+def advance_tdd_phase(location: str, language: LanguageName = "python") -> str:
+    """Check the whole test suite (with coverage) and move to the next TDD phase.
+
+    The only tool that starts a cycle. Call it first, after each refactor, and
+    whenever the repository was changed outside this server (e.g. a git reset):
+    the phase is recomputed from the tests. All tests pass: red, write one
+    failing test next. Exactly one test fails: green, make it pass.
+
+    Args:
+        location: Path to the project root.
+        language: The project's language, which decides how tests are run.
+    """
+    with _refusals_as_tool_errors():
+        return service.run_coverage(location, language).render()
+
+
+@mcp.tool()
 def run_coverage(location: str, language: LanguageName = "python") -> str:
     """Run the full test suite with coverage. Starts each TDD cycle.
 
