@@ -77,7 +77,7 @@ def test_status_before_coverage_requires_coverage(service: TddService, tmp_path:
 
 
 def test_writing_before_coverage_is_refused(service: TddService, tmp_path: Path):
-    with pytest.raises(TddError, match="run_coverage"):
+    with pytest.raises(TddError, match="No TDD cycle started"):
         service.write_file(str(tmp_path), "test_a", "x")
     assert not (tmp_path / "test_a").exists()
 
@@ -374,7 +374,7 @@ def test_only_edits_are_gated(service, adapter, tree, tmp_path: Path):
 
 
 def test_run_tests_requires_a_started_cycle(service: TddService, tmp_path: Path):
-    with pytest.raises(TddError, match="run_coverage"):
+    with pytest.raises(TddError, match="No TDD cycle started"):
         service.run_tests(str(tmp_path))
 
 
