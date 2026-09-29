@@ -121,6 +121,18 @@ def test_test_file_with_syntax_error_counts_as_one_failing_test(tmp_path: Path):
     assert (run.counts.tests, run.counts.failures) == (1, 1)
 
 
+def test_unimportable_test_file_in_a_dotted_folder_counts_as_one_failing_test(
+    tmp_path: Path,
+):
+    """pytest's JUnit name `v1.2.test_calc` doesn't map back to `v1.2/test_calc.py`."""
+    (tmp_path / "v1.2").mkdir()
+    (tmp_path / "v1.2" / "test_calc.py").write_text(
+        "from calc import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n"
+    )
+    run = adapter.run_tests(tmp_path)
+    assert (run.counts.tests, run.counts.failures) == (1, 1)
+
+
 def test_unstartable_interpreter_is_an_error_without_counts(tmp_path: Path):
     for relative in (".venv/Scripts/python.exe", ".venv/bin/python"):
         (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
