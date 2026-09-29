@@ -38,6 +38,17 @@ def head_commit(root: Path) -> str:
     return result.stdout.strip()
 
 
+def is_ancestor(root: Path, commit: str) -> bool:
+    """Whether `commit` is HEAD or one of its ancestors (false once a reset rewinds past it)."""
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", commit, "HEAD"],
+        check=False,
+        cwd=root,
+        capture_output=True,
+    )
+    return result.returncode == 0
+
+
 _HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@")
 
 
