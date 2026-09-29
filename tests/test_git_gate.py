@@ -65,6 +65,21 @@ def test_head_commit_is_the_checked_out_commit(repo: Path):
     assert head_commit(repo) == _git(repo, "rev-parse", "HEAD").strip()
 
 
+def test_is_ancestor_of_later_commits_but_not_after_a_reset_rewinds_past_it(
+    repo: Path,
+):
+    from tdd_mcp.git_gate import is_ancestor
+
+    base = head_commit(repo)
+    (repo / "a.txt").write_text("b")
+    _git(repo, "commit", "-am", "later")
+    later = head_commit(repo)
+    assert is_ancestor(repo, base)
+
+    _git(repo, "reset", "--hard", base)
+    assert not is_ancestor(repo, later)
+
+
 def test_changed_lines_lists_added_and_modified_lines_since_a_commit(repo: Path):
     (repo / "a.txt").write_text("one\ntwo\nthree\n")
     _git(repo, "commit", "-am", "base")
