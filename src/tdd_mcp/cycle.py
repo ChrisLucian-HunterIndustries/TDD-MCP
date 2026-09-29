@@ -30,7 +30,8 @@ PHASE_GUIDANCE: dict[Phase, str] = {
         "You are in the coverage_required phase. Code files are locked. "
         "Next: call advance_tdd_phase, which runs every test with coverage. "
         "All passing starts the cycle in red; exactly one failing resumes green. "
-        "If more tests fail, ask the user to fix or revert them, then call "
+        "If more tests fail, or the test runner can't run (see the output, e.g. "
+        "pytest-cov or vitest not installed), ask the user to fix it, then call "
         "advance_tdd_phase again."
     ),
     Phase.RED: (

@@ -23,7 +23,11 @@ def uncommitted_changes(root: Path) -> list[str]:
         errors="replace",
     )
     if result.returncode != 0:
-        raise GitError(f"git status failed in {root}: {result.stderr.strip()}")
+        raise GitError(
+            f"git status failed in {root}: {result.stderr.strip()}. The project "
+            "must be a git repository: ask the user to run git init and commit, "
+            "then retry."
+        )
     return result.stdout.splitlines()
 
 
