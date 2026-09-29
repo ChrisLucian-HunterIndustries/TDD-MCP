@@ -122,6 +122,8 @@ class TddService:
             session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
         )
 
+    run_coverage = advance_tdd_phase
+
     def write_file(self, location: str, path: str, content: str) -> Report:
         return self._apply(location, path, lambda target: write_text(target, content))
 
