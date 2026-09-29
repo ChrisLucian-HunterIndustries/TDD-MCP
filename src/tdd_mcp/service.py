@@ -97,7 +97,10 @@ class TddService:
         session.step = None
         untested = self._untested_changes(session, root, run)
         session.phase = after_coverage(
-            session.phase, run.outcome, untested_changes=bool(untested)
+            session.phase,
+            run.outcome,
+            untested_changes=bool(untested),
+            failing=run.counts.failures if run.counts else 0,
         )
         if run.counts:
             session.tests = run.counts.tests
