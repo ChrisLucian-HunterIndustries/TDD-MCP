@@ -102,12 +102,18 @@ def after_write(
         if added > 1:
             return Transition(
                 Phase.RED,
-                reason=f"{added} tests were added since the last coverage run; add exactly one.",
+                reason=(
+                    f"{added} tests were added since the cycle started; "
+                    "remove all but one of them."
+                ),
             )
         if outcome is Outcome.FAILED and failing > 1:
             return Transition(
                 Phase.RED,
-                reason=f"{failing} tests fail; exactly one failing test may drive the next change.",
+                reason=(
+                    f"{failing} tests fail; exactly one failing test may drive the "
+                    "next change. Make the others pass or remove them."
+                ),
             )
         if outcome is Outcome.ERROR:
             return Transition(
@@ -118,19 +124,39 @@ def after_write(
                     "reason (e.g. code that doesn't exist yet)."
                 ),
             )
-        return Transition(Phase.GREEN if outcome is Outcome.FAILED else Phase.RED)
+        if outcome is Outcome.PASSED:
+            return Transition(
+                Phase.RED,
+                reason=(
+                    "Every test passes, so you are still in red. Make the new test "
+                    "check behaviour that doesn't exist yet, and name its file and "
+                    "function the way the test runner finds them."
+                ),
+            )
+        return Transition(Phase.GREEN)
     if phase is Phase.GREEN:
-        return Transition(Phase.REFACTOR if outcome is Outcome.PASSED else Phase.GREEN)
+        if outcome is Outcome.PASSED:
+            return Transition(Phase.REFACTOR)
+        return Transition(
+            Phase.GREEN,
+            reason="Tests still fail: keep changing production code until all pass.",
+        )
     if added > 0:
         return Transition(
             Phase.REFACTOR,
             revert=True,
-            reason=f"Refactoring must not add tests ({added} added); new behaviour needs its own red phase.",
+            reason=(
+                f"Refactoring must not add tests ({added} added); new behaviour "
+                "needs its own red phase: call advance_tdd_phase, then add the test."
+            ),
         )
     return Transition(
         Phase.REFACTOR,
         revert=outcome is not Outcome.PASSED,
         reason=""
         if outcome is Outcome.PASSED
-        else "Refactoring must keep tests passing.",
+        else (
+            "Refactoring must keep tests passing. Make a smaller change, or call "
+            "advance_tdd_phase to start a new cycle."
+        ),
     )
