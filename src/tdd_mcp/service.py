@@ -88,11 +88,7 @@ class TddService:
 
     def advance_tdd_phase(self, location: str, language: str) -> Report:
         root = _root(location)
-        adapter = self._adapters.get(language)
-        if adapter is None:
-            raise TddError(
-                f"Unsupported language {language!r}. Supported: {', '.join(self._adapters)}"
-            )
+        adapter = self._adapter(language)
         session = self._sessions.get(root)
         if session is None or session.adapter is not adapter:
             session = self._sessions[root] = _Session(adapter)
@@ -122,7 +118,23 @@ class TddService:
             session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
         )
 
-    run_coverage = advance_tdd_phase
+    def run_coverage(self, location: str, language: str) -> Report:
+        run = self._adapter(language).run_coverage(_root(location))
+        return Report(
+            self.status(location).phase,
+            f"Coverage run {run.outcome} (phase unchanged). "
+            "Only advance_tdd_phase moves the TDD cycle to its next phase.",
+            run.output,
+        )
+
+    def _adapter(self, language: str) -> LanguageAdapter:
+        adapter = self._adapters.get(language)
+        if adapter is None:
+            raise TddError(
+                f"Unsupported language {language!r}. "
+                f"Retry with language set to one of: {', '.join(self._adapters)}."
+            )
+        return adapter
 
     def write_file(self, location: str, path: str, content: str) -> Report:
         return self._apply(location, path, lambda target: write_text(target, content))
