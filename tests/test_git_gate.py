@@ -3,7 +3,13 @@ from pathlib import Path
 
 import pytest
 
-from tdd_mcp.git_gate import GitError, changed_lines, head_commit, uncommitted_changes
+from tdd_mcp.git_gate import (
+    GitError,
+    changed_lines,
+    head_commit,
+    is_ancestor,
+    uncommitted_changes,
+)
 
 
 def _git(cwd: Path, *args: str) -> str:
@@ -68,8 +74,6 @@ def test_head_commit_is_the_checked_out_commit(repo: Path):
 def test_is_ancestor_of_later_commits_but_not_after_a_reset_rewinds_past_it(
     repo: Path,
 ):
-    from tdd_mcp.git_gate import is_ancestor
-
     base = head_commit(repo)
     (repo / "a.txt").write_text("b")
     _git(repo, "commit", "-am", "later")
