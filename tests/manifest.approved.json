@@ -69,7 +69,7 @@
         }
     },
     {
-        "description": "Run the full test suite with coverage. Starts each TDD cycle.\n\nIf every test passes, the cycle moves to the red phase, where a failing\ntest must be written before production code can change.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
+        "description": "Run the full test suite with coverage and show untested lines. Never changes the TDD phase.\n\nUse it to find untested code. To start a cycle or move to the next phase,\ncall `advance_tdd_phase` instead.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
         "input_schema": {
             "properties": {
                 "language": {
@@ -108,7 +108,7 @@
         }
     },
     {
-        "description": "Run tests without coverage: faster, for iterating. Never changes the TDD phase.\n\nUse this to check progress while writing a test or code. Only `run_coverage`\nand the test runs that `write_file`/`edit_file` trigger advance the cycle, so\na passing or failing result here unlocks nothing.\n\nRuns the whole suite by default. Narrow it with `path` (a test file or\nfolder) and/or `test_name` (matched against test names: pytest `-k`,\nvitest `-t`) to run all tests in a file or folder, or a single test.\nRequires a cycle started with `run_coverage`.\n\nArgs:\n    location: Path to the project root.\n    path: Test file or folder, relative to `location` (or absolute, inside it).\n    test_name: Name, or part of a name, of the test(s) to run.\n",
+        "description": "Run tests without coverage: faster, for iterating. Never changes the TDD phase.\n\nUse this to check progress while writing a test or code. Only `advance_tdd_phase`\nand the test runs that `write_file`/`edit_file` trigger advance the cycle, so\na passing or failing result here unlocks nothing.\n\nRuns the whole suite by default. Narrow it with `path` (a test file or\nfolder) and/or `test_name` (matched against test names: pytest `-k`,\nvitest `-t`) to run all tests in a file or folder, or a single test.\nRequires a cycle started with `advance_tdd_phase`.\n\nArgs:\n    location: Path to the project root.\n    path: Test file or folder, relative to `location` (or absolute, inside it).\n    test_name: Name, or part of a name, of the test(s) to run.\n",
         "input_schema": {
             "properties": {
                 "location": {
@@ -162,7 +162,7 @@
         }
     },
     {
-        "description": "Create or overwrite a file, if the current TDD phase allows it, then run the tests.\n\nTest files may be written in the red and refactor phases; production\nfiles in the green and refactor phases. The test results decide the\nnext phase.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    content: The complete new file content.\n",
+        "description": "Create or overwrite a file, if the current TDD phase allows it, then run the tests.\n\nTest files may be written in the red and refactor phases; production\nfiles in the green and refactor phases. The test results decide the\nnext phase, shown on the reply's first line. In red, write one failing\ntest before any production code.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    content: The complete new file content.\n",
         "input_schema": {
             "properties": {
                 "content": {

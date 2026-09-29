@@ -21,26 +21,32 @@ mcp = MCPServer(
     instructions=(
         "Enforces the test-driven development cycle when writing code files. "
         "Write every code file through this server's `write_file` or "
-        "`edit_file` tools, never with other editing tools. Each cycle: "
-        "(1) call `run_coverage` — all tests must pass, and the coverage "
-        "report shows what is untested; (2) write exactly one new failing "
-        "test (production code is locked until exactly one test fails, and "
-        "adding more than one test keeps you in red); "
-        "(3) write production code until the tests pass (tests are locked "
-        "meanwhile); (4) refactor test or production code — any edit that "
-        "breaks the tests or adds a test is automatically reverted; then call "
-        "`run_coverage` to start the next cycle, which also requires every "
-        "production line changed this cycle to be covered, so don't write code "
-        "for tests that don't exist yet. Call `tdd_status` any time "
-        "to see the current phase and what is allowed. To iterate faster, "
-        "`run_tests` runs all tests, a file or folder, or a single test "
-        "without coverage; it never advances the phase. Non-code files (docs, "
-        "config) can be written in any phase and don't run the tests. Neither "
-        "do paths matching the server's `TDD_MCP_EXEMPT` patterns. Coverage "
-        "includes branches. Commit each step before the next phase's edits "
-        "(e.g. '. t' for a new failing test, then '^ f' for the code that "
+        "`edit_file` tools, never with other editing tools. Every reply starts "
+        "with 'Phase: <phase>' and says what to do next; follow it. Each cycle: "
+        "(1) call `advance_tdd_phase` — it runs all tests with coverage and is "
+        "the only tool that starts a cycle or moves to the next phase; when "
+        "all tests pass you are in red. Call it again whenever the repository "
+        "changed outside this server (e.g. a git reset) to resync the phase. "
+        "(2) Red: write exactly ONE new failing test before any production "
+        "code (production code is locked until exactly one test fails, and "
+        "adding more than one test keeps you in red). A test that can't be "
+        "collected yet, e.g. because it imports code that doesn't exist, "
+        "counts as failing. "
+        "(3) Green: write production code until the tests pass (tests are "
+        "locked meanwhile). (4) Refactor: refactor test or production code — "
+        "any edit that breaks the tests or adds a test is automatically "
+        "reverted; then call `advance_tdd_phase` to start the next cycle, which "
+        "also requires every production line changed this cycle to be covered, "
+        "so don't write code for tests that don't exist yet. Call `tdd_status` "
+        "any time to see the current phase and what is allowed. `run_coverage` "
+        "(a coverage report) and `run_tests` (all tests, a file or folder, or a "
+        "single test, without coverage) never change the phase. Non-code files "
+        "(docs, config) can be written in any phase and don't run the tests. "
+        "Neither do paths matching the server's `TDD_MCP_EXEMPT` patterns. "
+        "Coverage includes branches. Commit each step before the next phase's "
+        "edits (e.g. '. t' for a new failing test, then '^ f' for the code that "
         "passes it); repeat edits within one phase amend the uncommitted step, "
-        "and a coverage run ends it."
+        "and `advance_tdd_phase` ends it."
     ),
 )
 
@@ -97,10 +103,10 @@ def advance_tdd_phase(location: str, language: LanguageName = "python") -> str:
 
 @mcp.tool()
 def run_coverage(location: str, language: LanguageName = "python") -> str:
-    """Run the full test suite with coverage. Starts each TDD cycle.
+    """Run the full test suite with coverage and show untested lines. Never changes the TDD phase.
 
-    If every test passes, the cycle moves to the red phase, where a failing
-    test must be written before production code can change.
+    Use it to find untested code. To start a cycle or move to the next phase,
+    call `advance_tdd_phase` instead.
 
     Args:
         location: Path to the project root.
@@ -116,14 +122,14 @@ def run_tests(
 ) -> str:
     """Run tests without coverage: faster, for iterating. Never changes the TDD phase.
 
-    Use this to check progress while writing a test or code. Only `run_coverage`
+    Use this to check progress while writing a test or code. Only `advance_tdd_phase`
     and the test runs that `write_file`/`edit_file` trigger advance the cycle, so
     a passing or failing result here unlocks nothing.
 
     Runs the whole suite by default. Narrow it with `path` (a test file or
     folder) and/or `test_name` (matched against test names: pytest `-k`,
     vitest `-t`) to run all tests in a file or folder, or a single test.
-    Requires a cycle started with `run_coverage`.
+    Requires a cycle started with `advance_tdd_phase`.
 
     Args:
         location: Path to the project root.
@@ -140,7 +146,8 @@ def write_file(location: str, path: str, content: str) -> str:
 
     Test files may be written in the red and refactor phases; production
     files in the green and refactor phases. The test results decide the
-    next phase.
+    next phase, shown on the reply's first line. In red, write one failing
+    test before any production code.
 
     Args:
         location: Path to the project root.
