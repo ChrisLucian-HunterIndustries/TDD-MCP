@@ -26,12 +26,29 @@ class Outcome(StrEnum):
 
 
 PHASE_GUIDANCE: dict[Phase, str] = {
-    Phase.COVERAGE_REQUIRED: "Run coverage; all tests must pass before writing a new test.",
-    Phase.RED: "Write a test that fails. Production code is locked.",
-    Phase.GREEN: "Write production code to make the failing test pass. Tests are locked.",
+    Phase.COVERAGE_REQUIRED: (
+        "You are in the coverage_required phase. Code files are locked. "
+        "Next: call advance_tdd_phase, which runs every test with coverage. "
+        "All passing starts the cycle in red; exactly one failing resumes green. "
+        "If more tests fail, ask the user to fix or revert them, then call "
+        "advance_tdd_phase again."
+    ),
+    Phase.RED: (
+        "You are in the red phase. Production code is locked. "
+        "Next: write exactly ONE new test that fails, with write_file or "
+        "edit_file on a test file. A test that can't be collected yet, e.g. "
+        "because it imports code that doesn't exist, counts as failing."
+    ),
+    Phase.GREEN: (
+        "You are in the green phase. Tests are locked. "
+        "Next: change production code, as little as possible, until every test "
+        "passes. Fix a wrong test later, in refactor."
+    ),
     Phase.REFACTOR: (
-        "Refactor test or production code; edits that break tests are reverted. "
-        "Run coverage to start the next cycle."
+        "You are in the refactor phase. Test and production code are writable; "
+        "edits that break tests or add tests are reverted. "
+        "Next: optionally tidy the code, commit, then call advance_tdd_phase to "
+        "start the next cycle."
     ),
 }
 
