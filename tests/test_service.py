@@ -104,6 +104,16 @@ def test_failing_coverage_stays_coverage_required(service, adapter, tmp_path: Pa
     assert _start(service, tmp_path).phase is Phase.COVERAGE_REQUIRED
 
 
+def test_run_coverage_reports_without_advancing_the_phase(service, tmp_path: Path):
+    report = service.run_coverage(str(tmp_path), "fake")
+
+    assert report.phase is Phase.COVERAGE_REQUIRED
+    assert "phase unchanged" in report.message
+    assert "advance_tdd_phase" in report.message
+    assert report.output == "coverage output"
+    assert service.status(str(tmp_path)).phase is Phase.COVERAGE_REQUIRED
+
+
 def test_full_cycle(service: TddService, adapter: FakeAdapter, tmp_path: Path):
     location = str(tmp_path)
     _start(service, tmp_path)
