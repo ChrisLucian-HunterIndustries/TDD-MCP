@@ -72,6 +72,14 @@ def test_advance_tdd_phase_starts_the_cycle(repo: Path):
     assert server.advance_tdd_phase(str(repo)).startswith("Phase: red")
 
 
+def test_run_coverage_tool_reports_without_starting_the_cycle(repo: Path):
+    report = server.run_coverage(str(repo))
+
+    assert report.startswith("Phase: coverage_required")
+    assert "Coverage run passed (phase unchanged)." in report
+    assert tdd_status(str(repo)).startswith("Phase: coverage_required")
+
+
 def test_edits_outside_a_git_repository_are_refused(tmp_path: Path):
     advance_tdd_phase(str(tmp_path))
     with pytest.raises(ToolError, match="not a git repository"):
