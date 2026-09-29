@@ -234,6 +234,19 @@ def test_coverage_holds_the_phase_while_changed_production_lines_are_untested(
     assert "test_calc" not in report.message
 
 
+def test_a_reset_past_the_cycle_start_resyncs_instead_of_flagging_old_code(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    history.changed = {"calc.code": frozenset({3})}
+    adapter.uncovered = {"calc.code": frozenset({3})}
+    history.ancestor = False
+
+    assert _start(service, tmp_path).phase is Phase.RED
+
+
 def _to_refactor(service: TddService, adapter: FakeAdapter, root: Path) -> None:
     _start(service, root)
     adapter.outcome = Outcome.FAILED
