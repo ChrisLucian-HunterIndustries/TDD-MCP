@@ -113,7 +113,8 @@ def test_refusal_reasons_reach_the_client(tmp_path: Path):
 def test_run_tests_tool_runs_a_selection_without_changing_phase(tmp_path: Path):
     location = str(tmp_path)
     (tmp_path / "test_calc.py").write_text(
-        "def test_add():\n    pass\n\n\ndef test_sub():\n    assert False\n"
+        "def test_add():\n    pass\n\n\ndef test_sub():\n    assert False\n\n\n"
+        "def test_mul():\n    assert False\n"
     )
     advance_tdd_phase(location)
 
@@ -127,7 +128,7 @@ def test_run_tests_tool_runs_a_selection_without_changing_phase(tmp_path: Path):
     text = result.content[0].text
     assert text.startswith("Phase: coverage_required")
     assert "Tests passed (not a coverage run; phase unchanged)." in text
-    assert "1 passed, 1 deselected" in text
+    assert "1 passed, 2 deselected" in text
 
 
 def test_main_runs_the_server(monkeypatch):
