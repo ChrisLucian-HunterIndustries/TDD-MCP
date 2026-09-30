@@ -11,6 +11,7 @@ stateDiagram-v2
     coverage_required --> green: advance_tdd_phase, exactly one test fails
     red --> green: a test write leaves exactly one failing test, or the run errors
     green --> refactor: a production write makes the suite pass
+    green --> red: return_to_red, with the green edits undone
     refactor --> red: advance_tdd_phase passes and every changed production line is covered
     refactor --> refactor: edit keeps tests passing and adds none (or is reverted)
 ```
@@ -19,7 +20,7 @@ stateDiagram-v2
 |---|---|---|---|
 | `coverage_required` | locked | locked | `advance_tdd_phase` passes (red) or finds exactly one failing test (green) |
 | `red` | writable | locked | a test write leaves exactly one failing test, or the tests can't be collected or run, with at most one test added since the cycle started |
-| `green` | locked | writable | a production write makes the suite pass |
+| `green` | locked | writable | a production write makes the suite pass, or `return_to_red` (see below) |
 | `refactor` | writable | writable | `advance_tdd_phase` passes and covers every production line changed this cycle; any write that breaks tests or adds a test is reverted |
 
 Every reply starts with `Phase: <phase>` and ends with what to do next, and every refusal says how
@@ -47,13 +48,33 @@ trigger a test run.
 ## Tools
 
 - `tdd_status(location)` — current phase and what it allows.
-- `run_coverage(location, language="python")` — run the whole suite with coverage; starts each cycle. `language` is `python` or `typescript`.
-- `run_tests(location, path=None, test_name=None)` — run tests without coverage, for fast iteration. By default it runs every test; `path` narrows it to a test file or folder, and `test_name` to matching tests (pytest `-k`, vitest `-t`). It never changes the phase: only `run_coverage` and the test runs that writes trigger do that.
+- `advance_tdd_phase(location, language="python")` — run the whole suite with coverage and move to
+  the next phase; the only tool that starts a cycle. `language` is `python` or `typescript`.
+- `return_to_red(location)` — go back from green to red, once the uncommitted green edits are
+  undone, to update existing tests that assert the old behaviour.
+- `run_coverage(location, language="python")` — run the whole suite with coverage and show
+  untested lines. It never changes the phase.
+- `run_tests(location, path=None, test_name=None)` — run tests without coverage, for fast iteration. By default it runs every test; `path` narrows it to a test file or folder, and `test_name` to matching tests (pytest `-k`, vitest `-t`). It never changes the phase: only `advance_tdd_phase` and the test runs that writes trigger do that.
 - `write_file(location, path, content)` — create or overwrite a file, then run the tests.
 - `edit_file(location, path, old_string, new_string)` — replace exactly one occurrence, then run the tests.
 
 Paths must resolve inside `location`. Cycle state is kept in memory per project, so restarting the
 server starts again at `coverage_required`.
+
+### Resyncing after changes outside the server
+
+`advance_tdd_phase` recomputes the phase from the tests, so call it after a server restart or when
+the repository changed underneath the server (e.g. `git reset`): all tests passing gives red,
+exactly one failing test gives green. When a reset rewinds past the commit the cycle started from,
+the uncovered-changes check is skipped for that run instead of flagging code from before the reset.
+
+### Stale assertions in existing tests
+
+Sometimes the production change for a new test breaks older tests that assert the old behaviour.
+Tests are locked in green, so instead of resetting git, undo the uncommitted production edits and
+call `return_to_red`. Back in red, edit those older tests so they pass without the old behaviour
+(the new failing test already specifies the new one). The first edit returns to green, but further
+test edits amend the same uncommitted red step until it's committed.
 
 ### Commit every step
 
@@ -62,7 +83,7 @@ unstaged, or untracked; ignored files don't count) anywhere under `location` bel
 that was active when the tree was last clean. Repeat edits within that step are allowed, so a
 red test or a green change can take several `edit_file` calls. The server refuses an edit when:
 
-- the tree is dirty and no step is open (e.g. after a server restart or a `run_coverage` run,
+- the tree is dirty and no step is open (e.g. after a server restart or an `advance_tdd_phase` run,
   which ends the step), or
 - the edit belongs to a later phase than the open step (e.g. production code after an
   uncommitted red test).

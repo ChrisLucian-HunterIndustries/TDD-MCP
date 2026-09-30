@@ -42,10 +42,10 @@ before running it. Coverage measures branches: an `if` with an untaken path is u
 - "Expected exactly one match" — widen `old_string` with surrounding lines.
 - The repository changed outside the server (e.g. `git reset`) — call `advance_tdd_phase`: it
   recomputes the phase (all pass: red; exactly one fails: green).
-- Green, but an existing test that's locked conflicts with the change — the preparatory test
-  change belonged in an earlier refactor/red step. Ask the user to reset to before the red
-  commit (`git reset --hard HEAD~1`), call `advance_tdd_phase`, adjust that test while still
-  passing (stays red), commit it as `. r`, then redo the red test.
+- Green, but an existing test that's locked asserts the old behaviour — undo your uncommitted
+  production edits (production is still writable), call `return_to_red`, then edit that test so
+  it passes without the old behaviour. Further test edits amend the same uncommitted red step;
+  commit them as `. t`, then redo the production change. No git reset needed.
 
 Non-code files (docs, config) are written without running tests in any started cycle.
 Prefer `edit_file` over `write_file` for existing files; every write runs the whole suite.
