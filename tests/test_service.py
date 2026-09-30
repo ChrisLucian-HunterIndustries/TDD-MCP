@@ -169,6 +169,19 @@ def test_return_to_red_is_refused_outside_green(service, adapter, tmp_path: Path
     assert service.status(str(tmp_path)).phase is Phase.REFACTOR
 
 
+def test_return_to_red_waits_until_green_edits_are_undone(
+    service, adapter, tree, tmp_path: Path
+):
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    service.write_file(str(tmp_path), "test_new", "new behaviour")
+    tree.changes = [" M calc.code"]
+
+    with pytest.raises(TddError, match=r"Uncommitted changes .*M calc\.code\. Undo"):
+        service.return_to_red(str(tmp_path))
+    assert service.status(str(tmp_path)).phase is Phase.GREEN
+
+
 def test_passing_new_test_stays_red_and_keeps_file(service, tmp_path: Path):
     _start(service, tmp_path)
     report = service.write_file(str(tmp_path), "test_calc", "test")
