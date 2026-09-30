@@ -26,6 +26,8 @@ Every reply starts with `Phase: <phase>` and ends with `Next: ...`. Follow the N
    reverted automatically; read the output and make a smaller step. Commit each step: `. r`.
 5. `advance_tdd_phase` to start the next cycle. If it lists uncovered changed lines
    ("calc.py: 6"), delete that code in refactor (adding a test there is reverted), commit, rerun.
+   If it lists changed lines holding comments, remove the comments (tool directives such as
+   `# noqa` or `// @ts-expect-error` are fine), commit, rerun.
 
 Uncommitted changes belong to the step (phase) that was active when the tree was last clean.
 Repeat edits within that step are fine, so a test or a change can take several `edit_file`

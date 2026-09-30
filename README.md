@@ -42,6 +42,11 @@ branch counts for vitest), so an `if` whose false path no test takes counts as u
 written for tests that don't exist yet shows up as uncovered and has to be removed. Refactoring
 can't add tests to cover it either, because that's new behaviour, and new behaviour needs its own red.
 
+The next cycle also doesn't start while any code line (test or production) changed this cycle holds
+a comment. Say it with names instead. Tool directives stay allowed: `# noqa`, `# type:`,
+`# pragma`, `# pyright:`, `# fmt:` and shebangs in Python; `// @ts-…`, `eslint-…`, `istanbul`,
+`c8`/`v8`, `prettier-ignore`, `biome-ignore` and `///` directives in TypeScript.
+
 Non-code files (docs, config, data) can be written in any phase once a cycle has started, and don't
 trigger a test run.
 
