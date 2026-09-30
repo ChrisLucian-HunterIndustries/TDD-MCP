@@ -144,6 +144,11 @@ class TddService:
 
     def return_to_red(self, location: str) -> Report:
         session = self._started(_root(location))
+        if session.phase is not Phase.GREEN:
+            raise TddError(
+                "return_to_red works only from the green phase; you are in the "
+                f"{session.phase} phase. {PHASE_GUIDANCE[session.phase]}"
+            )
         session.phase = Phase.RED
         return Report(session.phase, PHASE_GUIDANCE[session.phase])
 
