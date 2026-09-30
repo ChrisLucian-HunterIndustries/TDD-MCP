@@ -18,6 +18,7 @@ from tdd_mcp.reports import SuiteCounts, count_junit, uncovered_from_coverage_py
 CODE_SUFFIXES = frozenset({".py", ".pyi"})
 TEST_DIRECTORIES = frozenset({"test", "tests"})
 VENV_INTERPRETERS = (".venv/Scripts/python.exe", ".venv/bin/python")
+COMMENT_DIRECTIVES = ("!", "noqa", "type:", "pragma", "pyright:", "fmt:")
 
 # pytest exit codes: 2 is a collection error (e.g. importing a function that
 # doesn't exist yet), which is a legitimate "red"; 5 means no tests collected.
@@ -86,7 +87,10 @@ class PythonAdapter:
     def comment_lines(self, source: str) -> frozenset[int]:
         tokens = tokenize.generate_tokens(io.StringIO(source).readline)
         return frozenset(
-            token.start[0] for token in tokens if token.type == tokenize.COMMENT
+            token.start[0]
+            for token in tokens
+            if token.type == tokenize.COMMENT
+            and not token.string[1:].lstrip().startswith(COMMENT_DIRECTIVES)
         )
 
     def run_tests(
