@@ -143,23 +143,30 @@ class TddService:
         return adapter
 
     def return_to_red(self, location: str) -> Report:
-        session = self._started(_root(location))
+        root = _root(location)
+        session = self._started(root)
         if session.phase is not Phase.GREEN:
             raise TddError(
                 "return_to_red works only from the green phase; you are in the "
                 f"{session.phase} phase. {PHASE_GUIDANCE[session.phase]}"
             )
-        root = _root(location)
         if changes := self._pending_changes(root):
             raise TddError(
                 f"Uncommitted changes in {root}: "
                 f"{', '.join(line.strip() for line in changes)}. Undo your green "
                 "edits first (production files are still writable: edit them back), "
-                "or commit them, then call return_to_red again. You are in the "
-                "green phase."
+                "then call return_to_red again. You are in the green phase."
             )
         session.phase = Phase.RED
-        return Report(session.phase, PHASE_GUIDANCE[session.phase])
+        return Report(
+            session.phase,
+            "Back in the red phase; tests are writable again and production code "
+            "is locked. Next: edit the existing tests that assert the old behaviour "
+            "so they pass without it (remove or loosen the obsolete assertions); "
+            "your new failing test already specifies the new behaviour. The first "
+            "edit returns you to green, but you can keep editing tests until you "
+            "commit them ('. t'). Then change production code.",
+        )
 
     def write_file(self, location: str, path: str, content: str) -> Report:
         return self._apply(location, path, lambda target: write_text(target, content))
