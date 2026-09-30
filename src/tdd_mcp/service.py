@@ -142,6 +142,11 @@ class TddService:
             )
         return adapter
 
+    def return_to_red(self, location: str) -> Report:
+        session = self._started(_root(location))
+        session.phase = Phase.RED
+        return Report(session.phase, PHASE_GUIDANCE[session.phase])
+
     def write_file(self, location: str, path: str, content: str) -> Report:
         return self._apply(location, path, lambda target: write_text(target, content))
 
