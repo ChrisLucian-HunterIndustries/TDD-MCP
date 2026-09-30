@@ -275,6 +275,28 @@ def test_coverage_holds_the_phase_while_changed_production_lines_are_untested(
     assert "test_calc" not in report.message
 
 
+def test_advancing_holds_the_phase_while_changed_lines_hold_comments(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    (tmp_path / "calc.code").write_text("impl\n# why\n# older\n")
+    (tmp_path / "test_calc").write_text("# explains the test\n")
+    (tmp_path / "notes.md").write_text("# heading\n")
+    history.changed = {
+        "calc.code": frozenset({1, 2}),
+        "test_calc": frozenset({1}),
+        "notes.md": frozenset({1}),
+    }
+
+    report = _start(service, tmp_path)
+
+    assert report.phase is Phase.REFACTOR
+    assert "calc.code: 2; test_calc: 1." in report.message
+    assert "notes.md" not in report.message
+
+
 def test_a_reset_past_the_cycle_start_resyncs_instead_of_flagging_old_code(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
