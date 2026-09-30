@@ -43,7 +43,9 @@ PHASE_GUIDANCE: dict[Phase, str] = {
     Phase.GREEN: (
         "You are in the green phase. Tests are locked. "
         "Next: change production code, as little as possible, until every test "
-        "passes. Fix a wrong test later, in refactor."
+        "passes. Fix a wrong test later, in refactor. If an existing test "
+        "asserts the old behaviour, undo your production edits and call "
+        "return_to_red to update it."
     ),
     Phase.REFACTOR: (
         "You are in the refactor phase. Test and production code are writable; "
@@ -140,7 +142,12 @@ def after_write(
             return Transition(Phase.REFACTOR)
         return Transition(
             Phase.GREEN,
-            reason="Tests still fail: keep changing production code until all pass.",
+            reason=(
+                "Tests still fail: keep changing production code until all pass. "
+                "If other existing tests now fail because they assert the old "
+                "behaviour, undo your production edits and call return_to_red to "
+                "update those tests first."
+            ),
         )
     if added > 0:
         return Transition(
