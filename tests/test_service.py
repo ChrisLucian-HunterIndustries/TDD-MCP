@@ -28,6 +28,13 @@ class FakeAdapter:
             return FileKind.PRODUCTION
         return FileKind.OTHER
 
+    def comment_lines(self, source: str) -> frozenset[int]:
+        return frozenset(
+            number
+            for number, line in enumerate(source.splitlines(), start=1)
+            if "#" in line
+        )
+
     def run_tests(
         self, root: Path, path: str | None = None, test_name: str | None = None
     ) -> SuiteRun:
