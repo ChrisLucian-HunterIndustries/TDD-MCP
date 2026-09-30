@@ -72,6 +72,19 @@ def test_advance_tdd_phase_starts_the_cycle(repo: Path):
     assert server.advance_tdd_phase(str(repo)).startswith("Phase: red")
 
 
+def test_return_to_red_tool_reopens_tests_from_green(repo: Path):
+    location = str(repo)
+    advance_tdd_phase(location)
+    write_file(
+        location,
+        "test_calc.py",
+        "from calc import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n",
+    )
+    _commit_all(repo)
+
+    assert server.return_to_red(location).startswith("Phase: red")
+
+
 def test_run_coverage_tool_reports_without_starting_the_cycle(repo: Path):
     report = server.run_coverage(str(repo))
 
