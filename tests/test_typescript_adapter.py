@@ -48,6 +48,22 @@ def test_registered_as_typescript():
     assert isinstance(ADAPTERS["typescript"], TypeScriptAdapter)
 
 
+def test_comment_lines_skip_strings_and_tool_directives():
+    source = (
+        "const a = 1; // why\n"
+        "/* block\n"
+        "   continues */\n"
+        "const s = \"// not\" + '/* not */' + `// not ${x}` + 'it\\'s // not';\n"
+        "// @ts-expect-error\n"
+        '/// <reference types="vitest" />\n'
+        "/* istanbul ignore next */\n"
+        "// eslint-disable-next-line no-console\n"
+        'const url = "http://x";\n'
+        "// last"
+    )
+    assert adapter.comment_lines(source) == frozenset({1, 2, 3, 10})
+
+
 @pytest.mark.parametrize("run", [adapter.run_tests, adapter.run_coverage])
 def test_missing_vitest_is_an_error_not_a_failing_test(tmp_path: Path, run):
     result = run(tmp_path)
