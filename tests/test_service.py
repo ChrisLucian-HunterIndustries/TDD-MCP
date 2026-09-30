@@ -161,6 +161,14 @@ def test_return_to_red_unlocks_tests_that_assert_the_old_behaviour(
     assert service.write_file(str(tmp_path), "test_old", "loosened").phase is Phase.GREEN
 
 
+def test_return_to_red_is_refused_outside_green(service, adapter, tmp_path: Path):
+    _to_refactor(service, adapter, tmp_path)
+
+    with pytest.raises(TddError, match="only from the green phase.*refactor phase"):
+        service.return_to_red(str(tmp_path))
+    assert service.status(str(tmp_path)).phase is Phase.REFACTOR
+
+
 def test_passing_new_test_stays_red_and_keeps_file(service, tmp_path: Path):
     _start(service, tmp_path)
     report = service.write_file(str(tmp_path), "test_calc", "test")
