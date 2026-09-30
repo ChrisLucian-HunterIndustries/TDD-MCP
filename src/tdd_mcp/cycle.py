@@ -50,7 +50,8 @@ PHASE_GUIDANCE: dict[Phase, str] = {
     Phase.REFACTOR: (
         "You are in the refactor phase. Test and production code are writable; "
         "edits that break tests or add tests are reverted. "
-        "Next: optionally tidy the code, commit, then call advance_tdd_phase to "
+        "Next: optionally tidy the code and remove any comments you added "
+        "(they block the next cycle), commit, then call advance_tdd_phase to "
         "start the next cycle."
     ),
 }
