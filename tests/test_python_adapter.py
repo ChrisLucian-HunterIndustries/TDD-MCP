@@ -41,6 +41,18 @@ def test_comment_lines_ignore_hashes_inside_strings():
     assert adapter.comment_lines(source) == frozenset({1, 3})
 
 
+def test_comment_lines_skip_tool_directives():
+    source = (
+        "#!/usr/bin/env python\n"
+        "import os  # noqa: F401\n"
+        "x = f()  # type: ignore\n"
+        "if x:  # pragma: no cover\n"
+        "    pass\n"
+        "# a real comment\n"
+    )
+    assert adapter.comment_lines(source) == frozenset({6})
+
+
 def test_python_for_falls_back_to_current_interpreter(tmp_path: Path):
     assert python_for(tmp_path) == sys.executable
 
