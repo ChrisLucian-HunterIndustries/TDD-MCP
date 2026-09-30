@@ -97,11 +97,13 @@ class TddService:
 
         run = adapter.run_coverage(root)
         session.step = None
-        untested = self._untested_changes(session, root, run)
+        changed = self._cycle_changes(session, root, run)
+        untested = self._untested_changes(session, changed, run)
+        commented = self._commented_changes(session, root, changed)
         session.phase = after_coverage(
             session.phase,
             run.outcome,
-            untested_changes=bool(untested),
+            untested_changes=bool(untested or commented),
             failing=run.counts.failures if run.counts else 0,
         )
         if run.counts:
@@ -110,15 +112,18 @@ class TddService:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
         if untested:
-            listed = "; ".join(
-                f"{path}: {', '.join(map(str, sorted(lines)))}"
-                for path, lines in sorted(untested.items())
-            )
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
-                f"{listed}. Delete code no test requires (still in refactor), commit, "
-                "then call advance_tdd_phase again; the next cycle can't start "
-                "until every changed line is covered."
+                f"{_listing(untested)}. Delete code no test requires (still in "
+                "refactor), commit, then call advance_tdd_phase again; the next "
+                "cycle can't start until every changed line is covered."
+            )
+        if commented:
+            message += (
+                " Lines changed this cycle hold comments: "
+                f"{_listing(commented)}. Remove them (still in refactor), letting "
+                "names say what the comments did, commit, then call "
+                "advance_tdd_phase again; the next cycle can't start while they remain."
             )
         return Report(
             session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
@@ -207,7 +212,7 @@ class TddService:
             run.output,
         )
 
-    def _untested_changes(
+    def _cycle_changes(
         self, session: _Session, root: Path, run: SuiteRun
     ) -> dict[str, frozenset[int]]:
         if (
@@ -217,14 +222,32 @@ class TddService:
             or not self._history.is_ancestor(root, session.base)
         ):
             return {}
+        return self._history.changed_lines(root, session.base)
+
+    def _untested_changes(
+        self, session: _Session, changed: dict[str, frozenset[int]], run: SuiteRun
+    ) -> dict[str, frozenset[int]]:
         untested = {}
-        for path, lines in self._history.changed_lines(root, session.base).items():
+        for path, lines in changed.items():
             if session.adapter.classify(PurePath(path)) is not FileKind.PRODUCTION:
                 continue
             missed = lines & run.uncovered.get(path, frozenset())
             if missed:
                 untested[path] = missed
         return untested
+
+    def _commented_changes(
+        self, session: _Session, root: Path, changed: dict[str, frozenset[int]]
+    ) -> dict[str, frozenset[int]]:
+        commented = {}
+        for path, lines in changed.items():
+            if session.adapter.classify(PurePath(path)) is FileKind.OTHER:
+                continue
+            source = (root / path).read_text(encoding="utf-8", errors="replace")
+            found = lines & session.adapter.comment_lines(source)
+            if found:
+                commented[path] = found
+        return commented
 
     def _started(self, root: Path) -> _Session:
         session = self._sessions.get(root)
@@ -291,6 +314,13 @@ class TddService:
         return Report(
             session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
         )
+
+
+def _listing(lines_by_path: dict[str, frozenset[int]]) -> str:
+    return "; ".join(
+        f"{path}: {', '.join(map(str, sorted(lines)))}"
+        for path, lines in sorted(lines_by_path.items())
+    )
 
 
 def _uncommitted(root: Path, changes: list[str], phase: Phase) -> TddError:
