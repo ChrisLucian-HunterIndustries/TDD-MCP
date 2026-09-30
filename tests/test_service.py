@@ -150,6 +150,17 @@ def test_full_cycle(service: TddService, adapter: FakeAdapter, tmp_path: Path):
     assert _start(service, tmp_path).phase is Phase.RED
 
 
+def test_return_to_red_unlocks_tests_that_assert_the_old_behaviour(
+    service, adapter, tmp_path: Path
+):
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    service.write_file(str(tmp_path), "test_new", "new behaviour")
+
+    assert service.return_to_red(str(tmp_path)).phase is Phase.RED
+    assert service.write_file(str(tmp_path), "test_old", "loosened").phase is Phase.GREEN
+
+
 def test_passing_new_test_stays_red_and_keeps_file(service, tmp_path: Path):
     _start(service, tmp_path)
     report = service.write_file(str(tmp_path), "test_calc", "test")
