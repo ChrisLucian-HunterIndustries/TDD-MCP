@@ -149,6 +149,15 @@ class TddService:
                 "return_to_red works only from the green phase; you are in the "
                 f"{session.phase} phase. {PHASE_GUIDANCE[session.phase]}"
             )
+        root = _root(location)
+        if changes := self._pending_changes(root):
+            raise TddError(
+                f"Uncommitted changes in {root}: "
+                f"{', '.join(line.strip() for line in changes)}. Undo your green "
+                "edits first (production files are still writable: edit them back), "
+                "or commit them, then call return_to_red again. You are in the "
+                "green phase."
+            )
         session.phase = Phase.RED
         return Report(session.phase, PHASE_GUIDANCE[session.phase])
 
