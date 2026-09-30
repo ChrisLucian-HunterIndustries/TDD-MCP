@@ -125,6 +125,24 @@ def test_untested_production_code_blocks_the_next_cycle(repo: Path):
     assert advance_tdd_phase(location).startswith("Phase: red")
 
 
+def test_comments_added_this_cycle_block_the_next_cycle(repo: Path):
+    location = str(repo)
+    advance_tdd_phase(location)
+    write_file(
+        location,
+        "test_calc.py",
+        "from calc import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n",
+    )
+    _commit_all(repo)
+    write_file(location, "calc.py", "def add(a, b):\n    # sum\n    return a + b\n")
+    _commit_all(repo)
+
+    blocked = advance_tdd_phase(location)
+
+    assert blocked.startswith("Phase: refactor")
+    assert "hold comments: calc.py: 2." in blocked
+
+
 def test_refusal_reasons_reach_the_client(tmp_path: Path):
     arguments = {"location": str(tmp_path), "path": "a.py", "content": ""}
     with pytest.raises(ToolError, match="No TDD cycle started"):
