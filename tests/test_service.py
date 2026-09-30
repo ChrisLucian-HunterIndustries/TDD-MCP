@@ -158,7 +158,9 @@ def test_return_to_red_unlocks_tests_that_assert_the_old_behaviour(
     service.write_file(str(tmp_path), "test_new", "new behaviour")
 
     assert service.return_to_red(str(tmp_path)).phase is Phase.RED
-    assert service.write_file(str(tmp_path), "test_old", "loosened").phase is Phase.GREEN
+    assert (
+        service.write_file(str(tmp_path), "test_old", "loosened").phase is Phase.GREEN
+    )
 
 
 def test_return_to_red_is_refused_outside_green(service, adapter, tmp_path: Path):
