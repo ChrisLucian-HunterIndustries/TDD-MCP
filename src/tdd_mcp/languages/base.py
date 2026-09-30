@@ -31,6 +31,10 @@ class LanguageAdapter(Protocol):
         """Whether a path (relative to the project root) is a test, production code, or neither."""
         ...
 
+    def comment_lines(self, source: str) -> frozenset[int]:
+        """Line numbers holding a comment, other than tool directives such as `# noqa`."""
+        ...
+
     def run_tests(
         self, root: Path, path: str | None = None, test_name: str | None = None
     ) -> SuiteRun:
