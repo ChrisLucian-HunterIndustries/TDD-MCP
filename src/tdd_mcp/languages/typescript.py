@@ -15,6 +15,17 @@ CODE_SUFFIXES = frozenset(
 )
 TEST_DIRECTORIES = frozenset({"__tests__", "test", "tests"})
 TEST_MARKERS = frozenset({"test", "spec"})
+QUOTES = frozenset("'\"`")
+COMMENT_DIRECTIVES = (
+    "/",
+    "@ts-",
+    "eslint-",
+    "istanbul ",
+    "c8 ",
+    "v8 ",
+    "prettier-ignore",
+    "biome-ignore",
+)
 VITEST_ENTRY = Path("node_modules/vitest/vitest.mjs")
 MISSING_VITEST = (
     f"vitest not found at {VITEST_ENTRY}. "
@@ -35,6 +46,22 @@ class TypeScriptAdapter:
         in_test_directory = not TEST_DIRECTORIES.isdisjoint(relative_path.parent.parts)
         is_test = in_test_directory or not TEST_MARKERS.isdisjoint(inner_suffixes)
         return FileKind.TEST if is_test else FileKind.PRODUCTION
+
+    def comment_lines(self, source: str) -> frozenset[int]:
+        lines: set[int] = set()
+        i = 0
+        while i < len(source):
+            if source[i] in QUOTES:
+                i = _string_end(source, i)
+            elif source.startswith(("//", "/*"), i):
+                end = _comment_end(source, i)
+                if not source[i + 2 : end].lstrip().startswith(COMMENT_DIRECTIVES):
+                    first = source.count("\n", 0, i) + 1
+                    lines.update(range(first, first + source.count("\n", i, end) + 1))
+                i = end
+            else:
+                i += 1
+        return frozenset(lines)
 
     def run_tests(
         self, root: Path, path: str | None = None, test_name: str | None = None
@@ -86,3 +113,18 @@ class TypeScriptAdapter:
             if not junit.is_file():
                 return run
             return replace(run, counts=count_junit(junit.read_text(encoding="utf-8")))
+
+
+def _string_end(source: str, start: int) -> int:
+    quote, i = source[start], start + 1
+    while i < len(source) and source[i] != quote:
+        i += 2 if source[i] == "\\" else 1
+    return i + 1
+
+
+def _comment_end(source: str, start: int) -> int:
+    if source.startswith("//", start):
+        end = source.find("\n", start)
+        return len(source) if end == -1 else end
+    end = source.find("*/", start + 2)
+    return len(source) if end == -1 else end + 2
