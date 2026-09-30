@@ -69,6 +69,36 @@
         }
     },
     {
+        "description": "Go back from green to red to update existing tests that assert the old behaviour.\n\nUse it when your production change makes other, older tests fail because\nthey still expect the old behaviour. Undo your uncommitted production edits\nfirst. Back in red, edit those tests so they pass without the old behaviour,\nkeeping your new test failing.\n\nArgs:\n    location: Path to the project root.\n",
+        "input_schema": {
+            "properties": {
+                "location": {
+                    "title": "Location",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "location"
+            ],
+            "title": "return_to_redArguments",
+            "type": "object"
+        },
+        "name": "return_to_red",
+        "output_schema": {
+            "properties": {
+                "result": {
+                    "title": "Result",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "result"
+            ],
+            "title": "return_to_redOutput",
+            "type": "object"
+        }
+    },
+    {
         "description": "Run the full test suite with coverage and show untested lines. Never changes the TDD phase.\n\nUse it to find untested code. To start a cycle or move to the next phase,\ncall `advance_tdd_phase` instead.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
         "input_schema": {
             "properties": {

@@ -102,6 +102,22 @@ def advance_tdd_phase(location: str, language: LanguageName = "python") -> str:
 
 
 @mcp.tool()
+def return_to_red(location: str) -> str:
+    """Go back from green to red to update existing tests that assert the old behaviour.
+
+    Use it when your production change makes other, older tests fail because
+    they still expect the old behaviour. Undo your uncommitted production edits
+    first. Back in red, edit those tests so they pass without the old behaviour,
+    keeping your new test failing.
+
+    Args:
+        location: Path to the project root.
+    """
+    with _refusals_as_tool_errors():
+        return service.return_to_red(location).render()
+
+
+@mcp.tool()
 def run_coverage(location: str, language: LanguageName = "python") -> str:
     """Run the full test suite with coverage and show untested lines. Never changes the TDD phase.
 
