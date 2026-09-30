@@ -36,6 +36,11 @@ def test_registered_as_python():
     assert ADAPTERS["python"].name == "python"
 
 
+def test_comment_lines_ignore_hashes_inside_strings():
+    source = "x = 1  # why\ns = '# not a comment'\n# full line\n"
+    assert adapter.comment_lines(source) == frozenset({1, 3})
+
+
 def test_python_for_falls_back_to_current_interpreter(tmp_path: Path):
     assert python_for(tmp_path) == sys.executable
 
