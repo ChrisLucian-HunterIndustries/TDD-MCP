@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import ast
+import io
 import sys
 import tempfile
+import tokenize
 from dataclasses import replace
 from pathlib import Path, PurePath
 from xml.etree import ElementTree
@@ -80,6 +82,12 @@ class PythonAdapter:
             or not TEST_DIRECTORIES.isdisjoint(relative_path.parent.parts)
         )
         return FileKind.TEST if is_test else FileKind.PRODUCTION
+
+    def comment_lines(self, source: str) -> frozenset[int]:
+        tokens = tokenize.generate_tokens(io.StringIO(source).readline)
+        return frozenset(
+            token.start[0] for token in tokens if token.type == tokenize.COMMENT
+        )
 
     def run_tests(
         self, root: Path, path: str | None = None, test_name: str | None = None
