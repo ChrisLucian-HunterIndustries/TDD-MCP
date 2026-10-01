@@ -264,30 +264,30 @@ class TddService:
     ) -> Report:
         root = _root(location)
         session = self._started(root)
+        target = resolve_inside(root, path)
+        relative = target.relative_to(root)
+        exempt = any(fnmatch(relative.as_posix(), pattern) for pattern in self.exempt)
+        kind = session.adapter.classify(relative)
         changes = self._pending_changes(root)
         if not changes:
             session.step = session.phase
         elif session.step is None:
+            if not exempt and not may_write(session.phase, kind):
+                raise _locked(kind, session.phase)
             raise _uncommitted(root, changes, session.phase)
         phase = session.step
 
-        target = resolve_inside(root, path)
-        relative = target.relative_to(root)
-        if any(fnmatch(relative.as_posix(), pattern) for pattern in self.exempt):
+        if exempt:
             change(target)
             return Report(
                 session.phase,
                 f"Wrote {path} (exempt from the TDD cycle; tests not run).",
             )
 
-        kind = session.adapter.classify(relative)
         if not may_write(phase, kind):
             if changes and may_write(session.phase, kind):
                 raise _uncommitted(root, changes, session.phase)
-            raise TddError(
-                f"Writing {kind} files is not allowed in the {phase} phase. "
-                f"{PHASE_GUIDANCE[phase]}"
-            )
+            raise _locked(kind, phase)
 
         snapshot = change(target)
         if kind is FileKind.OTHER:
@@ -320,6 +320,13 @@ def _listing(lines_by_path: dict[str, frozenset[int]]) -> str:
     return "; ".join(
         f"{path}: {', '.join(map(str, sorted(lines)))}"
         for path, lines in sorted(lines_by_path.items())
+    )
+
+
+def _locked(kind: FileKind, phase: Phase) -> TddError:
+    return TddError(
+        f"Writing {kind} files is not allowed in the {phase} phase. "
+        f"{PHASE_GUIDANCE[phase]}"
     )
 
 
