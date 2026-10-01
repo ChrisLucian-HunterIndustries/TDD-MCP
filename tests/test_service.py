@@ -118,6 +118,18 @@ def test_advancing_with_exactly_one_failing_test_resumes_green(
     assert _start(service, tmp_path).phase is Phase.GREEN
 
 
+def test_advancing_with_several_failing_tests_says_to_ask_the_user(
+    service, adapter, tmp_path: Path
+):
+    """No code file is writable then, so retrying edits or advancing again only loops."""
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=3, failures=3)
+
+    report = _start(service, tmp_path)
+
+    assert "3 tests fail" in report.message
+    assert "Stop and ask the user" in report.message
+
+
 def test_run_coverage_reports_without_advancing_the_phase(service, tmp_path: Path):
     report = service.run_coverage(str(tmp_path), "fake")
 
