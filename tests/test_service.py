@@ -401,6 +401,18 @@ def test_edits_are_refused_while_changes_are_uncommitted(
     assert tree.checked == [tmp_path.resolve()]
 
 
+def test_a_locked_file_reports_the_lock_before_uncommitted_changes(
+    service, adapter, tree, tmp_path: Path
+):
+    """Committing can't unlock it, so asking for a commit first sends models in circles."""
+    adapter.outcome = Outcome.FAILED
+    _start(service, tmp_path)
+    tree.changes = ["?? test_calc"]
+
+    with pytest.raises(TddError, match="not allowed in the coverage_required phase"):
+        service.write_file(str(tmp_path), "calc.code", "impl")
+
+
 def test_an_uncommitted_red_step_can_be_amended(service, adapter, tree, tmp_path: Path):
     _start(service, tmp_path)
     adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=1, failures=1)
