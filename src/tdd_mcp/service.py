@@ -136,7 +136,7 @@ class TddService:
             )
         return Report(
             session.phase,
-            f"{message} {_guidance(session.phase, failing)}",
+            f"{message} {_guidance(session.phase, failing, added)}",
             run.output,
         )
 
