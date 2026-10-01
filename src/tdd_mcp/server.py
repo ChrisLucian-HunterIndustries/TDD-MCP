@@ -96,7 +96,8 @@ def advance_tdd_phase(location: str, language: LanguageName = "python") -> str:
     whenever the repository was changed outside this server (e.g. a git reset):
     the phase is recomputed from the tests. All tests pass: red, write one
     failing test next. Exactly one test fails: green, make it pass. Several
-    fail: red, edit the tests until exactly one fails.
+    fail, or the cycle added several tests: red, edit the tests until exactly
+    one new test fails.
 
     Args:
         location: Path to the project root.

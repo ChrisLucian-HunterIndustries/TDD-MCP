@@ -30,7 +30,7 @@
         }
     },
     {
-        "description": "Check the whole test suite (with coverage) and move to the next TDD phase.\n\nThe only tool that starts a cycle. Call it first, after each refactor, and\nwhenever the repository was changed outside this server (e.g. a git reset):\nthe phase is recomputed from the tests. All tests pass: red, write one\nfailing test next. Exactly one test fails: green, make it pass. Several\nfail: red, edit the tests until exactly one fails.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
+        "description": "Check the whole test suite (with coverage) and move to the next TDD phase.\n\nThe only tool that starts a cycle. Call it first, after each refactor, and\nwhenever the repository was changed outside this server (e.g. a git reset):\nthe phase is recomputed from the tests. All tests pass: red, write one\nfailing test next. Exactly one test fails: green, make it pass. Several\nfail, or the cycle added several tests: red, edit the tests until exactly\none new test fails.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
         "input_schema": {
             "properties": {
                 "language": {
