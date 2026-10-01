@@ -330,7 +330,7 @@ class TddService:
         )
 
 
-def _guidance(phase: Phase, failing: int, added: int = 0) -> str:
+def _guidance(phase: Phase, failing: int, added: int) -> str:
     if phase is Phase.RED and (failing > 1 or added > 1):
         return (
             "You are in the red phase, which needs exactly one new test, failing. "
