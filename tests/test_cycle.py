@@ -40,6 +40,12 @@ def test_every_phase_names_itself_and_the_next_step():
         assert "Next:" in guidance
 
 
+def test_coverage_required_says_retrying_edits_wont_help():
+    """Locked out, weaker models retried the same edit many times instead of asking."""
+    guidance = PHASE_GUIDANCE[Phase.COVERAGE_REQUIRED]
+    assert "Retrying write_file or edit_file on them won't help" in guidance
+
+
 @pytest.mark.parametrize(
     ("phase", "outcome", "expected"),
     [
