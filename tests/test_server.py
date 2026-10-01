@@ -155,7 +155,7 @@ def test_run_tests_tool_runs_a_selection_without_changing_phase(tmp_path: Path):
         "def test_add():\n    pass\n\n\ndef test_sub():\n    assert False\n\n\n"
         "def test_mul():\n    assert False\n"
     )
-    advance_tdd_phase(location)
+    phase_line = advance_tdd_phase(location).splitlines()[0]
 
     result = asyncio.run(
         mcp.call_tool(
@@ -165,7 +165,7 @@ def test_run_tests_tool_runs_a_selection_without_changing_phase(tmp_path: Path):
     )
 
     text = result.content[0].text
-    assert text.startswith("Phase: coverage_required")
+    assert text.startswith(f"{phase_line}\n")
     assert "Tests passed (not a coverage run; phase unchanged)." in text
     assert "1 passed, 2 deselected" in text
 
