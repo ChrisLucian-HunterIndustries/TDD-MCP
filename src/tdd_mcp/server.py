@@ -95,7 +95,8 @@ def advance_tdd_phase(location: str, language: LanguageName = "python") -> str:
     The only tool that starts a cycle. Call it first, after each refactor, and
     whenever the repository was changed outside this server (e.g. a git reset):
     the phase is recomputed from the tests. All tests pass: red, write one
-    failing test next. Exactly one test fails: green, make it pass.
+    failing test next. Exactly one test fails: green, make it pass. Several
+    fail: red, edit the tests until exactly one fails.
 
     Args:
         location: Path to the project root.
