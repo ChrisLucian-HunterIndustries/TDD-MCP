@@ -118,6 +118,15 @@ def test_red_rejects_adding_more_than_one_test():
     assert "3 tests were added" in transition.reason
 
 
+def test_red_explains_how_to_remove_the_extra_tests():
+    """Weaker models blank a test's body to `pass`, which still counts as a test."""
+    reason = after_write(
+        Phase.RED, FileKind.TEST, Outcome.FAILED, failing=1, added=3
+    ).reason
+    assert "delete 2 of the new test functions entirely" in reason
+    assert "`pass`" in reason
+
+
 def test_refactor_that_adds_tests_is_reverted():
     transition = after_write(
         Phase.REFACTOR, FileKind.TEST, Outcome.PASSED, failing=0, added=1
