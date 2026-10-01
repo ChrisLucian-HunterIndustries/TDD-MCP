@@ -107,8 +107,11 @@ def after_write(
             return Transition(
                 Phase.RED,
                 reason=(
-                    f"{added} tests were added since the cycle started; "
-                    "remove all but one of them."
+                    f"{added} tests were added since the cycle started, but red "
+                    "allows only one, and production code stays locked until then. "
+                    f"Next: edit the test file and delete {added - 1} of the new "
+                    "test functions entirely (a test whose body is only `pass` "
+                    "still counts)."
                 ),
             )
         if outcome is Outcome.FAILED and failing > 1:
