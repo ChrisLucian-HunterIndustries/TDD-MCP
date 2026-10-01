@@ -56,6 +56,11 @@ PHASE_GUIDANCE: dict[Phase, str] = {
     ),
 }
 
+_DONT_ADVANCE_FROM_RED = (
+    " Don't call advance_tdd_phase now: while more than one test fails, it locks "
+    "every code file and only the user can unlock them."
+)
+
 _WRITABLE: dict[Phase, frozenset[FileKind]] = {
     Phase.COVERAGE_REQUIRED: frozenset({FileKind.OTHER}),
     Phase.RED: frozenset({FileKind.OTHER, FileKind.TEST}),
@@ -111,7 +116,7 @@ def after_write(
                     "allows only one, and production code stays locked until then. "
                     f"Next: edit the test file and delete {added - 1} of the new "
                     "test functions entirely (a test whose body is only `pass` "
-                    "still counts)."
+                    f"still counts).{_DONT_ADVANCE_FROM_RED}"
                 ),
             )
         if outcome is Outcome.FAILED and failing > 1:
@@ -120,6 +125,7 @@ def after_write(
                 reason=(
                     f"{failing} tests fail; exactly one failing test may drive the "
                     "next change. Make the others pass or remove them."
+                    f"{_DONT_ADVANCE_FROM_RED}"
                 ),
             )
         if outcome is Outcome.ERROR:
