@@ -76,6 +76,12 @@ def test_coverage_with_exactly_one_failing_test_resumes_green_from_any_phase():
         assert after_coverage(phase, Outcome.FAILED, failing=1) is Phase.GREEN
 
 
+def test_coverage_with_extra_new_tests_returns_to_red_instead_of_green():
+    """Advancing must not let a red phase with several new tests skip to green."""
+    phase = after_coverage(Phase.RED, Outcome.FAILED, failing=1, added=3)
+    assert phase is Phase.RED
+
+
 @pytest.mark.parametrize(
     ("phase", "kind", "outcome", "expected_phase", "revert"),
     [
