@@ -43,7 +43,8 @@ before running it. Coverage measures branches: an `if` with an untaken path is u
 - "not allowed in the green phase" for a test — finish green first; fix the test in refactor.
 - "N tests were added since the cycle started" or "N tests fail" in red — edit the tests until
   exactly one fails: delete extra test functions entirely (a body of only `pass` still counts)
-  or fix wrong ones. `advance_tdd_phase` with several failing tests also lands here. If a test
+  or fix wrong ones. `advance_tdd_phase` also lands here while several tests fail or the cycle
+  has added several tests (the count only resets once every test passes). If a test
   fails because production code is broken, stop and ask the user instead of deleting it.
 - coverage_required after `advance_tdd_phase` — the test runner couldn't run (e.g. pytest-cov
   missing). No tool can fix that: stop and ask the user, then `advance_tdd_phase` again.
