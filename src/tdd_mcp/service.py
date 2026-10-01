@@ -92,7 +92,8 @@ class TddService:
         root = _root(location)
         adapter = self._adapter(language)
         session = self._sessions.get(root)
-        if session is None or session.adapter is not adapter:
+        fresh = session is None or session.adapter is not adapter
+        if fresh:
             session = self._sessions[root] = _Session(adapter)
 
         run = adapter.run_coverage(root)
@@ -101,19 +102,24 @@ class TddService:
         untested = self._untested_changes(session, changed, run)
         commented = self._commented_changes(session, root, changed)
         failing = run.counts.failures if run.counts else 0
+        restarts = fresh or run.outcome is Outcome.PASSED
+        added = run.counts.tests - session.tests if run.counts and not restarts else 0
         session.phase = after_coverage(
             session.phase,
             run.outcome,
             untested_changes=bool(untested or commented),
             failing=failing,
+            added=added,
         )
-        if run.counts:
+        if run.counts and restarts:
             session.tests = run.counts.tests
-        if session.phase is Phase.RED and self._history:
+        if session.phase is Phase.RED and restarts and self._history:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
         if session.phase is Phase.RED and failing > 1:
             message += f" {failing} tests fail."
+        if session.phase is Phase.RED and added > 1:
+            message += f" {added} tests were added since the cycle started."
         if untested:
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
