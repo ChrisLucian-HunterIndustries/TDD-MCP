@@ -238,6 +238,24 @@ def test_red_write_with_extra_tests_does_not_ask_for_another_test(
     assert "delete extra new tests entirely" in report.message
 
 
+def test_advancing_cannot_carry_extra_new_tests_into_green(
+    service, adapter, tmp_path: Path
+):
+    """Advancing used to reset the new-test count, letting several new tests reach green."""
+    location = str(tmp_path)
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=3, failures=1)
+    service.write_file(location, "test_calc", "one failing and two passing tests")
+
+    report = _start(service, tmp_path)
+
+    assert report.phase is Phase.RED
+    assert "3 tests were added" in report.message
+    assert service.write_file(location, "test_calc", "unchanged").phase is Phase.RED
+    adapter.counts = SuiteCounts(tests=1, failures=1)
+    assert service.write_file(location, "test_calc", "one test").phase is Phase.GREEN
+
+
 def test_coverage_run_without_counts_keeps_the_test_baseline(
     service, adapter, tmp_path: Path
 ):
