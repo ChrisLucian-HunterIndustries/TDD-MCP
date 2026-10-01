@@ -100,17 +100,26 @@ class TddService:
         changed = self._cycle_changes(session, root, run)
         untested = self._untested_changes(session, changed, run)
         commented = self._commented_changes(session, root, changed)
+        failing = run.counts.failures if run.counts else 0
         session.phase = after_coverage(
             session.phase,
             run.outcome,
             untested_changes=bool(untested or commented),
-            failing=run.counts.failures if run.counts else 0,
+            failing=failing,
         )
         if run.counts:
             session.tests = run.counts.tests
         if session.phase is Phase.RED and self._history:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
+        if session.phase is Phase.COVERAGE_REQUIRED and failing > 1:
+            message += (
+                f" {failing} tests fail, but a cycle starts only with none or one "
+                "failing. write_file and edit_file can't change code files now, and "
+                "advancing again gives the same result. Stop and ask the user to fix "
+                "or delete all but one of the failing tests (listed in the output "
+                "below), then call advance_tdd_phase again."
+            )
         if untested:
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
