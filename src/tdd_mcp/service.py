@@ -112,14 +112,6 @@ class TddService:
         if session.phase is Phase.RED and self._history:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
-        if session.phase is Phase.COVERAGE_REQUIRED and failing > 1:
-            message += (
-                f" {failing} tests fail, but a cycle starts only with none or one "
-                "failing. write_file and edit_file can't change code files now, and "
-                "advancing again gives the same result. Stop and ask the user to fix "
-                "or delete all but one of the failing tests (listed in the output "
-                "below), then call advance_tdd_phase again."
-            )
         if untested:
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
@@ -135,7 +127,9 @@ class TddService:
                 "advance_tdd_phase again; the next cycle can't start while they remain."
             )
         return Report(
-            session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
+            session.phase,
+            f"{message} {_guidance(session.phase, failing)}",
+            run.output,
         )
 
     def run_coverage(self, location: str, language: str) -> Report:
@@ -323,6 +317,19 @@ class TddService:
         return Report(
             session.phase, f"{message} {PHASE_GUIDANCE[session.phase]}", run.output
         )
+
+
+def _guidance(phase: Phase, failing: int) -> str:
+    if phase is Phase.RED and failing > 1:
+        return (
+            f"You are in the red phase, but {failing} tests fail and a cycle needs "
+            "exactly one. Production code is locked; tests are writable. Next: edit "
+            "the test files until exactly one test fails: delete extra new tests "
+            "entirely (a body of only `pass` still counts) or fix wrong ones. If a "
+            "test fails because production code is broken, stop and ask the user "
+            "instead of deleting it."
+        )
+    return PHASE_GUIDANCE[phase]
 
 
 def _listing(lines_by_path: dict[str, frozenset[int]]) -> str:

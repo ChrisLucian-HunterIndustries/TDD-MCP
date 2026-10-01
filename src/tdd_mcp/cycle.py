@@ -92,6 +92,8 @@ def after_coverage(
         return phase if untested_changes else Phase.RED
     if phase is Phase.GREEN or (outcome is Outcome.FAILED and failing == 1):
         return Phase.GREEN
+    if outcome is Outcome.FAILED and failing > 1:
+        return Phase.RED
     return Phase.COVERAGE_REQUIRED
 
 
