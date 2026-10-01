@@ -40,6 +40,7 @@ Never send `tdd` edits in parallel, even for non-code files: concurrent edits to
 When changing a message or tool text agents read, remember the audience includes small local models: state the current phase and the concrete next tool call.
 When reviewing a weaker model's session log, find each refusal it retried and check that the message's "Next" step actually works from that state; if no tool can, say "stop and ask the user" explicitly. Prefer removing the dead end itself: a state the agent can enter but no tool can leave (e.g. every code file locked) is a design bug, not a wording problem; reserve "ask the user" for causes outside the repo (missing runner, broken production code).
 Don't add code comments: `advance_tdd_phase` refuses while any line changed this cycle holds one (tool directives excepted). Express intent through names, docstrings, and tests.
+When adding a phase rule, check every tool that changes phase (`write_file`/`edit_file`, `advance_tdd_phase`, `return_to_red`) enforces it, and reset per-cycle baselines only when a cycle truly starts; otherwise one tool becomes a loophole around another.
 
 ## Security Review
 Evaluate for common OWASP pitfalls.
