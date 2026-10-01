@@ -127,6 +127,15 @@ def test_red_explains_how_to_remove_the_extra_tests():
     assert "`pass`" in reason
 
 
+def test_red_warns_that_advancing_with_several_failing_tests_locks_everything():
+    """Advancing from red with several failing tests leaves no file writable."""
+    for transition in (
+        after_write(Phase.RED, FileKind.TEST, Outcome.FAILED, failing=1, added=3),
+        after_write(Phase.RED, FileKind.TEST, Outcome.FAILED, failing=2, added=1),
+    ):
+        assert "Don't call advance_tdd_phase now" in transition.reason
+
+
 def test_refactor_that_adds_tests_is_reverted():
     transition = after_write(
         Phase.REFACTOR, FileKind.TEST, Outcome.PASSED, failing=0, added=1
