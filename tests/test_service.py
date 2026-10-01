@@ -251,6 +251,7 @@ def test_advancing_cannot_carry_extra_new_tests_into_green(
 
     assert report.phase is Phase.RED
     assert "3 tests were added" in report.message
+    assert "delete extra new tests entirely" in report.message
     assert service.write_file(location, "test_calc", "unchanged").phase is Phase.RED
     adapter.counts = SuiteCounts(tests=1, failures=1)
     assert service.write_file(location, "test_calc", "one test").phase is Phase.GREEN
