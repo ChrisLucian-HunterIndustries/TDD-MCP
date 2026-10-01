@@ -41,6 +41,11 @@ before running it. Coverage measures branches: an `if` with an untaken path is u
 - "No TDD cycle started" — call `advance_tdd_phase` first (server restarts reset state).
 - "not allowed in the red phase" for production code — write the failing test first.
 - "not allowed in the green phase" for a test — finish green first; fix the test in refactor.
+- "N tests were added since the cycle started" in red — delete the extra test functions
+  entirely (a body of only `pass` still counts), keeping one failing test. Don't call
+  `advance_tdd_phase` meanwhile: with more than one failing test it locks every code file.
+- "N tests fail" or "not allowed in the coverage_required phase" — no tool can unlock this.
+  Stop and ask the user to fix or delete all but one failing test, then `advance_tdd_phase`.
 - "Expected exactly one match" — widen `old_string` with surrounding lines.
 - The repository changed outside the server (e.g. `git reset`) — call `advance_tdd_phase`: it
   recomputes the phase (all pass: red; exactly one fails: green).
