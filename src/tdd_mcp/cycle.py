@@ -30,10 +30,11 @@ PHASE_GUIDANCE: dict[Phase, str] = {
         "You are in the coverage_required phase. Code files (tests and production) "
         "are locked. Retrying write_file or edit_file on them won't help. "
         "Next: call advance_tdd_phase, which runs every test with coverage. "
-        "All passing starts the cycle in red; exactly one failing resumes green. "
-        "If more tests fail, or the test runner can't run (see the output, e.g. "
-        "pytest-cov or vitest not installed), you can't fix it with these tools: "
-        "stop and ask the user to fix it, then call advance_tdd_phase again."
+        "All passing starts the cycle in red; exactly one failing resumes green; "
+        "several failing returns to red to fix or remove the extra tests. "
+        "If the test runner can't run (see the output, e.g. pytest-cov or vitest "
+        "not installed), you can't fix it with these tools: stop and ask the user "
+        "to fix it, then call advance_tdd_phase again."
     ),
     Phase.RED: (
         "You are in the red phase. Production code is locked. "
@@ -56,11 +57,6 @@ PHASE_GUIDANCE: dict[Phase, str] = {
         "start the next cycle."
     ),
 }
-
-_DONT_ADVANCE_FROM_RED = (
-    " Don't call advance_tdd_phase now: while more than one test fails, it locks "
-    "every code file and only the user can unlock them."
-)
 
 _WRITABLE: dict[Phase, frozenset[FileKind]] = {
     Phase.COVERAGE_REQUIRED: frozenset({FileKind.OTHER}),
@@ -119,7 +115,7 @@ def after_write(
                     "allows only one, and production code stays locked until then. "
                     f"Next: edit the test file and delete {added - 1} of the new "
                     "test functions entirely (a test whose body is only `pass` "
-                    f"still counts).{_DONT_ADVANCE_FROM_RED}"
+                    "still counts)."
                 ),
             )
         if outcome is Outcome.FAILED and failing > 1:
@@ -128,7 +124,6 @@ def after_write(
                 reason=(
                     f"{failing} tests fail; exactly one failing test may drive the "
                     "next change. Make the others pass or remove them."
-                    f"{_DONT_ADVANCE_FROM_RED}"
                 ),
             )
         if outcome is Outcome.ERROR:
