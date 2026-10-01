@@ -27,12 +27,13 @@ class Outcome(StrEnum):
 
 PHASE_GUIDANCE: dict[Phase, str] = {
     Phase.COVERAGE_REQUIRED: (
-        "You are in the coverage_required phase. Code files are locked. "
+        "You are in the coverage_required phase. Code files (tests and production) "
+        "are locked. Retrying write_file or edit_file on them won't help. "
         "Next: call advance_tdd_phase, which runs every test with coverage. "
         "All passing starts the cycle in red; exactly one failing resumes green. "
         "If more tests fail, or the test runner can't run (see the output, e.g. "
-        "pytest-cov or vitest not installed), ask the user to fix it, then call "
-        "advance_tdd_phase again."
+        "pytest-cov or vitest not installed), you can't fix it with these tools: "
+        "stop and ask the user to fix it, then call advance_tdd_phase again."
     ),
     Phase.RED: (
         "You are in the red phase. Production code is locked. "
