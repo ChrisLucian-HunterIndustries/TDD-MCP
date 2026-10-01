@@ -224,6 +224,20 @@ def test_red_write_adding_two_tests_stays_red(service, adapter, tmp_path: Path):
     assert "2 tests were added" in report.message
 
 
+def test_red_write_with_extra_tests_does_not_ask_for_another_test(
+    service, adapter, tmp_path: Path
+):
+    """Gemma4 followed the generic "write exactly ONE new test" and kept adding tests."""
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=3, failures=3)
+
+    report = service.write_file(str(tmp_path), "test_calc", "three failing tests")
+
+    assert report.phase is Phase.RED
+    assert "write exactly ONE new test" not in report.message
+    assert "delete extra new tests entirely" in report.message
+
+
 def test_coverage_run_without_counts_keeps_the_test_baseline(
     service, adapter, tmp_path: Path
 ):
