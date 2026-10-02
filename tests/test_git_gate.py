@@ -115,3 +115,17 @@ def test_rollback_resets_to_a_commit_and_keeps_the_dropped_commits_under_a_ref(
     assert head_commit(repo) == base
     assert (repo / "a.txt").read_text() == "a"
     assert _git(repo, "rev-parse", backup).strip() == dropped
+
+
+def test_rollback_stashes_uncommitted_and_untracked_work(repo: Path):
+    from tdd_mcp import git_gate
+
+    (repo / "a.txt").write_text("b")
+    (repo / "new.py").write_text("x = 1\n")
+
+    git_gate.rollback(repo, head_commit(repo))
+
+    assert uncommitted_changes(repo) == []
+    _git(repo, "stash", "pop")
+    assert (repo / "a.txt").read_text() == "b"
+    assert (repo / "new.py").read_text() == "x = 1\n"
