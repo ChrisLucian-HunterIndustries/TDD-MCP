@@ -48,6 +48,9 @@ before running it. Coverage measures branches: an `if` with an untaken path is u
   fails because production code is broken, stop and ask the user instead of deleting it.
 - coverage_required after `advance_tdd_phase` — the test runner couldn't run (e.g. pytest-cov
   missing). No tool can fix that: stop and ask the user, then `advance_tdd_phase` again.
+- Cornered any other way (e.g. a test fails because production code is broken while it's
+  locked) — `rollback_cycle` resets to the commit where the cycle started and restarts in red.
+  Dropped commits stay under `refs/tdd-mcp/rollback-*`, uncommitted work in `git stash`.
 - "Expected exactly one match" — widen `old_string` with surrounding lines.
 - The repository changed outside the server (e.g. `git reset`) — call `advance_tdd_phase`: it
   recomputes the phase (all pass: red; exactly one fails: green).
