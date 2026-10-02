@@ -414,6 +414,21 @@ def test_rollback_cycle_without_a_recorded_cycle_start_is_refused(
     assert service.status(str(tmp_path)).phase is Phase.RED
 
 
+def test_a_passing_write_omits_the_runner_output_to_save_context(
+    service, adapter, tmp_path: Path
+):
+    """Small local models run with limited context; a pass needs no log."""
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    service.write_file(str(tmp_path), "test_calc", "test")
+    adapter.outcome = Outcome.PASSED
+
+    report = service.write_file(str(tmp_path), "calc.code", "impl")
+
+    assert report.phase is Phase.REFACTOR
+    assert report.output == ""
+
+
 def test_breaking_refactor_is_reverted(service, adapter, tmp_path: Path):
     _to_refactor(service, adapter, tmp_path)
     adapter.outcome = Outcome.FAILED
