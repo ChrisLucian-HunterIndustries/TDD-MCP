@@ -321,6 +321,22 @@ def test_coverage_holds_the_phase_while_changed_production_lines_are_untested(
     assert "test_calc" not in report.message
 
 
+def test_a_blocked_advance_leads_with_the_block_not_optional_tidying(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 read "Coverage run passed" and "optionally tidy", and called 18% coverage normal."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    history.changed = {"calc.code": frozenset({3})}
+    adapter.uncovered = {"calc.code": frozenset({3})}
+
+    report = _start(service, tmp_path)
+
+    assert report.message.startswith("Tests passed, but the next cycle is blocked.")
+    assert "optionally" not in report.message
+
+
 def test_advancing_holds_the_phase_while_changed_lines_hold_comments(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
