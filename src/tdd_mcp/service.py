@@ -67,6 +67,8 @@ class _Session:
     base: str | None = None
     # Phase the uncommitted step began in; further edits amend that step.
     step: Phase | None = None
+    last_failing: int = 0
+    last_added: int = 0
 
 
 class TddService:
@@ -311,11 +313,12 @@ class TddService:
         exempt = any(fnmatch(relative.as_posix(), pattern) for pattern in self.exempt)
         kind = session.adapter.classify(relative)
         changes = self._pending_changes(root)
+        guidance = _guidance(session.phase, session.last_failing, session.last_added)
         if not changes:
             session.step = session.phase
         elif session.step is None:
             if not exempt and not may_write(session.phase, kind):
-                raise _locked(kind, session.phase)
+                raise _locked(kind, session.phase, guidance)
             raise _uncommitted(root, changes, session.phase)
         phase = session.step
 
@@ -329,7 +332,7 @@ class TddService:
         if not may_write(phase, kind):
             if changes and may_write(session.phase, kind):
                 raise _uncommitted(root, changes, session.phase)
-            raise _locked(kind, phase)
+            raise _locked(kind, phase, guidance)
 
         snapshot = change(target)
         if kind is FileKind.OTHER:
@@ -346,6 +349,7 @@ class TddService:
             added=added,
         )
         session.phase = transition.phase
+        session.last_failing, session.last_added = counts.failures, added
         if session.phase is Phase.REFACTOR and not transition.revert:
             session.tests = counts.tests
         message = f"Tests {run.outcome}."
@@ -381,10 +385,10 @@ def _listing(lines_by_path: dict[str, frozenset[int]]) -> str:
     )
 
 
-def _locked(kind: FileKind, phase: Phase) -> TddError:
+def _locked(kind: FileKind, phase: Phase, guidance: str = "") -> TddError:
     return TddError(
         f"Writing {kind} files is not allowed in the {phase} phase. "
-        f"{PHASE_GUIDANCE[phase]}"
+        f"{guidance or PHASE_GUIDANCE[phase]}"
     )
 
 
