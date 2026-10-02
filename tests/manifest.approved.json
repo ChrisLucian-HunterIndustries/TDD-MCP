@@ -99,6 +99,36 @@
         }
     },
     {
+        "description": "Undo the current cycle when you're stuck, then restart it in red.\n\nResets the project to the commit where this cycle started (every test\npassed), dropping the cycle's commits and uncommitted changes. Nothing is\nlost: dropped commits stay under a refs/tdd-mcp/ ref, uncommitted work in\ngit stash. Use it when no other tool gets you to the next phase.\n\nArgs:\n    location: Path to the project root.\n",
+        "input_schema": {
+            "properties": {
+                "location": {
+                    "title": "Location",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "location"
+            ],
+            "title": "rollback_cycleArguments",
+            "type": "object"
+        },
+        "name": "rollback_cycle",
+        "output_schema": {
+            "properties": {
+                "result": {
+                    "title": "Result",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "result"
+            ],
+            "title": "rollback_cycleOutput",
+            "type": "object"
+        }
+    },
+    {
         "description": "Run the full test suite with coverage and show untested lines. Never changes the TDD phase.\n\nUse it to find untested code. To start a cycle or move to the next phase,\ncall `advance_tdd_phase` instead.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
         "input_schema": {
             "properties": {

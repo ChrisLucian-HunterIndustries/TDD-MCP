@@ -50,7 +50,8 @@ mcp = MCPServer(
         "Coverage includes branches. Commit each step before the next phase's "
         "edits (e.g. '. t' for a new failing test, then '^ f' for the code that "
         "passes it); repeat edits within one phase amend the uncommitted step, "
-        "and `advance_tdd_phase` ends it."
+        "and `advance_tdd_phase` ends it. Stuck with no way to the next phase? "
+        "Call `rollback_cycle` to undo the cycle and restart it in red."
     ),
 )
 
@@ -121,6 +122,22 @@ def return_to_red(location: str) -> str:
     """
     with _refusals_as_tool_errors():
         return service.return_to_red(location).render()
+
+
+@mcp.tool()
+def rollback_cycle(location: str) -> str:
+    """Undo the current cycle when you're stuck, then restart it in red.
+
+    Resets the project to the commit where this cycle started (every test
+    passed), dropping the cycle's commits and uncommitted changes. Nothing is
+    lost: dropped commits stay under a refs/tdd-mcp/ ref, uncommitted work in
+    git stash. Use it when no other tool gets you to the next phase.
+
+    Args:
+        location: Path to the project root.
+    """
+    with _refusals_as_tool_errors():
+        return service.rollback_cycle(location).render()
 
 
 @mcp.tool()
