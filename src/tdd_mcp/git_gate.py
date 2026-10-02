@@ -53,6 +53,15 @@ def is_ancestor(root: Path, commit: str) -> bool:
     return result.returncode == 0
 
 
+def rollback(root: Path, commit: str) -> str:
+    """Reset to `commit`; returns the ref that keeps the commits dropped from HEAD."""
+    head = head_commit(root)
+    backup = f"refs/tdd-mcp/rollback-{head[:12]}"
+    for args in (["update-ref", backup, head], ["reset", "--hard", commit]):
+        subprocess.run(["git", *args], check=True, cwd=root, capture_output=True)
+    return backup
+
+
 _HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@")
 
 
