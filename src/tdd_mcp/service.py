@@ -368,8 +368,8 @@ def _guidance(phase: Phase, failing: int, added: int) -> str:
             "Production code is locked; tests are writable. Next: edit the test "
             "files until exactly one test fails: delete extra new tests entirely "
             "(a body of only `pass` still counts) or fix wrong ones. If a test "
-            "fails because production code is broken, stop and ask the user "
-            "instead of deleting it."
+            "fails because production code is broken, don't delete it: call "
+            "rollback_cycle to restart the cycle from its last passing commit."
         )
     return PHASE_GUIDANCE[phase]
 
