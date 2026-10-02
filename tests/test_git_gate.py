@@ -98,3 +98,20 @@ def test_changed_lines_counts_every_line_of_untracked_files(repo: Path):
     (repo / "src").mkdir()
     (repo / "src" / "new.py").write_text("x = 1\ny = 2\n")
     assert changed_lines(repo, head_commit(repo)) == {"src/new.py": frozenset({1, 2})}
+
+
+def test_rollback_resets_to_a_commit_and_keeps_the_dropped_commits_under_a_ref(
+    repo: Path,
+):
+    from tdd_mcp import git_gate
+
+    base = head_commit(repo)
+    (repo / "a.txt").write_text("b")
+    _git(repo, "commit", "-am", "dropped")
+    dropped = head_commit(repo)
+
+    backup = git_gate.rollback(repo, base)
+
+    assert head_commit(repo) == base
+    assert (repo / "a.txt").read_text() == "a"
+    assert _git(repo, "rev-parse", backup).strip() == dropped
