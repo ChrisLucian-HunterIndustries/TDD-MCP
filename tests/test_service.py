@@ -237,6 +237,7 @@ def test_red_write_with_extra_tests_does_not_ask_for_another_test(
     assert "write exactly ONE new test" not in report.message
     assert "delete extra new tests entirely" in report.message
     assert "call rollback_cycle" in report.message
+    assert "code that doesn't exist yet is a valid failing test" in report.message
 
 
 def test_a_locked_write_repeats_why_red_is_not_done(service, adapter, tmp_path: Path):
