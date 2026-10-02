@@ -53,31 +53,31 @@ def is_ancestor(root: Path, commit: str) -> bool:
     return result.returncode == 0
 
 
+def _git(root: Path, *args: str) -> str:
+    return subprocess.run(
+        ["git", *args],
+        check=True,
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    ).stdout
+
+
 def rollback(root: Path, commit: str) -> str:
     """Reset to `commit`, stashing uncommitted work; returns the ref keeping dropped commits."""
-    changed = [
-        subprocess.run(
-            ["git", "diff", "--name-only", commit, *pathspec],
-            check=True,
-            cwd=root,
-            capture_output=True,
-            text=True,
-        ).stdout.splitlines()
-        for pathspec in ([], ["--", "."])
-    ]
-    if changed[0] != changed[1]:
+    everywhere = _git(root, "diff", "--name-only", commit)
+    if everywhere != _git(root, "diff", "--name-only", commit, "--", "."):
         raise GitError(
             f"Can't roll back: changes since {commit[:12]} lie outside {root}. "
             "Stop and ask the user to roll back by hand."
         )
     head = head_commit(root)
     backup = f"refs/tdd-mcp/rollback-{head[:12]}"
-    for args in (
-        ["stash", "push", "--include-untracked", "-m", "tdd-mcp rollback", "--", "."],
-        ["update-ref", backup, head],
-        ["reset", "--hard", commit],
-    ):
-        subprocess.run(["git", *args], check=True, cwd=root, capture_output=True)
+    _git(root, "stash", "push", "--include-untracked", "-m", "tdd-mcp rollback", "--", ".")
+    _git(root, "update-ref", backup, head)
+    _git(root, "reset", "--hard", commit)
     return backup
 
 
