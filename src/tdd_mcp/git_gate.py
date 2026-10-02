@@ -54,10 +54,14 @@ def is_ancestor(root: Path, commit: str) -> bool:
 
 
 def rollback(root: Path, commit: str) -> str:
-    """Reset to `commit`; returns the ref that keeps the commits dropped from HEAD."""
+    """Reset to `commit`, stashing uncommitted work; returns the ref keeping dropped commits."""
     head = head_commit(root)
     backup = f"refs/tdd-mcp/rollback-{head[:12]}"
-    for args in (["update-ref", backup, head], ["reset", "--hard", commit]):
+    for args in (
+        ["stash", "push", "--include-untracked", "-m", "tdd-mcp rollback", "--", "."],
+        ["update-ref", backup, head],
+        ["reset", "--hard", commit],
+    ):
         subprocess.run(["git", *args], check=True, cwd=root, capture_output=True)
     return backup
 
