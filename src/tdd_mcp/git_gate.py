@@ -55,6 +55,21 @@ def is_ancestor(root: Path, commit: str) -> bool:
 
 def rollback(root: Path, commit: str) -> str:
     """Reset to `commit`, stashing uncommitted work; returns the ref keeping dropped commits."""
+    changed = [
+        subprocess.run(
+            ["git", "diff", "--name-only", commit, *pathspec],
+            check=True,
+            cwd=root,
+            capture_output=True,
+            text=True,
+        ).stdout.splitlines()
+        for pathspec in ([], ["--", "."])
+    ]
+    if changed[0] != changed[1]:
+        raise GitError(
+            f"Can't roll back: changes since {commit[:12]} lie outside {root}. "
+            "Stop and ask the user to roll back by hand."
+        )
     head = head_commit(root)
     backup = f"refs/tdd-mcp/rollback-{head[:12]}"
     for args in (
