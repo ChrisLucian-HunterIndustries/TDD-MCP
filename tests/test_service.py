@@ -236,6 +236,7 @@ def test_red_write_with_extra_tests_does_not_ask_for_another_test(
     assert report.phase is Phase.RED
     assert "write exactly ONE new test" not in report.message
     assert "delete extra new tests entirely" in report.message
+    assert "call rollback_cycle" in report.message
 
 
 def test_advancing_cannot_carry_extra_new_tests_into_green(
