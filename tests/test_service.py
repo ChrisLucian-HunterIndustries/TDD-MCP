@@ -403,6 +403,16 @@ def test_rollback_cycle_resets_to_the_cycle_start_and_restarts_in_red(
     assert "refs/tdd-mcp/rollback-later" in report.message
 
 
+def test_rollback_cycle_without_a_recorded_cycle_start_is_refused(
+    service, adapter, tmp_path: Path
+):
+    _start(service, tmp_path)
+
+    with pytest.raises(TddError, match="No cycle start commit to roll back to"):
+        service.rollback_cycle(str(tmp_path))
+    assert service.status(str(tmp_path)).phase is Phase.RED
+
+
 def test_breaking_refactor_is_reverted(service, adapter, tmp_path: Path):
     _to_refactor(service, adapter, tmp_path)
     adapter.outcome = Outcome.FAILED
