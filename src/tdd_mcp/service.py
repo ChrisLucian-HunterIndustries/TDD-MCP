@@ -372,7 +372,9 @@ def _guidance(phase: Phase, failing: int, added: int) -> str:
             "You are in the red phase, which needs exactly one new test, failing. "
             "Production code is locked; tests are writable. Next: edit the test "
             "files until exactly one test fails: delete extra new tests entirely "
-            "(a body of only `pass` still counts) or fix wrong ones. If a test "
+            "(a body of only `pass` still counts) or fix wrong ones. A test that "
+            "fails only because it calls (or imports) code that doesn't exist yet is "
+            "a valid failing test; nothing is wrong with the environment. If a test "
             "fails because production code is broken, don't delete it: call "
             "rollback_cycle to restart the cycle from its last passing commit."
         )
