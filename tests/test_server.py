@@ -85,6 +85,25 @@ def test_return_to_red_tool_reopens_tests_from_green(repo: Path):
     assert server.return_to_red(location).startswith("Phase: red")
 
 
+def test_rollback_cycle_tool_undoes_the_cycles_commits(repo: Path):
+    location = str(repo)
+    advance_tdd_phase(location)
+    write_file(
+        location,
+        "test_calc.py",
+        "from calc import add\n\n\ndef test_add():\n    assert add(1, 2) == 3\n",
+    )
+    _commit_all(repo)
+    write_file(location, "calc.py", "def add(a, b):\n    return a + b\n")
+    _commit_all(repo)
+
+    report = server.rollback_cycle(location)
+
+    assert report.startswith("Phase: red")
+    assert not (repo / "test_calc.py").exists()
+    assert (repo / "calc.py").read_text() == ""
+
+
 def test_run_coverage_tool_reports_without_starting_the_cycle(repo: Path):
     report = server.run_coverage(str(repo))
 
