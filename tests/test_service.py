@@ -239,6 +239,16 @@ def test_red_write_with_extra_tests_does_not_ask_for_another_test(
     assert "call rollback_cycle" in report.message
 
 
+def test_a_locked_write_repeats_why_red_is_not_done(service, adapter, tmp_path: Path):
+    """Told only "write exactly ONE new test", Gemma4 went hunting for a broken environment."""
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=2, failures=2)
+    service.write_file(str(tmp_path), "test_calc", "two failing tests")
+
+    with pytest.raises(TddError, match="delete extra new tests entirely"):
+        service.write_file(str(tmp_path), "calc.code", "impl")
+
+
 def test_advancing_cannot_carry_extra_new_tests_into_green(
     service, adapter, tmp_path: Path
 ):
