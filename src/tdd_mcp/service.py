@@ -357,7 +357,7 @@ class TddService:
         return Report(
             session.phase,
             f"{message} {_guidance(session.phase, counts.failures, added)}",
-            run.output,
+            "" if run.outcome is Outcome.PASSED else run.output,
         )
 
 
