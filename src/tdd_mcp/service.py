@@ -115,6 +115,7 @@ class TddService:
             failing=failing,
             added=added,
         )
+        session.last_failing, session.last_added = failing, added
         if run.counts and restarts:
             session.tests = run.counts.tests
         if session.phase is Phase.RED and restarts and self._history:
