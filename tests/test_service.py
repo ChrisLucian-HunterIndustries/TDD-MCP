@@ -249,6 +249,19 @@ def test_a_locked_write_repeats_why_red_is_not_done(service, adapter, tmp_path: 
         service.write_file(str(tmp_path), "calc.code", "impl")
 
 
+def test_advancing_refreshes_the_guidance_locked_writes_repeat(
+    service, adapter, tmp_path: Path
+):
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=2, failures=2)
+    service.write_file(str(tmp_path), "test_calc", "two failing tests")
+    adapter.outcome, adapter.counts = Outcome.PASSED, SuiteCounts(tests=2, failures=0)
+    _start(service, tmp_path)
+
+    with pytest.raises(TddError, match="write exactly ONE new test"):
+        service.write_file(str(tmp_path), "calc.code", "impl")
+
+
 def test_advancing_cannot_carry_extra_new_tests_into_green(
     service, adapter, tmp_path: Path
 ):
