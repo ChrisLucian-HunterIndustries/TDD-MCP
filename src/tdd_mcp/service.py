@@ -116,6 +116,13 @@ class TddService:
         if session.phase is Phase.RED and restarts and self._history:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
+        guidance = _guidance(session.phase, failing, added)
+        if untested or commented:
+            message = "Tests passed, but the next cycle is blocked."
+            guidance = (
+                f"You are still in the {session.phase} phase; the next cycle "
+                "starts once these lines are fixed and committed."
+            )
         if session.phase is Phase.RED and failing > 1:
             message += f" {failing} tests fail."
         if session.phase is Phase.RED and added > 1:
@@ -123,22 +130,19 @@ class TddService:
         if untested:
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
-                f"{_listing(untested)}. Delete code no test requires (still in "
-                "refactor), commit, then call advance_tdd_phase again; the next "
-                "cycle can't start until every changed line is covered."
+                f"{_listing(untested)}. In TDD every production line exists because "
+                "a test needed it, so this isn't normal progress. Next: delete those "
+                "lines (adding tests for them now is reverted; bring the behaviour "
+                "back later, one failing test per cycle), commit ('. r'), then call "
+                "advance_tdd_phase again."
             )
         if commented:
             message += (
                 " Lines changed this cycle hold comments: "
-                f"{_listing(commented)}. Remove them (still in refactor), letting "
-                "names say what the comments did, commit, then call "
-                "advance_tdd_phase again; the next cycle can't start while they remain."
+                f"{_listing(commented)}. Next: remove them, letting names say what "
+                "the comments did, commit ('. r'), then call advance_tdd_phase again."
             )
-        return Report(
-            session.phase,
-            f"{message} {_guidance(session.phase, failing, added)}",
-            run.output,
-        )
+        return Report(session.phase, f"{message} {guidance}", run.output)
 
     def run_coverage(self, location: str, language: str) -> Report:
         run = self._adapter(language).run_coverage(_root(location))
