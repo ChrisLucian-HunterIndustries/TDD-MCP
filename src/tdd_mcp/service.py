@@ -385,10 +385,9 @@ def _listing(lines_by_path: dict[str, frozenset[int]]) -> str:
     )
 
 
-def _locked(kind: FileKind, phase: Phase, guidance: str = "") -> TddError:
+def _locked(kind: FileKind, phase: Phase, guidance: str) -> TddError:
     return TddError(
-        f"Writing {kind} files is not allowed in the {phase} phase. "
-        f"{guidance or PHASE_GUIDANCE[phase]}"
+        f"Writing {kind} files is not allowed in the {phase} phase. {guidance}"
     )
 
 
