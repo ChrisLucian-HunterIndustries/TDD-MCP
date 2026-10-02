@@ -293,12 +293,19 @@ class FakeHistory:
         self.head = "base"
         self.changed: dict[str, frozenset[int]] = {}
         self.ancestor = True
+        self.rolled_back_to: list[str] = []
 
     def head_commit(self, root: Path) -> str:
         return self.head
 
     def is_ancestor(self, root: Path, commit: str) -> bool:
         return self.ancestor
+
+    def rollback(self, root: Path, commit: str) -> str:
+        backup = f"refs/tdd-mcp/rollback-{self.head}"
+        self.rolled_back_to.append(commit)
+        self.head = commit
+        return backup
 
     def changed_lines(self, root: Path, base: str) -> dict[str, frozenset[int]]:
         assert base == "base"
@@ -378,6 +385,22 @@ def _to_refactor(service: TddService, adapter: FakeAdapter, root: Path) -> None:
     service.write_file(str(root), "test_calc", "test")
     adapter.outcome = Outcome.PASSED
     service.write_file(str(root), "calc.code", "impl")
+
+
+def test_rollback_cycle_resets_to_the_cycle_start_and_restarts_in_red(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """A model stuck mid-cycle can always get back to where every test passed."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    history.head = "later"
+
+    report = service.rollback_cycle(str(tmp_path))
+
+    assert history.rolled_back_to == ["base"]
+    assert report.phase is Phase.RED
+    assert "refs/tdd-mcp/rollback-later" in report.message
 
 
 def test_breaking_refactor_is_reverted(service, adapter, tmp_path: Path):
