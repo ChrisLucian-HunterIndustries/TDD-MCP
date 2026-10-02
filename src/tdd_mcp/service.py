@@ -194,6 +194,16 @@ class TddService:
         root = _root(location)
         session = self._started(root)
         base = session.base
+        if (
+            base is None
+            or self._history is None
+            or not self._history.is_ancestor(root, base)
+        ):
+            raise TddError(
+                "No cycle start commit to roll back to (none recorded yet, or a git "
+                f"reset moved past it). You are in the {session.phase} phase. Next: "
+                "call advance_tdd_phase; it records one whenever every test passes."
+            )
         backup = self._history.rollback(root, base)
         del self._sessions[root]
         report = self.advance_tdd_phase(location, session.adapter.name)
