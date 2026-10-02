@@ -129,3 +129,17 @@ def test_rollback_stashes_uncommitted_and_untracked_work(repo: Path):
     _git(repo, "stash", "pop")
     assert (repo / "a.txt").read_text() == "b"
     assert (repo / "new.py").read_text() == "x = 1\n"
+
+
+def test_rollback_refuses_to_drop_changes_outside_the_project(repo: Path):
+    from tdd_mcp import git_gate
+
+    (repo / "pkg").mkdir()
+    base = head_commit(repo)
+    (repo / "a.txt").write_text("outside pkg")
+    _git(repo, "commit", "-am", "outside")
+    head = head_commit(repo)
+
+    with pytest.raises(GitError, match="outside"):
+        git_gate.rollback(repo / "pkg", base)
+    assert head_commit(repo) == head
