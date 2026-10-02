@@ -75,7 +75,16 @@ def rollback(root: Path, commit: str) -> str:
         )
     head = head_commit(root)
     backup = f"refs/tdd-mcp/rollback-{head[:12]}"
-    _git(root, "stash", "push", "--include-untracked", "-m", "tdd-mcp rollback", "--", ".")
+    _git(
+        root,
+        "stash",
+        "push",
+        "--include-untracked",
+        "-m",
+        "tdd-mcp rollback",
+        "--",
+        ".",
+    )
     _git(root, "update-ref", backup, head)
     _git(root, "reset", "--hard", commit)
     return backup
