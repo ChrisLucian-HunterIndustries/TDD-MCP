@@ -41,6 +41,8 @@ class History(Protocol):
 
     def changed_lines(self, root: Path, base: str) -> dict[str, frozenset[int]]: ...
 
+    def rollback(self, root: Path, commit: str) -> str: ...
+
 
 @dataclass(frozen=True)
 class Report:
@@ -186,6 +188,21 @@ class TddService:
             "your new failing test already specifies the new behaviour. The first "
             "edit returns you to green, but you can keep editing tests until you "
             "commit them ('. t'). Then change production code.",
+        )
+
+    def rollback_cycle(self, location: str) -> Report:
+        root = _root(location)
+        session = self._started(root)
+        base = session.base
+        backup = self._history.rollback(root, base)
+        del self._sessions[root]
+        report = self.advance_tdd_phase(location, session.adapter.name)
+        return Report(
+            report.phase,
+            f"Rolled back to commit {base[:12]}, where this cycle started with "
+            f"every test passing. The dropped commits are kept at {backup}; "
+            f"uncommitted work, if any, is in git stash. {report.message}",
+            report.output,
         )
 
     def write_file(self, location: str, path: str, content: str) -> Report:
