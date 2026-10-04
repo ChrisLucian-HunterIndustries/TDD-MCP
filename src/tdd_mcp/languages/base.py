@@ -47,6 +47,10 @@ class LanguageAdapter(Protocol):
         """Names the source declares at its top level (classes, functions, constants)."""
         ...
 
+    def functions(self, source: str) -> tuple[Function, ...]:
+        """Functions and methods, with their first line, first statement and last line."""
+        ...
+
     def run_tests(
         self, root: Path, path: str | None = None, test_name: str | None = None
     ) -> SuiteRun:
