@@ -66,7 +66,10 @@ class TypeScriptAdapter:
         return FileKind.TEST if is_test else FileKind.PRODUCTION
 
     def comment_lines(self, source: str) -> frozenset[int]:
-        lines: set[int] = set()
+        return frozenset(self.uncommented(source))
+
+    def uncommented(self, source: str) -> dict[int, str]:
+        lines: dict[int, str] = {}
         i = 0
         while i < len(source):
             if source[i] in QUOTES:
@@ -75,11 +78,14 @@ class TypeScriptAdapter:
                 end = _comment_end(source, i)
                 if not source[i + 2 : end].lstrip().startswith(COMMENT_DIRECTIVES):
                     first = source.count("\n", 0, i) + 1
-                    lines.update(range(first, first + source.count("\n", i, end) + 1))
+                    last = first + source.count("\n", i, end)
+                    lines.update(dict.fromkeys(range(first + 1, last + 1), ""))
+                    line_start = source.rfind("\n", 0, i) + 1
+                    lines[first] = source[line_start:i].rstrip()
                 i = end
             else:
                 i += 1
-        return frozenset(lines)
+        return lines
 
     def definitions(self, source: str) -> frozenset[str]:
         return frozenset(re.findall(DECLARATION, source, re.MULTILINE))
