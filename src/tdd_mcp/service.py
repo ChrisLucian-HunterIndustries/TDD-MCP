@@ -118,7 +118,8 @@ class TddService:
         session.last_failing, session.last_added = failing, added
         if run.counts and restarts:
             session.tests = run.counts.tests
-        if session.phase is Phase.RED and restarts and self._history:
+        blocked = bool(untested or commented)
+        if session.phase is Phase.RED and restarts and not blocked and self._history:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
         guidance = _guidance(session.phase, failing, added)
