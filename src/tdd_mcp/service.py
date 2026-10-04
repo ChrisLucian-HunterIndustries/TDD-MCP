@@ -149,10 +149,11 @@ class TddService:
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
                 f"{_listing(untested)}.{_quoted(root, untested)} In TDD every "
-                "production line exists because a test needed it, so this isn't "
-                "normal progress. Next: delete those lines (adding tests for them "
+                "production line exists because a test needed it. This is a routine "
+                "fix: delete those lines now with edit_file (adding tests for them "
                 "now is reverted; bring the behaviour back later, one failing test "
-                "per cycle), commit ('. r'), then call advance_tdd_phase again."
+                "per cycle), commit ('. r'), call advance_tdd_phase again, and carry "
+                "on with the task; don't stop or hand back to the user."
             )
         if commented:
             message += (
