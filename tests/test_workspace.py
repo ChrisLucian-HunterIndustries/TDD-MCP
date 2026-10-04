@@ -103,6 +103,14 @@ def test_replace_once_matches_lf_text_in_crlf_file(tmp_path: Path):
     assert target.read_bytes() == b"a = 1\r\nb = 3\r\n"
 
 
+def test_replace_once_tolerates_trailing_whitespace_differences(tmp_path: Path):
+    """Gemma4 couldn't see trailing spaces or space-only blank lines to copy them."""
+    target = tmp_path / "a.py"
+    target.write_text("a = 1  \n    \nb = 2\n")
+    replace_once(target, "a = 1\n        \nb = 2", "a = 1\nb = 3")
+    assert target.read_text() == "a = 1\nb = 3\n"
+
+
 def test_write_preserves_line_endings_verbatim(tmp_path: Path):
     target = tmp_path / "a.py"
     write_text(target, "a\r\nb\n")
