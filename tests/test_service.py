@@ -313,6 +313,17 @@ def test_refactor_counts_the_cycles_new_test_as_existing(
     assert (tmp_path / "calc.code").read_text() == "tidy"
 
 
+def test_editing_a_missing_file_says_so_before_any_phase_refusal(
+    service: TddService, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 edited a never-created file three times, hearing only "uncommitted"."""
+    _start(service, tmp_path)
+    tree.changes = [" M test_calc"]
+
+    with pytest.raises(WorkspaceError, match="does not exist.*write_file"):
+        service.edit_file(str(tmp_path), "calc.code", "a", "b")
+
+
 class FakeHistory:
     def __init__(self) -> None:
         self.head = "base"
