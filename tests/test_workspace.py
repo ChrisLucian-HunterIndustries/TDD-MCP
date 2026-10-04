@@ -144,6 +144,14 @@ def test_replace_once_refuses_a_whitespace_only_old_string(tmp_path: Path):
         replace_once(target, "    ", "")
 
 
+def test_replace_once_refuses_an_edit_that_changes_nothing(tmp_path: Path):
+    """Gemma4's no-op edits passed the tests and looked like progress."""
+    target = tmp_path / "a.py"
+    target.write_text("x = 1\n")
+    with pytest.raises(WorkspaceError, match="identical"):
+        replace_once(target, "x = 1", "x = 1")
+
+
 def test_write_preserves_line_endings_verbatim(tmp_path: Path):
     target = tmp_path / "a.py"
     write_text(target, "a\r\nb\n")
