@@ -417,6 +417,24 @@ def test_a_new_typescript_test_failing_on_an_unimported_name_says_to_import_it(
     assert "the test must import TicTacToe" in report.message
 
 
+def test_a_test_write_in_green_names_return_to_red_for_a_wrong_new_test(
+    service: TddService, adapter: FakeAdapter, tmp_path: Path
+):
+    """Told to fix a wrong test "later, in refactor", Gemma4 never reached refactor."""
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    adapter.counts = SuiteCounts(tests=1, failures=1)
+    service.write_file(str(tmp_path), "test_calc", "missing import")
+
+    with pytest.raises(TddError) as refusal:
+        service.write_file(str(tmp_path), "test_calc", "with import")
+
+    assert (
+        "If the new test itself is wrong (e.g. it doesn't import what it uses), "
+        "no production change can make it pass: call return_to_red and fix it there."
+    ) in str(refusal.value)
+
+
 class FakeHistory:
     def __init__(self) -> None:
         self.head = "base"
