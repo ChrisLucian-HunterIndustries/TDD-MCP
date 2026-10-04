@@ -18,6 +18,7 @@ class FakeAdapter:
         self.outcome = Outcome.PASSED
         self.counts = SuiteCounts(tests=0, failures=0)
         self.uncovered: dict[str, frozenset[int]] = {}
+        self.untaken: dict[str, frozenset[int]] = {}
         self.test_runs = 0
         self.test_output = "test output"
         self.selections: list[tuple[str | None, str | None]] = []
@@ -58,7 +59,9 @@ class FakeAdapter:
         return SuiteRun(self.outcome, self.test_output, self.counts)
 
     def run_coverage(self, root: Path) -> SuiteRun:
-        return SuiteRun(self.outcome, "coverage output", self.counts, self.uncovered)
+        return SuiteRun(
+            self.outcome, "coverage output", self.counts, self.uncovered, self.untaken
+        )
 
 
 class FakeTree:
@@ -625,6 +628,32 @@ def test_an_edit_breaking_tests_after_green_passed_is_reverted(
     assert report.phase is Phase.REFACTOR
     assert "calc.code was reverted" in report.message
     assert (tmp_path / "calc.code").read_text() == "works"
+
+
+def test_a_blocked_advance_explains_branches_that_never_run(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 deleted only the flagged `if` line, leaving its body to run every time."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    (tmp_path / "calc.code").write_text(
+        "def empty\n  for cell\n    if cell\n      return no\n  return yes\n"
+    )
+    history.changed = {"calc.code": frozenset({1, 2, 3, 4, 5})}
+    adapter.uncovered = {"calc.code": frozenset({3, 4})}
+    adapter.untaken = {"calc.code": frozenset({3})}
+
+    report = _start(service, tmp_path)
+
+    assert (
+        "\ncalc.code:4:       return no\n These lines run, but one of their branches "
+        "never does (e.g. an if whose condition is never true in any test):\n"
+        "calc.code:3:     if cell\n Remove each such condition together with the "
+        "code it guards, then simplify what's left (e.g. an emptied loop) so the "
+        "test still passes."
+    ) in report.message
+    assert report.message.count("calc.code:3:") == 1
 
 
 def test_a_repeated_blocked_advance_says_nothing_changed(
