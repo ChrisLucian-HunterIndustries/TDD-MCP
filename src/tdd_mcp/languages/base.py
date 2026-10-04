@@ -35,6 +35,10 @@ class LanguageAdapter(Protocol):
         """Line numbers holding a comment, other than tool directives such as `# noqa`."""
         ...
 
+    def definitions(self, source: str) -> frozenset[str]:
+        """Names the source declares at its top level (classes, functions, constants)."""
+        ...
+
     def run_tests(
         self, root: Path, path: str | None = None, test_name: str | None = None
     ) -> SuiteRun:
