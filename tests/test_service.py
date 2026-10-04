@@ -749,6 +749,27 @@ def test_a_function_whose_first_line_only_skips_a_branch_is_not_called_dead(
     assert "\ncalc.code:5:   return no\n" in report.message
 
 
+def test_a_refactor_write_adding_code_no_test_runs_says_so_at_once(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 wrote all of check_winner in refactor and heard about it two steps later."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    history.changed = {"calc.code": frozenset({1, 2})}
+    adapter.uncovered = {"calc.code": frozenset({2})}
+
+    report = service.write_file(str(tmp_path), "calc.code", "impl\nnew feature\n")
+
+    assert report.phase is Phase.REFACTOR
+    assert (
+        " Refactoring can't add behaviour, and no test runs these production "
+        "lines: calc.code: 2.\ncalc.code:2: new feature\n New behaviour needs its "
+        "own cycle: take it out now with edit_file, commit, call "
+        "advance_tdd_phase, then write its failing test first."
+    ) in report.message
+
+
 def test_a_repeated_blocked_advance_says_nothing_changed(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
