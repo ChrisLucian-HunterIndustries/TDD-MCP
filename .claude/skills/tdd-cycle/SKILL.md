@@ -61,6 +61,10 @@ before running it. Coverage measures branches: an `if` with an untaken path is u
   `edit_file` (old_string = the quoted text, new_string empty); "These lines run, but one
   of their branches never does" means remove the condition with the code it guards, then
   tidy what's left. After green passes, an edit that breaks the tests is reverted.
+- "Refactoring can't add behaviour, and no test runs these production lines" — take the new
+  code out, commit, advance, and drive it in with its own failing test.
+- "Keep the code on these lines and drop only the comment" — replace each quoted line with
+  the code shown; don't delete the whole line.
 - "write_file replaces the whole file, and this content drops ..." — overwriting a file must
   keep its top-level definitions; delete code with `edit_file` instead.
 - Green, but the new test can't pass because the test itself is wrong (e.g. a NameError for
