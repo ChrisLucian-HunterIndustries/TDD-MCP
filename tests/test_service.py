@@ -364,6 +364,24 @@ def test_a_production_write_in_red_leads_with_the_extra_tests_to_delete(
     assert "rollback_cycle" not in message
 
 
+def test_retrying_a_refused_call_unchanged_says_it_will_be_refused_again(
+    service: TddService, tmp_path: Path
+):
+    """Gemma4 sent the same refused write_file 8 times."""
+    _start(service, tmp_path)
+    with pytest.raises(TddError) as first:
+        service.write_file(str(tmp_path), "calc.code", "impl")
+
+    with pytest.raises(TddError) as retry:
+        service.write_file(str(tmp_path), "calc.code", "impl")
+
+    assert "already refused" not in str(first.value)
+    assert str(retry.value).startswith(
+        "This exact call was already refused, and retrying it unchanged is "
+        "refused the same way. "
+    )
+
+
 class FakeHistory:
     def __init__(self) -> None:
         self.head = "base"
