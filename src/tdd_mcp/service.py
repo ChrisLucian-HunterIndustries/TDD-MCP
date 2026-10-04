@@ -542,9 +542,7 @@ def _dead_blocks(root: Path, dead: dict[str, tuple[Function, ...]]) -> str:
     )
 
 
-def _locked(
-    kind: FileKind, phase: Phase, guidance: str, added: int = 0
-) -> TddError:
+def _locked(kind: FileKind, phase: Phase, guidance: str, added: int = 0) -> TddError:
     if kind is FileKind.PRODUCTION and phase is Phase.RED and added > 1:
         guidance = (
             f"Production is locked because {added} new tests were added; red "

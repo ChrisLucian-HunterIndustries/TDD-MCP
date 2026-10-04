@@ -88,9 +88,7 @@ class TypeScriptAdapter:
         found = []
         for match in FUNCTION_HEAD.finditer(source):
             name = match.group(1) or match.group(2)
-            opening = source.find(
-                "{", match.end(1) if match.group(1) else match.end(2)
-            )
+            opening = source.find("{", match.end(1) if match.group(1) else match.end(2))
             first = NON_SPACE.search(source, opening + 1)
             found.append(
                 Function(

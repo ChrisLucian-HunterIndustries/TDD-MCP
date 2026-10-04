@@ -53,7 +53,10 @@ def test_coverage_py_json_lists_lines_that_run_but_skip_a_branch(tmp_path: Path)
     report = json.dumps(
         {
             "files": {
-                "calc.py": {"missing_lines": [9], "missing_branches": [[3, 5], [9, -1]]},
+                "calc.py": {
+                    "missing_lines": [9],
+                    "missing_branches": [[3, 5], [9, -1]],
+                },
                 "full.py": {"missing_lines": [], "missing_branches": []},
             }
         }

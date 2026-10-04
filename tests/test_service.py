@@ -407,9 +407,7 @@ def test_a_new_test_failing_on_an_unimported_name_says_to_import_it(
     _start(service, tmp_path)
     adapter.outcome = Outcome.FAILED
     adapter.counts = SuiteCounts(tests=1, failures=1)
-    adapter.test_output = (
-        "test_calc:4: in test_new_game\nE   NameError: name 'TicTacToe' is not defined\n"
-    )
+    adapter.test_output = "test_calc:4: in test_new_game\nE   NameError: name 'TicTacToe' is not defined\n"
 
     report = service.write_file(str(tmp_path), "test_calc", "uses TicTacToe")
 
@@ -572,7 +570,9 @@ def test_a_blocked_advance_quotes_functions_that_never_run_as_whole_blocks(
     history = FakeHistory()
     service = TddService({"fake": adapter}, pending_changes=tree, history=history)
     _to_refactor(service, adapter, tmp_path)
-    (tmp_path / "calc.code").write_text("def used\n  run\n  skipped\ndef dead\n  never\n")
+    (tmp_path / "calc.code").write_text(
+        "def used\n  run\n  skipped\ndef dead\n  never\n"
+    )
     history.changed = {"calc.code": frozenset({1, 2, 3, 4, 5})}
     adapter.uncovered = {"calc.code": frozenset({3, 5})}
 
@@ -601,7 +601,9 @@ def test_a_green_write_that_passes_reports_lines_the_test_never_runs(
     history.changed = {"calc.code": frozenset({1, 2, 3})}
     adapter.uncovered = {"calc.code": frozenset({3})}
 
-    report = service.write_file(str(tmp_path), "calc.code", "def add\n  used\n  extra\n")
+    report = service.write_file(
+        str(tmp_path), "calc.code", "def add\n  used\n  extra\n"
+    )
 
     assert report.phase is Phase.REFACTOR
     assert (
