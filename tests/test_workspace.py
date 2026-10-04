@@ -111,6 +111,14 @@ def test_replace_once_tolerates_trailing_whitespace_differences(tmp_path: Path):
     assert target.read_text() == "a = 1\nb = 3\n"
 
 
+def test_replace_once_says_when_the_edit_looks_already_applied(tmp_path: Path):
+    """Gemma4 retried an edit it had already made and committed, three times."""
+    target = tmp_path / "a.py"
+    target.write_text("a = 2\n")
+    with pytest.raises(WorkspaceError, match="already contains new_string"):
+        replace_once(target, "a = 1", "a = 2")
+
+
 def test_write_preserves_line_endings_verbatim(tmp_path: Path):
     target = tmp_path / "a.py"
     write_text(target, "a\r\nb\n")
