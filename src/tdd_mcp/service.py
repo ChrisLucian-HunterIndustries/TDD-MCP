@@ -145,7 +145,8 @@ class TddService:
         if commented:
             message += (
                 " Lines changed this cycle hold comments: "
-                f"{_listing(commented)}. Next: remove them, letting names say what "
+                f"{_listing(commented)}.{_quoted(root, commented)} Next: remove "
+                "them, letting names say what "
                 "the comments did, commit ('. r'), then call advance_tdd_phase again."
             )
         return Report(session.phase, f"{message} {guidance}", run.output)
