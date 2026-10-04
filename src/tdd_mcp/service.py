@@ -146,19 +146,9 @@ class TddService:
         if session.phase is Phase.RED and added > 1:
             message += f" {added} tests were added since the cycle started."
         if untested:
-            dead = _dead_functions(session.adapter, root, untested)
-            loose = {
-                path: frozenset(
-                    number
-                    for number in lines
-                    if not any(f.start <= number <= f.end for f in dead.get(path, ()))
-                )
-                for path, lines in untested.items()
-            }
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
-                f"{_listing(untested)}.{_quoted(root, loose)}"
-                f"{_dead_blocks(root, dead)} In TDD every "
+                f"{_untested_lines(session.adapter, root, untested)} In TDD every "
                 "production line exists because a test needed it. This is a routine "
                 "fix: delete those lines now with edit_file (adding tests for them "
                 "now is reverted; bring the behaviour back later, one failing test "
@@ -472,6 +462,21 @@ def _quoted(root: Path, lines_by_path: dict[str, frozenset[int]]) -> str:
             if number <= len(texts)
         ]
     return "".join(f"\n{quote}" for quote in quotes) + "\n"
+
+
+def _untested_lines(
+    adapter: LanguageAdapter, root: Path, untested: dict[str, frozenset[int]]
+) -> str:
+    dead = _dead_functions(adapter, root, untested)
+    loose = {
+        path: frozenset(
+            number
+            for number in lines
+            if not any(f.start <= number <= f.end for f in dead.get(path, ()))
+        )
+        for path, lines in untested.items()
+    }
+    return f"{_listing(untested)}.{_quoted(root, loose)}{_dead_blocks(root, dead)}"
 
 
 def _dead_functions(
