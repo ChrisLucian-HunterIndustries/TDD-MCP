@@ -722,6 +722,26 @@ def test_a_blocked_advance_explains_branches_that_never_run(
     assert report.message.count("calc.code:3:") == 1
 
 
+def test_a_function_whose_first_line_only_skips_a_branch_is_not_called_dead(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 deleted make_move as "never runs" although its test called it."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    (tmp_path / "calc.code").write_text(
+        "def move\n  if free\n    take\n    return yes\n  return no\n"
+    )
+    history.changed = {"calc.code": frozenset({1, 2, 3, 4, 5})}
+    adapter.uncovered = {"calc.code": frozenset({2, 5})}
+    adapter.untaken = {"calc.code": frozenset({2})}
+
+    report = _start(service, tmp_path)
+
+    assert "never run, so delete each one whole" not in report.message
+    assert "\ncalc.code:5:   return no\n" in report.message
+
+
 def test_a_repeated_blocked_advance_says_nothing_changed(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
