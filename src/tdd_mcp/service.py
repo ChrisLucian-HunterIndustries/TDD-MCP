@@ -397,8 +397,9 @@ class TddService:
         run = session.adapter.run_tests(root)
         counts = run.counts or SuiteCounts(tests=session.tests, failures=0)
         added = counts.tests - session.tests
+        passed = phase is Phase.GREEN and session.phase is Phase.REFACTOR
         transition = after_write(
-            phase,
+            Phase.REFACTOR if passed else phase,
             kind,
             run.outcome,
             failing=counts.failures,
