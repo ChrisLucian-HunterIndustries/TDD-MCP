@@ -13,7 +13,7 @@ from pathlib import Path, PurePath
 from xml.etree import ElementTree
 
 from tdd_mcp.cycle import FileKind, Outcome
-from tdd_mcp.languages.base import SuiteRun, run_suite
+from tdd_mcp.languages.base import Function, SuiteRun, run_suite
 from tdd_mcp.reports import SuiteCounts, count_junit, uncovered_from_coverage_py
 
 CODE_SUFFIXES = frozenset({".py", ".pyi"})
@@ -71,6 +71,16 @@ def _defined_tests(path: Path) -> int:
     )
 
 
+def _first_statement(node: ast.FunctionDef | ast.AsyncFunctionDef) -> ast.stmt:
+    first = node.body[0]
+    docstring = (
+        isinstance(first, ast.Expr)
+        and isinstance(first.value, ast.Constant)
+        and isinstance(first.value.value, str)
+    )
+    return node.body[1] if docstring and len(node.body) > 1 else first
+
+
 class PythonAdapter:
     name = "python"
 
@@ -97,6 +107,25 @@ class PythonAdapter:
     def definitions(self, source: str) -> frozenset[str]:
         return frozenset(
             re.findall(r"^(?:async\s+)?(?:def|class)\s+(\w+)", source, re.MULTILINE)
+        )
+
+    def functions(self, source: str) -> tuple[Function, ...]:
+        nodes = sorted(
+            (
+                node
+                for node in ast.walk(ast.parse(source))
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            ),
+            key=lambda node: node.lineno,
+        )
+        return tuple(
+            Function(
+                node.name,
+                start=min([node.lineno, *(d.lineno for d in node.decorator_list)]),
+                body=_first_statement(node).lineno,
+                end=node.end_lineno or node.lineno,
+            )
+            for node in nodes
         )
 
     def run_tests(

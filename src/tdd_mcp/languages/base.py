@@ -24,6 +24,14 @@ class SuiteRun:
     uncovered: Mapping[str, frozenset[int]] = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class Function:
+    name: str
+    start: int
+    body: int
+    end: int
+
+
 class LanguageAdapter(Protocol):
     name: str
 
