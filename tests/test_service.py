@@ -404,6 +404,19 @@ def test_a_new_test_failing_on_an_unimported_name_says_to_import_it(
     ) in report.message
 
 
+def test_a_new_typescript_test_failing_on_an_unimported_name_says_to_import_it(
+    service: TddService, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    adapter.counts = SuiteCounts(tests=1, failures=1)
+    adapter.test_output = "ReferenceError: TicTacToe is not defined\n"
+
+    report = service.write_file(str(tmp_path), "test_calc", "uses TicTacToe")
+
+    assert "the test must import TicTacToe" in report.message
+
+
 class FakeHistory:
     def __init__(self) -> None:
         self.head = "base"
