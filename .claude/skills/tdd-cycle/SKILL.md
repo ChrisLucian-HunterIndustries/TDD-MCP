@@ -67,8 +67,8 @@ before running it. Coverage measures branches: an `if` with an untaken path is u
   a name it never imports) — fix it before committing `. t`, or call `return_to_red` after.
 - The repository changed outside the server (e.g. `git reset`) — call `advance_tdd_phase`: it
   recomputes the phase (all pass: red; exactly one fails: green).
-- Green, but an existing test that's locked asserts the old behaviour — undo your uncommitted
-  production edits (production is still writable), call `return_to_red`, then edit that test so
+- Green, but an existing test that's locked asserts the old behaviour — call `return_to_red`
+  (it sets uncommitted production changes aside in git stash), then edit that test so
   it passes without the old behaviour. Further test edits amend the same uncommitted red step;
   commit them as `. t`, then redo the production change. No git reset needed.
 

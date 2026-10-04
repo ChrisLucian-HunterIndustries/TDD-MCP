@@ -114,8 +114,9 @@ def return_to_red(location: str) -> str:
 
     Use it when your production change makes other, older tests fail because
     they still expect the old behaviour, or when the new test itself is wrong
-    (e.g. it doesn't import what it uses). Undo your uncommitted production
-    edits first. Back in red, fix those tests, keeping your new test failing.
+    (e.g. it doesn't import what it uses). Uncommitted production changes are
+    set aside in git stash for you. Back in red, fix those tests, keeping your
+    new test failing.
 
     Args:
         location: Path to the project root.
