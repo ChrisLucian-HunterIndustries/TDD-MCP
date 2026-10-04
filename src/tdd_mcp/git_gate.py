@@ -90,6 +90,20 @@ def rollback(root: Path, commit: str) -> str:
     return backup
 
 
+def set_aside(root: Path, paths: list[str]) -> None:
+    """Stash the uncommitted changes to `paths`, untracked files included."""
+    _git(
+        root,
+        "stash",
+        "push",
+        "--include-untracked",
+        "-m",
+        "tdd-mcp return_to_red",
+        "--",
+        *paths,
+    )
+
+
 _HUNK = re.compile(r"^@@ -\S+ \+(\d+)(?:,(\d+))? @@")
 
 
