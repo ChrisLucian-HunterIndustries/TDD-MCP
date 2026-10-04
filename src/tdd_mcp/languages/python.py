@@ -14,7 +14,12 @@ from xml.etree import ElementTree
 
 from tdd_mcp.cycle import FileKind, Outcome
 from tdd_mcp.languages.base import Function, SuiteRun, run_suite
-from tdd_mcp.reports import SuiteCounts, count_junit, uncovered_from_coverage_py
+from tdd_mcp.reports import (
+    SuiteCounts,
+    count_junit,
+    uncovered_from_coverage_py,
+    untaken_branches_from_coverage_py,
+)
 
 CODE_SUFFIXES = frozenset({".py", ".pyi"})
 TEST_DIRECTORIES = frozenset({"test", "tests"})
@@ -150,10 +155,12 @@ class PythonAdapter:
             )
             if not report.is_file():
                 return run
-            uncovered = uncovered_from_coverage_py(
-                report.read_text(encoding="utf-8"), root
+            text = report.read_text(encoding="utf-8")
+            return replace(
+                run,
+                uncovered=uncovered_from_coverage_py(text, root),
+                untaken=untaken_branches_from_coverage_py(text, root),
             )
-            return replace(run, uncovered=uncovered)
 
     def _pytest(
         self, root: Path, *args: str, extra_env: dict[str, str] | None = None
