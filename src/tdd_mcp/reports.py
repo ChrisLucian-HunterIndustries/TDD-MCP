@@ -53,11 +53,7 @@ def uncovered_from_istanbul(report: str, root: Path) -> dict[str, frozenset[int]
     """Start lines of unexecuted statements and untaken branches per file from an istanbul JSON report."""
     uncovered = {}
     for name, data in json.loads(report).items():
-        lines = frozenset(
-            data["statementMap"][statement]["start"]["line"]
-            for statement, hits in data["s"].items()
-            if hits == 0
-        ) | _untaken_branch_lines(data)
+        lines = _unexecuted_lines(data) | _untaken_branch_lines(data)
         if lines:
             uncovered[_relative(name, root)] = lines
     return uncovered
@@ -69,15 +65,18 @@ def untaken_branches_from_istanbul(
     """Lines that run but never take one of their branches, from an istanbul JSON report."""
     untaken = {}
     for name, data in json.loads(report).items():
-        unexecuted = frozenset(
-            data["statementMap"][statement]["start"]["line"]
-            for statement, hits in data["s"].items()
-            if hits == 0
-        )
-        lines = _untaken_branch_lines(data) - unexecuted
+        lines = _untaken_branch_lines(data) - _unexecuted_lines(data)
         if lines:
             untaken[_relative(name, root)] = lines
     return untaken
+
+
+def _unexecuted_lines(data: dict) -> frozenset[int]:
+    return frozenset(
+        data["statementMap"][statement]["start"]["line"]
+        for statement, hits in data["s"].items()
+        if hits == 0
+    )
 
 
 def _untaken_branch_lines(data: dict) -> frozenset[int]:
