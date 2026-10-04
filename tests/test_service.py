@@ -532,6 +532,27 @@ def test_a_blocked_advance_quotes_the_untested_lines_to_delete(
     assert "used()" not in report.message
 
 
+def test_a_repeated_blocked_advance_says_nothing_changed(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 advanced twice without deleting anything, then handed back to the user."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    history.changed = {"calc.code": frozenset({3})}
+    adapter.uncovered = {"calc.code": frozenset({3})}
+    repeat = (
+        "Nothing changed since your last advance_tdd_phase: the same lines are "
+        "still flagged. Fix them before advancing again."
+    )
+
+    first = _start(service, tmp_path)
+    second = _start(service, tmp_path)
+
+    assert repeat not in first.message
+    assert repeat in second.message
+
+
 def test_a_blocked_advance_leads_with_the_block_not_optional_tidying(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
