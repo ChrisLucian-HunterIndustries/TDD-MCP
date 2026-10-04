@@ -556,7 +556,9 @@ def test_a_blocked_advance_calls_the_fix_routine_and_says_to_carry_on(
 
     assert "isn't normal progress" not in report.message
     assert (
-        "This is a routine fix: delete those lines now with edit_file" in report.message
+        "This is a routine fix: simplify the code now with edit_file until only what "
+        "your tests need remains (deleting those lines, or replacing a body with the "
+        "simplest code that passes)" in report.message
     )
     assert "carry on with the task; don't stop or hand back to the user." in (
         report.message
