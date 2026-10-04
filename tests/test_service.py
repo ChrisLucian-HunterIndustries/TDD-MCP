@@ -508,6 +508,31 @@ class FakeHistory:
         assert base == "base"
         return self.changed
 
+    def set_aside(self, root: Path, paths: list[str]) -> None:
+        self.set_aside_paths = paths
+
+
+def test_return_to_red_sets_aside_new_production_files_it_cannot_ask_to_undo(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Told to "edit back" a new file, Gemma4 had no tool to delete it: a dead end."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=1, failures=1)
+    service.write_file(str(tmp_path), "test_calc", "test")
+    service.write_file(str(tmp_path), "calc.code", "wrong")
+    tree.changes = ["?? calc.code"]
+
+    report = service.return_to_red(str(tmp_path))
+
+    assert report.phase is Phase.RED
+    assert history.set_aside_paths == ["calc.code"]
+    assert (
+        "Your uncommitted production changes (calc.code) were set aside in git "
+        "stash ('tdd-mcp return_to_red')"
+    ) in report.message
+
 
 def test_coverage_holds_the_phase_while_changed_production_lines_are_untested(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
