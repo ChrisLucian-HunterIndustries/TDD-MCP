@@ -105,25 +105,25 @@ class TddService:
         changed = self._cycle_changes(session, root, run)
         untested = self._untested_changes(session, changed, run)
         commented = self._commented_changes(session, root, changed)
+        blocked = bool(untested or commented)
         failing = run.counts.failures if run.counts else 0
         restarts = fresh or run.outcome is Outcome.PASSED
         added = run.counts.tests - session.tests if run.counts and not restarts else 0
         session.phase = after_coverage(
             session.phase,
             run.outcome,
-            untested_changes=bool(untested or commented),
+            untested_changes=blocked,
             failing=failing,
             added=added,
         )
         session.last_failing, session.last_added = failing, added
         if run.counts and restarts:
             session.tests = run.counts.tests
-        blocked = bool(untested or commented)
         if session.phase is Phase.RED and restarts and not blocked and self._history:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
         guidance = _guidance(session.phase, failing, added)
-        if untested or commented:
+        if blocked:
             message = "Tests passed, but the next cycle is blocked."
             guidance = (
                 f"You are still in the {session.phase} phase; the next cycle "
