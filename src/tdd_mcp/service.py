@@ -136,18 +136,17 @@ class TddService:
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
                 f"{_listing(untested)}.{_quoted(root, untested)} In TDD every "
-                "production line exists because "
-                "a test needed it, so this isn't normal progress. Next: delete those "
-                "lines (adding tests for them now is reverted; bring the behaviour "
-                "back later, one failing test per cycle), commit ('. r'), then call "
-                "advance_tdd_phase again."
+                "production line exists because a test needed it, so this isn't "
+                "normal progress. Next: delete those lines (adding tests for them "
+                "now is reverted; bring the behaviour back later, one failing test "
+                "per cycle), commit ('. r'), then call advance_tdd_phase again."
             )
         if commented:
             message += (
                 " Lines changed this cycle hold comments: "
                 f"{_listing(commented)}.{_quoted(root, commented)} Next: remove "
-                "them, letting names say what "
-                "the comments did, commit ('. r'), then call advance_tdd_phase again."
+                "them, letting names say what the comments did, commit ('. r'), "
+                "then call advance_tdd_phase again."
             )
         return Report(session.phase, f"{message} {guidance}", run.output)
 
