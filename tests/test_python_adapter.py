@@ -41,6 +41,11 @@ def test_comment_lines_ignore_hashes_inside_strings():
     assert adapter.comment_lines(source) == frozenset({1, 3})
 
 
+def test_uncommented_gives_each_comment_line_without_its_comment():
+    source = "x = 1  # why\ns = '# no'\n# full line\nif x:  # noqa\n    pass\n"
+    assert adapter.uncommented(source) == {1: "x = 1", 3: ""}
+
+
 def test_comment_lines_skip_tool_directives():
     source = (
         "#!/usr/bin/env python\n"
