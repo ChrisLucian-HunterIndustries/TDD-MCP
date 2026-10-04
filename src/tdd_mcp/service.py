@@ -465,14 +465,26 @@ class TddService:
                 f"Production code can't fix that: the test must import {name}. "
                 "Fix the test now; it stays editable until you commit it as '. t'."
             )
-        if phase is Phase.GREEN and session.phase is Phase.REFACTOR:
+        refactoring = (
+            phase is Phase.REFACTOR
+            and kind is FileKind.PRODUCTION
+            and not transition.revert
+        )
+        if refactoring or (phase is Phase.GREEN and session.phase is Phase.REFACTOR):
             coverage = session.adapter.run_coverage(root)
             changed = self._cycle_changes(session, root, coverage)
             untested = self._untested_changes(session, changed, coverage)
-            if untested:
+            lines = _untested_lines(session.adapter, root, untested, coverage.untaken)
+            if untested and refactoring:
                 message += (
-                    " Your test doesn't run these production lines: "
-                    f"{_untested_lines(session.adapter, root, untested, coverage.untaken)}"
+                    " Refactoring can't add behaviour, and no test runs these "
+                    f"production lines: {lines} New behaviour needs its own cycle: "
+                    "take it out now with edit_file, commit, call advance_tdd_phase, "
+                    "then write its failing test first."
+                )
+            elif untested:
+                message += (
+                    f" Your test doesn't run these production lines: {lines}"
                     " Simplify the code now with edit_file until only what your test "
                     "needs remains, often the simplest code that passes (e.g. "
                     "returning a constant); this green step stays open until you "
