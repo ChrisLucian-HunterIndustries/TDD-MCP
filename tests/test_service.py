@@ -353,6 +353,27 @@ def test_a_production_write_in_red_says_a_missing_code_failure_is_the_goal(
         service.write_file(str(tmp_path), "calc.code", "impl")
 
 
+def test_a_production_write_in_red_leads_with_the_extra_tests_to_delete(
+    service: TddService, adapter: FakeAdapter, tmp_path: Path
+):
+    """Gemma4 retried tictactoe.py 8 times; only an older reply said to delete 2 tests."""
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    adapter.counts = SuiteCounts(tests=3, failures=3)
+    service.write_file(str(tmp_path), "test_calc", "three tests")
+
+    with pytest.raises(TddError) as refusal:
+        service.write_file(str(tmp_path), "calc.code", "impl")
+
+    message = str(refusal.value)
+    assert message.startswith(
+        "Writing production files is not allowed in the red phase. Production is "
+        "locked because 3 new tests were added; red needs exactly one. Next: "
+        "delete 2 of the new test functions"
+    )
+    assert "rollback_cycle" not in message
+
+
 class FakeHistory:
     def __init__(self) -> None:
         self.head = "base"
