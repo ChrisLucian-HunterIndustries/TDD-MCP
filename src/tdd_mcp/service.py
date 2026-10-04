@@ -462,6 +462,12 @@ def _locked(
             "the production code in the test file: they make the test pass. "
             "Production files unlock in green, once exactly one test fails."
         )
+    elif kind is FileKind.TEST and phase is Phase.GREEN:
+        guidance += (
+            " If the new test itself is wrong (e.g. it doesn't import what it "
+            "uses), no production change can make it pass: call return_to_red and "
+            "fix it there."
+        )
     return TddError(
         f"Writing {kind} files is not allowed in the {phase} phase. {guidance}"
     )
