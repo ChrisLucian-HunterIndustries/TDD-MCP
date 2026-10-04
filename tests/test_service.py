@@ -36,6 +36,11 @@ class FakeAdapter:
             if "#" in line
         )
 
+    def definitions(self, source: str) -> frozenset[str]:
+        return frozenset(
+            line.split()[1] for line in source.splitlines() if line.startswith("def ")
+        )
+
     def run_tests(
         self, root: Path, path: str | None = None, test_name: str | None = None
     ) -> SuiteRun:
@@ -451,6 +456,23 @@ def test_return_to_red_lets_a_wrong_new_test_be_fixed(
     assert service.write_file(str(tmp_path), "test_calc", "with import").phase is (
         Phase.GREEN
     )
+
+
+def test_write_file_refuses_content_that_drops_existing_definitions(
+    service: TddService, adapter: FakeAdapter, tmp_path: Path
+):
+    """Gemma4 wrote only a new method with write_file, wiping out its whole class."""
+    _to_refactor(service, adapter, tmp_path)
+    (tmp_path / "calc.code").write_text("def add\ndef sub\n")
+
+    with pytest.raises(TddError) as refusal:
+        service.write_file(str(tmp_path), "calc.code", "def add\n")
+
+    assert (
+        "write_file replaces the whole file, and this content drops sub from "
+        "calc.code. Use edit_file to add, change or delete code"
+    ) in str(refusal.value)
+    assert (tmp_path / "calc.code").read_text() == "def add\ndef sub\n"
 
 
 class FakeHistory:
