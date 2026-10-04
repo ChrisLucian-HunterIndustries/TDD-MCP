@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -46,6 +47,11 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
     if "\r\n" in content and "\r\n" not in old:
         old, new = old.replace("\n", "\r\n"), new.replace("\n", "\r\n")
     count = content.count(old)
+    if count == 0:
+        matches = list(re.finditer(_ignoring_trailing_whitespace(old), content))
+        if len(matches) == 1:
+            start, end = matches[0].span()
+            return write_text(target, content[:start] + new + content[end:])
     if count != 1:
         raise WorkspaceError(
             f"Expected exactly one match of old_string, found {count}. Read the "
@@ -53,6 +59,12 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
             "is unique."
         )
     return write_text(target, content.replace(old, new))
+
+
+def _ignoring_trailing_whitespace(old: str) -> str:
+    return r"[ \t]*\r?\n".join(
+        re.escape(line.rstrip(" \t\r")) for line in old.split("\n")
+    )
 
 
 def restore(snapshot: Snapshot) -> None:
