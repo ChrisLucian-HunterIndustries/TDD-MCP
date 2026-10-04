@@ -324,6 +324,25 @@ def test_editing_a_missing_file_says_so_before_any_phase_refusal(
         service.edit_file(str(tmp_path), "calc.code", "a", "b")
 
 
+def test_an_uncommitted_step_refusal_names_the_exact_commit(
+    service: TddService, adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 committed its red step as a refactoring, listing a file that didn't exist."""
+    (tmp_path / "calc.code").write_text("impl")
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    service.write_file(str(tmp_path), "test_calc", "test")
+    tree.changes = ["?? test_calc"]
+
+    with pytest.raises(TddError) as refusal:
+        service.edit_file(str(tmp_path), "calc.code", "impl", "done")
+
+    assert (
+        "commit them as '. t' (racn intention test_only, risk proven_safe, "
+        'paths ["test_calc"])' in str(refusal.value)
+    )
+
+
 class FakeHistory:
     def __init__(self) -> None:
         self.head = "base"
