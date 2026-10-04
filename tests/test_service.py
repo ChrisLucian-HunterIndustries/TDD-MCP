@@ -321,6 +321,20 @@ def test_refactor_counts_the_cycles_new_test_as_existing(
     assert (tmp_path / "calc.code").read_text() == "tidy"
 
 
+def test_a_failed_edit_says_nothing_was_written_and_what_the_phase_needs(
+    service: TddService, tmp_path: Path
+):
+    """After an edit error, weak models lost track of where they were in the cycle."""
+    (tmp_path / "test_calc").write_text("x = 1\n")
+    _start(service, tmp_path)
+
+    with pytest.raises(WorkspaceError) as refusal:
+        service.edit_file(str(tmp_path), "test_calc", "y = 2", "y = 3")
+
+    assert "Nothing was written. You are in the red phase." in str(refusal.value)
+    assert "To move on to green:" in str(refusal.value)
+
+
 def test_editing_a_missing_file_says_so_before_any_phase_refusal(
     service: TddService, tree: FakeTree, tmp_path: Path
 ):
