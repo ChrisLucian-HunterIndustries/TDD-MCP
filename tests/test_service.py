@@ -37,6 +37,13 @@ class FakeAdapter:
             if "#" in line
         )
 
+    def uncommented(self, source: str) -> dict[int, str]:
+        return {
+            number: line.split("#")[0].rstrip()
+            for number, line in enumerate(source.splitlines(), start=1)
+            if "#" in line
+        }
+
     def definitions(self, source: str) -> frozenset[str]:
         return frozenset(
             line.split()[1] for line in source.splitlines() if line.startswith("def ")
@@ -817,6 +824,25 @@ def test_a_blocked_advance_in_red_keeps_the_cycle_start(
     report = _start(service, tmp_path)
 
     assert "test_calc:1: # explains the test" in report.message
+
+
+def test_a_comment_after_code_says_to_keep_the_code(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 deleted `p_x, p_y = 0, 1  # Example...` whole, breaking its test."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    (tmp_path / "test_calc").write_text("# why\nx = 1  # example\n")
+    history.changed = {"test_calc": frozenset({1, 2})}
+
+    report = _start(service, tmp_path)
+
+    assert (
+        " Keep the code on these lines and drop only the comment, so each line "
+        "becomes:\ntest_calc:2: x = 1\n"
+    ) in report.message
+    assert "test_calc:1: \n" not in report.message
 
 
 def test_a_reset_past_the_cycle_start_resyncs_instead_of_flagging_old_code(
