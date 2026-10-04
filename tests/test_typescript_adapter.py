@@ -64,6 +64,25 @@ def test_comment_lines_skip_strings_and_tool_directives():
     assert adapter.comment_lines(source) == frozenset({1, 2, 3, 10})
 
 
+def test_definitions_are_the_top_level_declarations():
+    source = (
+        "export class Game {\n"
+        "  move() {}\n"
+        "}\n"
+        "function helper() {}\n"
+        "export default async function fetchAll() {}\n"
+        "export const LIMIT = 3;\n"
+        "let count = 0;\n"
+        "export interface Board {}\n"
+        "type Cell = string;\n"
+        "enum Mark { X, O }\n"
+        "const s = 'function notOne() {}';\n"
+    )
+    assert adapter.definitions(source) == frozenset(
+        {"Game", "helper", "fetchAll", "LIMIT", "count", "Board", "Cell", "Mark", "s"}
+    )
+
+
 @pytest.mark.parametrize("run", [adapter.run_tests, adapter.run_coverage])
 def test_missing_vitest_is_an_error_not_a_failing_test(tmp_path: Path, run):
     result = run(tmp_path)
