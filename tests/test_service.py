@@ -792,6 +792,28 @@ def test_a_blocked_advance_frames_deleting_as_the_way_to_test_it_and_says_not_do
     assert DONE in report.message
 
 
+def test_a_test_added_in_refactor_while_advance_is_blocked_says_what_to_clear_first(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Told to advance before adding tests, Gemma4 hit the block and declared the kata done."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    history.changed = {"calc.code": frozenset({3})}
+    adapter.uncovered = {"calc.code": frozenset({3})}
+    _start(service, tmp_path)
+    adapter.counts = SuiteCounts(tests=1, failures=0)
+
+    report = service.write_file(str(tmp_path), "test_calc", "a new test")
+
+    assert "test_calc was reverted" in report.message
+    assert (
+        " advance_tdd_phase is blocked right now, so first clear what it flagged "
+        "(delete the untested code, remove the comments), commit, and advance; "
+        "then add this test in red, one test per cycle."
+    ) in report.message
+
+
 def test_a_repeated_blocked_advance_says_nothing_changed(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
