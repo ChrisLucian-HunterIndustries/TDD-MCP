@@ -422,6 +422,17 @@ class TddService:
                 f"Production code can't fix that: the test must import {name}. "
                 "Fix the test now; it stays editable until you commit it as '. t'."
             )
+        if phase is Phase.GREEN and session.phase is Phase.REFACTOR:
+            coverage = session.adapter.run_coverage(root)
+            changed = self._cycle_changes(session, root, coverage)
+            untested = self._untested_changes(session, changed, coverage)
+            if untested:
+                message += (
+                    " Your test doesn't run these production lines: "
+                    f"{_untested_lines(session.adapter, root, untested)} Delete "
+                    "them now with edit_file; this green step stays open until you "
+                    "commit it as '^ f'."
+                )
         return Report(
             session.phase,
             f"{message} {_guidance(session.phase, counts.failures, added)}",
