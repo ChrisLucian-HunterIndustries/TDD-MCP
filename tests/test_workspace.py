@@ -136,6 +136,14 @@ def test_replace_once_names_the_lines_of_ambiguous_matches(tmp_path: Path):
         replace_once(target, "break", "")
 
 
+def test_replace_once_refuses_a_whitespace_only_old_string(tmp_path: Path):
+    """Gemma4 sent bare indentation as old_string, which matched 90 times."""
+    target = tmp_path / "a.py"
+    target.write_text("if x:\n    y = 1\n")
+    with pytest.raises(WorkspaceError, match="only whitespace"):
+        replace_once(target, "    ", "")
+
+
 def test_write_preserves_line_endings_verbatim(tmp_path: Path):
     target = tmp_path / "a.py"
     write_text(target, "a\r\nb\n")
