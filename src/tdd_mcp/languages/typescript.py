@@ -8,7 +8,7 @@ from dataclasses import replace
 from pathlib import Path, PurePath
 
 from tdd_mcp.cycle import FileKind, Outcome
-from tdd_mcp.languages.base import SuiteRun, run_suite
+from tdd_mcp.languages.base import Function, SuiteRun, run_suite
 from tdd_mcp.reports import count_junit, uncovered_from_istanbul
 
 CODE_SUFFIXES = frozenset(
@@ -21,6 +21,15 @@ DECLARATION = (
     r"^(?:export\s+)?(?:default\s+)?(?:async\s+)?"
     r"(?:function\*?|class|const|let|var|interface|type|enum)\s+(\w+)"
 )
+FUNCTION_HEAD = re.compile(
+    r"^[ \t]*(?:export\s+)?(?:default\s+)?(?:async\s+)?"
+    r"(?:function\*?\s+(\w+)"
+    r"|(?:(?:public|private|protected|static|readonly|async|get|set)\s+)*"
+    r"(?!(?:if|for|while|switch|catch|return|function)\b)(\w+)\s*\([^)]*\)\s*"
+    r"(?::[^{;=]*)?\{)",
+    re.MULTILINE,
+)
+NON_SPACE = re.compile(r"\S")
 COMMENT_DIRECTIVES = (
     "/",
     "@ts-",
@@ -70,6 +79,24 @@ class TypeScriptAdapter:
 
     def definitions(self, source: str) -> frozenset[str]:
         return frozenset(re.findall(DECLARATION, source, re.MULTILINE))
+
+    def functions(self, source: str) -> tuple[Function, ...]:
+        found = []
+        for match in FUNCTION_HEAD.finditer(source):
+            name = match.group(1) or match.group(2)
+            opening = source.find(
+                "{", match.end(1) if match.group(1) else match.end(2)
+            )
+            first = NON_SPACE.search(source, opening + 1)
+            found.append(
+                Function(
+                    name,
+                    start=_line(source, match.start()),
+                    body=_line(source, first.start() if first else opening),
+                    end=_line(source, _block_end(source, opening)),
+                )
+            )
+        return tuple(found)
 
     def run_tests(
         self, root: Path, path: str | None = None, test_name: str | None = None
@@ -128,6 +155,26 @@ def _string_end(source: str, start: int) -> int:
     while i < len(source) and source[i] != quote:
         i += 2 if source[i] == "\\" else 1
     return i + 1
+
+
+def _line(source: str, index: int) -> int:
+    return source.count("\n", 0, index) + 1
+
+
+def _block_end(source: str, opening: int) -> int:
+    depth, i = 0, opening
+    while i < len(source):
+        if source[i] in QUOTES:
+            i = _string_end(source, i)
+            continue
+        if source.startswith(("//", "/*"), i):
+            i = _comment_end(source, i)
+            continue
+        depth += {"{": 1, "}": -1}.get(source[i], 0)
+        if depth == 0:
+            return i
+        i += 1
+    return len(source) - 1
 
 
 def _comment_end(source: str, start: int) -> int:
