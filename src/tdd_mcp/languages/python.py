@@ -109,6 +109,16 @@ class PythonAdapter:
             and not token.string[1:].lstrip().startswith(COMMENT_DIRECTIVES)
         )
 
+    def uncommented(self, source: str) -> dict[int, str]:
+        lines = source.splitlines()
+        tokens = tokenize.generate_tokens(io.StringIO(source).readline)
+        return {
+            token.start[0]: lines[token.start[0] - 1][: token.start[1]].rstrip()
+            for token in tokens
+            if token.type == tokenize.COMMENT
+            and not token.string[1:].lstrip().startswith(COMMENT_DIRECTIVES)
+        }
+
     def definitions(self, source: str) -> frozenset[str]:
         return frozenset(
             re.findall(r"^(?:async\s+)?(?:def|class)\s+(\w+)", source, re.MULTILINE)
