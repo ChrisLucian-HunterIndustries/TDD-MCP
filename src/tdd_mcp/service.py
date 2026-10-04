@@ -19,7 +19,7 @@ from tdd_mcp.cycle import (
     after_write,
     may_write,
 )
-from tdd_mcp.languages.base import LanguageAdapter, SuiteRun
+from tdd_mcp.languages.base import Function, LanguageAdapter, SuiteRun
 from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.workspace import (
     Snapshot,
@@ -146,9 +146,19 @@ class TddService:
         if session.phase is Phase.RED and added > 1:
             message += f" {added} tests were added since the cycle started."
         if untested:
+            dead = _dead_functions(session.adapter, root, untested)
+            loose = {
+                path: frozenset(
+                    number
+                    for number in lines
+                    if not any(f.start <= number <= f.end for f in dead.get(path, ()))
+                )
+                for path, lines in untested.items()
+            }
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
-                f"{_listing(untested)}.{_quoted(root, untested)} In TDD every "
+                f"{_listing(untested)}.{_quoted(root, loose)}"
+                f"{_dead_blocks(root, dead)} In TDD every "
                 "production line exists because a test needed it. This is a routine "
                 "fix: delete those lines now with edit_file (adding tests for them "
                 "now is reverted; bring the behaviour back later, one failing test "
@@ -462,6 +472,37 @@ def _quoted(root: Path, lines_by_path: dict[str, frozenset[int]]) -> str:
             if number <= len(texts)
         ]
     return "".join(f"\n{quote}" for quote in quotes) + "\n"
+
+
+def _dead_functions(
+    adapter: LanguageAdapter, root: Path, untested: dict[str, frozenset[int]]
+) -> dict[str, tuple[Function, ...]]:
+    dead = {}
+    for path, lines in sorted(untested.items()):
+        source = (root / path).read_text(encoding="utf-8", errors="replace")
+        found = tuple(f for f in adapter.functions(source) if f.body in lines)
+        if found:
+            dead[path] = found
+    return dead
+
+
+def _dead_blocks(root: Path, dead: dict[str, tuple[Function, ...]]) -> str:
+    if not dead:
+        return ""
+    blocks = []
+    for path, functions in dead.items():
+        lines = (root / path).read_text(encoding="utf-8", errors="replace").splitlines()
+        blocks += [
+            f"{path} lines {f.start}-{f.end}:\n"
+            + "".join(f"{line}\n" for line in lines[f.start - 1 : f.end])
+            for f in functions
+        ]
+    return (
+        " These functions never run, so delete each one whole, its first line "
+        "included (edit_file with the quoted text as old_string and an empty "
+        "new_string; if that leaves a class or block empty, delete it too):\n"
+        + "".join(blocks)
+    )
 
 
 def _locked(
