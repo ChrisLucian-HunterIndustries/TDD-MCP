@@ -152,6 +152,14 @@ def test_replace_once_refuses_an_edit_that_changes_nothing(tmp_path: Path):
         replace_once(target, "x = 1", "x = 1")
 
 
+def test_replace_once_reads_escaped_line_breaks_as_line_breaks(tmp_path: Path):
+    """Gemma4 sent backslash-n characters instead of line breaks in old_string."""
+    target = tmp_path / "a.py"
+    target.write_text("a = 1\nb = 2\n")
+    replace_once(target, "a = 1\\nb = 2", "a = 1\\nb = 3")
+    assert target.read_text() == "a = 1\nb = 3\n"
+
+
 def test_write_preserves_line_endings_verbatim(tmp_path: Path):
     target = tmp_path / "a.py"
     write_text(target, "a\r\nb\n")
