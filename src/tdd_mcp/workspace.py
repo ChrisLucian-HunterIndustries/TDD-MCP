@@ -65,10 +65,14 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
             "exactly, or read the file again."
         )
     if count != 1:
+        lines = ", ".join(
+            str(content.count("\n", 0, match.start()) + 1)
+            for match in re.finditer(re.escape(old), content)
+        )
         raise WorkspaceError(
-            f"Expected exactly one match of old_string, found {count}. Read the "
-            "file, copy old_string exactly, and add surrounding lines until it "
-            "is unique."
+            f"Expected exactly one match of old_string, found {count}, on lines "
+            f"{lines}. Add surrounding lines from the one you mean until it is "
+            "unique."
         )
     return write_text(target, content.replace(old, new))
 
