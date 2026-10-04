@@ -76,6 +76,15 @@ def test_red_says_to_keep_cycling_one_small_behaviour_at_a_time():
     ) in PHASE_GUIDANCE[Phase.RED]
 
 
+def test_refactor_says_when_the_task_is_done_and_to_commit_only_changes():
+    """Gemma4 called the kata finished while advance was blocked, after empty commits."""
+    from tdd_mcp.cycle import DONE
+
+    guidance = PHASE_GUIDANCE[Phase.REFACTOR]
+    assert DONE in guidance
+    assert "commit ('. r') if git shows changes" in guidance
+
+
 def test_coverage_required_says_retrying_edits_wont_help():
     """Locked out, weaker models retried the same edit many times instead of asking."""
     guidance = PHASE_GUIDANCE[Phase.COVERAGE_REQUIRED]
