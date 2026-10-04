@@ -59,6 +59,8 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
             "nothing. To find text, read the file instead."
         )
     content = target.read_bytes().decode("utf-8")
+    if "\\n" in old and "\n" not in old and old not in content:
+        old, new = old.replace("\\n", "\n"), new.replace("\\n", "\n")
     if "\r\n" in content and "\r\n" not in old:
         old, new = old.replace("\n", "\r\n"), new.replace("\n", "\r\n")
     count = content.count(old)
