@@ -44,6 +44,11 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
         raise WorkspaceError(
             f"File {target} does not exist. Create it with write_file instead."
         )
+    if not old.strip():
+        raise WorkspaceError(
+            "old_string is only whitespace, which can't pick out one place. "
+            "Include the code line(s) next to the whitespace you want to change."
+        )
     content = target.read_bytes().decode("utf-8")
     if "\r\n" in content and "\r\n" not in old:
         old, new = old.replace("\n", "\r\n"), new.replace("\n", "\r\n")
