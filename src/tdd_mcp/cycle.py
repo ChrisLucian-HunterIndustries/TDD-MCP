@@ -34,27 +34,36 @@ PHASE_GUIDANCE: dict[Phase, str] = {
         "several failing returns to red to fix or remove the extra tests. "
         "If the test runner can't run (see the output, e.g. pytest-cov or vitest "
         "not installed), you can't fix it with these tools: stop and ask the user "
-        "to fix it, then call advance_tdd_phase again."
+        "to fix it, then call advance_tdd_phase again. To move on: "
+        "advance_tdd_phase must be able to run the tests; all passing starts the "
+        "cycle in red."
     ),
     Phase.RED: (
         "You are in the red phase. Production code is locked. "
         "Next: write exactly ONE new test that fails, with write_file or "
         "edit_file on a test file. A test that can't be collected yet, e.g. "
-        "because it imports code that doesn't exist, counts as failing."
+        "because it imports code that doesn't exist, counts as failing. To move "
+        "on to green: exactly one new test must fail, because the behaviour it "
+        "checks doesn't exist yet; then commit it as '. t'."
     ),
     Phase.GREEN: (
         "You are in the green phase. Tests are locked. "
         "Next: change production code, as little as possible, until every test "
-        "passes. Fix a wrong test later, in refactor. If an existing test "
-        "asserts the old behaviour, undo your production edits and call "
-        "return_to_red to update it."
+        "passes. To move on to refactor: every test must pass. The test is the "
+        "specification: make the production code produce exactly what it "
+        "asserts, even if that looks too simple; then commit it as '^ f'. If an "
+        "existing test asserts the old behaviour, or the new test can't pass "
+        "whatever the code does (e.g. a missing import), call return_to_red to "
+        "fix the tests."
     ),
     Phase.REFACTOR: (
         "You are in the refactor phase. Test and production code are writable; "
         "edits that break tests or add tests are reverted. "
-        "Next: optionally tidy the code and remove any comments you added "
-        "(they block the next cycle), commit, then call advance_tdd_phase to "
-        "start the next cycle."
+        "Next: optionally tidy the code, commit ('. r'), then call "
+        "advance_tdd_phase to start the next cycle. To start the next cycle, "
+        "advance_tdd_phase needs every test passing, every production line "
+        "changed this cycle run by a test, no comments on lines changed this "
+        "cycle, and everything committed."
     ),
 }
 
