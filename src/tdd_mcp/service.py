@@ -392,11 +392,7 @@ class TddService:
         if transition.revert:
             restore(snapshot)
             message += f" {path} was reverted."
-        undefined = re.search(
-            r"NameError: name '(\w+)' is not defined|ReferenceError: (\w+) is not "
-            "defined",
-            run.output,
-        )
+        undefined = _UNDEFINED_NAME.search(run.output)
         if kind is FileKind.TEST and session.phase is Phase.GREEN and undefined:
             name = undefined.group(1) or undefined.group(2)
             message += (
@@ -480,6 +476,10 @@ def _uncommitted(root: Path, changes: list[str], phase: Phase) -> TddError:
         f"this edit. You are in the {phase} phase."
     )
 
+
+_UNDEFINED_NAME = re.compile(
+    r"NameError: name '(\w+)' is not defined|ReferenceError: (\w+) is not defined"
+)
 
 _STEP_COMMITS = {
     Phase.RED: ("'. t'", "test_only", "proven_safe"),
