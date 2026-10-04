@@ -9,7 +9,11 @@ from pathlib import Path, PurePath
 
 from tdd_mcp.cycle import FileKind, Outcome
 from tdd_mcp.languages.base import Function, SuiteRun, run_suite
-from tdd_mcp.reports import count_junit, uncovered_from_istanbul
+from tdd_mcp.reports import (
+    count_junit,
+    uncovered_from_istanbul,
+    untaken_branches_from_istanbul,
+)
 
 CODE_SUFFIXES = frozenset(
     {".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"}
@@ -119,10 +123,12 @@ class TypeScriptAdapter:
             report = Path(report_dir) / "coverage-final.json"
             if not report.is_file():
                 return run
-            uncovered = uncovered_from_istanbul(
-                report.read_text(encoding="utf-8"), root
+            text = report.read_text(encoding="utf-8")
+            return replace(
+                run,
+                uncovered=uncovered_from_istanbul(text, root),
+                untaken=untaken_branches_from_istanbul(text, root),
             )
-            return replace(run, uncovered=uncovered)
 
     def _vitest(self, root: Path, *args: str) -> SuiteRun:
         entry = root / VITEST_ENTRY
