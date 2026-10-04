@@ -532,6 +532,27 @@ def test_a_blocked_advance_quotes_the_untested_lines_to_delete(
     assert "used()" not in report.message
 
 
+def test_a_blocked_advance_calls_the_fix_routine_and_says_to_carry_on(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 read "this isn't normal progress" as a reason to stop and ask."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    history.changed = {"calc.code": frozenset({3})}
+    adapter.uncovered = {"calc.code": frozenset({3})}
+
+    report = _start(service, tmp_path)
+
+    assert "isn't normal progress" not in report.message
+    assert (
+        "This is a routine fix: delete those lines now with edit_file" in report.message
+    )
+    assert "carry on with the task; don't stop or hand back to the user." in (
+        report.message
+    )
+
+
 def test_a_repeated_blocked_advance_says_nothing_changed(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
