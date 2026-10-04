@@ -83,6 +83,28 @@ def test_definitions_are_the_top_level_declarations():
     )
 
 
+def test_functions_span_their_braces_with_their_first_statement():
+    from tdd_mcp.languages.base import Function
+
+    source = (
+        "export function add(a: number, b: number): number {\n"
+        "  return a + b;\n"
+        "}\n"
+        "class Game {\n"
+        "  private move(cell: number): void {\n"
+        "    if (cell > 0) { this.cells.push('}'); } // }\n"
+        "  }\n"
+        "}\n"
+        "function broken() {\n"
+        "  return 1;\n"
+    )
+    assert adapter.functions(source) == (
+        Function("add", start=1, body=2, end=3),
+        Function("move", start=5, body=6, end=7),
+        Function("broken", start=9, body=10, end=10),
+    )
+
+
 @pytest.mark.parametrize("run", [adapter.run_tests, adapter.run_coverage])
 def test_missing_vitest_is_an_error_not_a_failing_test(tmp_path: Path, run):
     result = run(tmp_path)
