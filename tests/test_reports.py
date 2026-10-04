@@ -107,3 +107,28 @@ def test_istanbul_json_counts_untaken_branch_lines_as_uncovered(tmp_path: Path):
         }
     )
     assert uncovered_from_istanbul(report, tmp_path) == {"calc.ts": frozenset({2, 6})}
+
+
+def test_istanbul_json_lists_lines_that_run_but_skip_a_branch(tmp_path: Path):
+    from tdd_mcp.reports import untaken_branches_from_istanbul
+
+    def at(line: int) -> dict:
+        return {"start": {"line": line, "column": 2}, "end": {"line": line}}
+
+    report = json.dumps(
+        {
+            "calc.ts": {
+                "statementMap": {"0": at(2), "1": at(6)},
+                "s": {"0": 4, "1": 0},
+                "branchMap": {
+                    "0": {"loc": at(2), "locations": [at(2), at(2)]},
+                    "1": {"loc": at(6), "locations": [at(6), at(6)]},
+                },
+                "b": {"0": [4, 0], "1": [0, 0]},
+            },
+            "full.ts": {"statementMap": {}, "s": {}},
+        }
+    )
+    assert untaken_branches_from_istanbul(report, tmp_path) == {
+        "calc.ts": frozenset({2})
+    }
