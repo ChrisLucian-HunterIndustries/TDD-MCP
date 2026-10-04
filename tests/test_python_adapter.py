@@ -53,6 +53,20 @@ def test_comment_lines_skip_tool_directives():
     assert adapter.comment_lines(source) == frozenset({6})
 
 
+def test_definitions_are_the_top_level_classes_and_functions():
+    source = (
+        "class Game:\n"
+        "    def move(self):\n"
+        "        pass\n"
+        "def helper():\n"
+        "    pass\n"
+        "async def fetch():\n"
+        "    pass\n"
+        "x = 'def not_one():'\n"
+    )
+    assert adapter.definitions(source) == frozenset({"Game", "helper", "fetch"})
+
+
 def test_python_for_falls_back_to_current_interpreter(tmp_path: Path):
     assert python_for(tmp_path) == sys.executable
 
