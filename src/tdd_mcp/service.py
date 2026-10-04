@@ -201,6 +201,18 @@ class TddService:
             session.adapter.classify(PurePath(path)) is FileKind.PRODUCTION
             for path in paths
         )
+        tests = [
+            path
+            for path in paths
+            if session.adapter.classify(PurePath(path)) is FileKind.TEST
+        ]
+        if tests:
+            raise TddError(
+                f"The red step's test changes ({', '.join(tests)}) aren't committed "
+                "yet, so the test is still editable: fix it with edit_file now, "
+                "without return_to_red, then commit it as '. t'. You are in the "
+                "green phase."
+            )
         if changes and not (production and history):
             raise TddError(
                 f"Uncommitted changes in {root}: "
