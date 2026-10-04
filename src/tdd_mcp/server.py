@@ -110,12 +110,12 @@ def advance_tdd_phase(location: str, language: LanguageName = "python") -> str:
 
 @mcp.tool()
 def return_to_red(location: str) -> str:
-    """Go back from green to red to update existing tests that assert the old behaviour.
+    """Go back from green to red to fix tests no production change can satisfy.
 
     Use it when your production change makes other, older tests fail because
-    they still expect the old behaviour. Undo your uncommitted production edits
-    first. Back in red, edit those tests so they pass without the old behaviour,
-    keeping your new test failing.
+    they still expect the old behaviour, or when the new test itself is wrong
+    (e.g. it doesn't import what it uses). Undo your uncommitted production
+    edits first. Back in red, fix those tests, keeping your new test failing.
 
     Args:
         location: Path to the project root.

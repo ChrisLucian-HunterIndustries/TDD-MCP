@@ -69,7 +69,7 @@
         }
     },
     {
-        "description": "Go back from green to red to update existing tests that assert the old behaviour.\n\nUse it when your production change makes other, older tests fail because\nthey still expect the old behaviour. Undo your uncommitted production edits\nfirst. Back in red, edit those tests so they pass without the old behaviour,\nkeeping your new test failing.\n\nArgs:\n    location: Path to the project root.\n",
+        "description": "Go back from green to red to fix tests no production change can satisfy.\n\nUse it when your production change makes other, older tests fail because\nthey still expect the old behaviour, or when the new test itself is wrong\n(e.g. it doesn't import what it uses). Undo your uncommitted production\nedits first. Back in red, fix those tests, keeping your new test failing.\n\nArgs:\n    location: Path to the project root.\n",
         "input_schema": {
             "properties": {
                 "location": {
