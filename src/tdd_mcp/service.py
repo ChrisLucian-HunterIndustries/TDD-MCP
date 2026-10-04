@@ -23,6 +23,7 @@ from tdd_mcp.languages.base import Function, LanguageAdapter, SuiteRun
 from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.workspace import (
     Snapshot,
+    WorkspaceError,
     replace_once,
     require_file,
     resolve_inside,
@@ -314,6 +315,12 @@ class TddService:
                 ) from refusal
             self._refused = call
             raise
+        except WorkspaceError as error:
+            session = self._sessions.get(Path(call[1]).resolve())
+            phase = session.phase if session else Phase.COVERAGE_REQUIRED
+            raise WorkspaceError(
+                f"{error} Nothing was written. {PHASE_GUIDANCE[phase]}"
+            ) from error
 
     def run_tests(
         self, location: str, path: str | None = None, test_name: str | None = None
