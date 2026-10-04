@@ -39,11 +39,15 @@ def write_text(target: Path, content: str) -> Snapshot:
     return snapshot
 
 
-def replace_once(target: Path, old: str, new: str) -> Snapshot:
+def require_file(target: Path) -> None:
     if not target.is_file():
         raise WorkspaceError(
             f"File {target} does not exist. Create it with write_file instead."
         )
+
+
+def replace_once(target: Path, old: str, new: str) -> Snapshot:
+    require_file(target)
     if not old.strip():
         raise WorkspaceError(
             "old_string is only whitespace, which can't pick out one place. "

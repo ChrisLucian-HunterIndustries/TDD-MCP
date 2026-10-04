@@ -22,6 +22,7 @@ from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.workspace import (
     Snapshot,
     replace_once,
+    require_file,
     resolve_inside,
     restore,
     write_text,
@@ -226,6 +227,7 @@ class TddService:
     def edit_file(
         self, location: str, path: str, old_string: str, new_string: str
     ) -> Report:
+        require_file(resolve_inside(_root(location), path))
         return self._apply(
             location, path, lambda target: replace_once(target, old_string, new_string)
         )
