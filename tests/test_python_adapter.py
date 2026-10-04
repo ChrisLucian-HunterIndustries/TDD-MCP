@@ -67,6 +67,28 @@ def test_definitions_are_the_top_level_classes_and_functions():
     assert adapter.definitions(source) == frozenset({"Game", "helper", "fetch"})
 
 
+def test_functions_span_from_decorator_to_last_line_with_their_first_statement():
+    from tdd_mcp.languages.base import Function
+
+    source = (
+        "class Game:\n"
+        "    def __init__(self):\n"
+        "        self.board = []\n"
+        "\n"
+        "    @property\n"
+        "    def size(self):\n"
+        '        """Doc."""\n'
+        "        return 3\n"
+        "def helper():\n"
+        "    pass\n"
+    )
+    assert adapter.functions(source) == (
+        Function("__init__", start=2, body=3, end=3),
+        Function("size", start=5, body=8, end=8),
+        Function("helper", start=9, body=10, end=10),
+    )
+
+
 def test_python_for_falls_back_to_current_interpreter(tmp_path: Path):
     assert python_for(tmp_path) == sys.executable
 
