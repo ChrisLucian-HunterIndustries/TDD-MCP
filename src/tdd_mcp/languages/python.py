@@ -101,13 +101,7 @@ class PythonAdapter:
         return FileKind.TEST if is_test else FileKind.PRODUCTION
 
     def comment_lines(self, source: str) -> frozenset[int]:
-        tokens = tokenize.generate_tokens(io.StringIO(source).readline)
-        return frozenset(
-            token.start[0]
-            for token in tokens
-            if token.type == tokenize.COMMENT
-            and not token.string[1:].lstrip().startswith(COMMENT_DIRECTIVES)
-        )
+        return frozenset(self.uncommented(source))
 
     def uncommented(self, source: str) -> dict[int, str]:
         lines = source.splitlines()
