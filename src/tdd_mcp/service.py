@@ -460,6 +460,12 @@ class TddService:
         if transition.revert:
             restore(snapshot)
             message += f" {path} was reverted."
+        if transition.revert and added > 0 and session.last_block:
+            message += (
+                " advance_tdd_phase is blocked right now, so first clear what it "
+                "flagged (delete the untested code, remove the comments), commit, "
+                "and advance; then add this test in red, one test per cycle."
+            )
         undefined = _UNDEFINED_NAME.search(run.output)
         if kind is FileKind.TEST and session.phase is Phase.GREEN and undefined:
             name = undefined.group(1) or undefined.group(2)
