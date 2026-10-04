@@ -270,7 +270,8 @@ class TddService:
     def write_file(self, location: str, path: str, content: str) -> Report:
         def write(target: Path) -> Snapshot:
             if target.is_file():
-                adapter = self._sessions[_root(location)].adapter
+                session = self._sessions[_root(location)]
+                adapter = session.adapter
                 existing = target.read_text(encoding="utf-8", errors="replace")
                 dropped = adapter.definitions(existing) - adapter.definitions(content)
                 if dropped:
@@ -278,7 +279,8 @@ class TddService:
                         "write_file replaces the whole file, and this content drops "
                         f"{', '.join(sorted(dropped))} from {path}. Use edit_file "
                         "to add, change or delete code, or include everything the "
-                        "file should keep."
+                        "file should keep. Nothing was written. "
+                        f"{PHASE_GUIDANCE[session.phase]}"
                     )
             return write_text(target, content)
 
