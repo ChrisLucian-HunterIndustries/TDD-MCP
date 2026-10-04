@@ -49,6 +49,11 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
             "old_string is only whitespace, which can't pick out one place. "
             "Include the code line(s) next to the whitespace you want to change."
         )
+    if old == new:
+        raise WorkspaceError(
+            "old_string and new_string are identical, so this edit changes "
+            "nothing. To find text, read the file instead."
+        )
     content = target.read_bytes().decode("utf-8")
     if "\r\n" in content and "\r\n" not in old:
         old, new = old.replace("\n", "\r\n"), new.replace("\n", "\r\n")
