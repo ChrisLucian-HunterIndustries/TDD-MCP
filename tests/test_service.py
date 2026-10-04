@@ -406,6 +406,7 @@ def test_advancing_holds_the_phase_while_changed_lines_hold_comments(
     assert report.phase is Phase.REFACTOR
     assert "calc.code: 2; test_calc: 1." in report.message
     assert "notes.md" not in report.message
+    assert "\ncalc.code:2: # why\ntest_calc:1: # explains the test\n" in report.message
 
 
 def test_a_reset_past_the_cycle_start_resyncs_instead_of_flagging_old_code(
