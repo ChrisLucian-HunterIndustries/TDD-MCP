@@ -343,6 +343,16 @@ def test_an_uncommitted_step_refusal_names_the_exact_commit(
     )
 
 
+def test_a_production_write_in_red_says_a_missing_code_failure_is_the_goal(
+    service: TddService, tmp_path: Path
+):
+    """Gemma4 called its test's ModuleNotFoundError "stuck" and faked the class in the test."""
+    _start(service, tmp_path)
+
+    with pytest.raises(TddError, match="Don't define stand-ins.*in the test file"):
+        service.write_file(str(tmp_path), "calc.code", "impl")
+
+
 class FakeHistory:
     def __init__(self) -> None:
         self.head = "base"
