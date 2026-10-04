@@ -135,7 +135,8 @@ class TddService:
         if untested:
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
-                f"{_listing(untested)}. In TDD every production line exists because "
+                f"{_listing(untested)}.{_quoted(root, untested)} In TDD every "
+                "production line exists because "
                 "a test needed it, so this isn't normal progress. Next: delete those "
                 "lines (adding tests for them now is reverted; bring the behaviour "
                 "back later, one failing test per cycle), commit ('. r'), then call "
@@ -386,6 +387,19 @@ def _listing(lines_by_path: dict[str, frozenset[int]]) -> str:
         f"{path}: {', '.join(map(str, sorted(lines)))}"
         for path, lines in sorted(lines_by_path.items())
     )
+
+
+def _quoted(root: Path, lines_by_path: dict[str, frozenset[int]]) -> str:
+    quotes = []
+    for path, lines in sorted(lines_by_path.items()):
+        source = (root / path).read_text(encoding="utf-8", errors="replace")
+        texts = source.splitlines()
+        quotes += [
+            f"{path}:{number}: {texts[number - 1]}"
+            for number in sorted(lines)
+            if number <= len(texts)
+        ]
+    return "".join(f"\n{quote}" for quote in quotes) + "\n"
 
 
 def _locked(kind: FileKind, phase: Phase, guidance: str) -> TddError:
