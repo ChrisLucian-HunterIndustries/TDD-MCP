@@ -148,7 +148,7 @@ class TddService:
         if untested:
             message += (
                 " Production lines changed this cycle aren't covered by any test: "
-                f"{_untested_lines(session.adapter, root, untested)} In TDD every "
+                f"{_untested_lines(adapter, root, untested, run.untaken)} In TDD every "
                 "production line exists because a test needed it. This is a routine "
                 "fix: delete those lines now with edit_file (adding tests for them "
                 "now is reverted; bring the behaviour back later, one failing test "
@@ -430,7 +430,8 @@ class TddService:
             if untested:
                 message += (
                     " Your test doesn't run these production lines: "
-                    f"{_untested_lines(session.adapter, root, untested)} Delete "
+                    f"{_untested_lines(session.adapter, root, untested, coverage.untaken)}"
+                    " Delete "
                     "them now with edit_file; this green step stays open until you "
                     "commit it as '^ f'."
                 )
@@ -477,7 +478,10 @@ def _quoted(root: Path, lines_by_path: dict[str, frozenset[int]]) -> str:
 
 
 def _untested_lines(
-    adapter: LanguageAdapter, root: Path, untested: dict[str, frozenset[int]]
+    adapter: LanguageAdapter,
+    root: Path,
+    untested: dict[str, frozenset[int]],
+    untaken: Mapping[str, frozenset[int]],
 ) -> str:
     dead = _dead_functions(adapter, root, untested)
     loose = {
@@ -488,7 +492,23 @@ def _untested_lines(
         )
         for path, lines in untested.items()
     }
-    return f"{_listing(untested)}.{_quoted(root, loose)}{_dead_blocks(root, dead)}"
+    unrun = {path: lines - untaken.get(path, set()) for path, lines in loose.items()}
+    branches = {path: lines - unrun[path] for path, lines in loose.items()}
+    return (
+        f"{_listing(untested)}.{_quoted(root, unrun)}"
+        f"{_branch_blocks(root, branches)}{_dead_blocks(root, dead)}"
+    )
+
+
+def _branch_blocks(root: Path, branches: dict[str, frozenset[int]]) -> str:
+    if not any(branches.values()):
+        return ""
+    return (
+        " These lines run, but one of their branches never does (e.g. an if whose "
+        f"condition is never true in any test):{_quoted(root, branches)} Remove each "
+        "such condition together with the code it guards, then simplify what's left "
+        "(e.g. an emptied loop) so the test still passes."
+    )
 
 
 def _dead_functions(
