@@ -240,3 +240,16 @@ def test_coverage_reports_uncovered_lines_without_writing_reports(project: Path)
 def test_coverage_reports_uncovered_lines_by_file(project: Path):
     _write_test(project, "expect(add(1, 2)).toBe(3);")
     assert adapter.run_coverage(project).uncovered["calc.ts"] == frozenset({3})
+
+
+def test_coverage_reports_untaken_branches_apart_from_unrun_lines(project: Path):
+    (project / "calc.ts").write_text(
+        "export function add(a: number, b: number) {\n"
+        "  if (a < 0) {\n"
+        "    b += 0;\n"
+        "  }\n"
+        "  return a + b;\n"
+        "}\n"
+    )
+    _write_test(project, "expect(add(1, 2)).toBe(3);")
+    assert adapter.run_coverage(project).untaken == {"calc.ts": frozenset({2})}
