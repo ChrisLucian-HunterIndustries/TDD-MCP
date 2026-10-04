@@ -63,6 +63,23 @@ def uncovered_from_istanbul(report: str, root: Path) -> dict[str, frozenset[int]
     return uncovered
 
 
+def untaken_branches_from_istanbul(
+    report: str, root: Path
+) -> dict[str, frozenset[int]]:
+    """Lines that run but never take one of their branches, from an istanbul JSON report."""
+    untaken = {}
+    for name, data in json.loads(report).items():
+        unexecuted = frozenset(
+            data["statementMap"][statement]["start"]["line"]
+            for statement, hits in data["s"].items()
+            if hits == 0
+        )
+        lines = _untaken_branch_lines(data) - unexecuted
+        if lines:
+            untaken[_relative(name, root)] = lines
+    return untaken
+
+
 def _untaken_branch_lines(data: dict) -> frozenset[int]:
     lines = set()
     for branch, counts in data.get("b", {}).items():
