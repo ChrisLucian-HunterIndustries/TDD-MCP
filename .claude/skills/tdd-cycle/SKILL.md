@@ -51,7 +51,10 @@ before running it. Coverage measures branches: an `if` with an untaken path is u
 - Cornered any other way (e.g. a test fails because production code is broken while it's
   locked) — `rollback_cycle` resets to the commit where the cycle started and restarts in red.
   Dropped commits stay under `refs/tdd-mcp/rollback-*`, uncommitted work in `git stash`.
-- "Expected exactly one match" — widen `old_string` with surrounding lines.
+- "Expected exactly one match ... found N, on lines ..." — widen `old_string` with lines
+  around the one you mean. "found 0" quotes the closest text in the file: copy from it.
+  Trailing-whitespace differences are tolerated, so they're never the cause.
+- "already contains new_string" — the edit is already applied; read the file and move on.
 - The repository changed outside the server (e.g. `git reset`) — call `advance_tdd_phase`: it
   recomputes the phase (all pass: red; exactly one fails: green).
 - Green, but an existing test that's locked asserts the old behaviour — undo your uncommitted
