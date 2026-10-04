@@ -353,6 +353,23 @@ def test_coverage_holds_the_phase_while_changed_production_lines_are_untested(
     assert "test_calc" not in report.message
 
 
+def test_a_blocked_advance_quotes_the_untested_lines_to_delete(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 couldn't map bare line numbers to text: its file reader shows none."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    (tmp_path / "calc.code").write_text("impl\nused()\n    dead()\n")
+    history.changed = {"calc.code": frozenset({2, 3})}
+    adapter.uncovered = {"calc.code": frozenset({3})}
+
+    report = _start(service, tmp_path)
+
+    assert "\ncalc.code:3:     dead()\n" in report.message
+    assert "used()" not in report.message
+
+
 def test_a_blocked_advance_leads_with_the_block_not_optional_tidying(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
