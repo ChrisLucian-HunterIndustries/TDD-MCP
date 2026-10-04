@@ -56,8 +56,11 @@ before running it. Coverage measures branches: an `if` with an untaken path is u
   Trailing-whitespace differences are tolerated, so they're never the cause.
 - "already contains new_string" — the edit is already applied; read the file and move on.
 - "Your test doesn't run these production lines" (on the write that reaches refactor) or a
-  blocked advance — delete the quoted lines; "These functions never run" quotes whole
-  functions to delete with `edit_file` (old_string = the quoted text, new_string empty).
+  blocked advance — simplify until only what the test needs remains (often the simplest
+  code that passes); "These functions never run" quotes whole functions to delete with
+  `edit_file` (old_string = the quoted text, new_string empty); "These lines run, but one
+  of their branches never does" means remove the condition with the code it guards, then
+  tidy what's left. After green passes, an edit that breaks the tests is reverted.
 - "write_file replaces the whole file, and this content drops ..." — overwriting a file must
   keep its top-level definitions; delete code with `edit_file` instead.
 - Green, but the new test can't pass because the test itself is wrong (e.g. a NameError for
