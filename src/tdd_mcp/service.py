@@ -525,7 +525,10 @@ def _untested_lines(
     untested: dict[str, frozenset[int]],
     untaken: Mapping[str, frozenset[int]],
 ) -> str:
-    dead = _dead_functions(adapter, root, untested)
+    never_run = {
+        path: lines - untaken.get(path, set()) for path, lines in untested.items()
+    }
+    dead = _dead_functions(adapter, root, never_run)
     loose = {
         path: frozenset(
             number
