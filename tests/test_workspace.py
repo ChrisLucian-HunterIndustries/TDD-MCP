@@ -119,6 +119,15 @@ def test_replace_once_says_when_the_edit_looks_already_applied(tmp_path: Path):
         replace_once(target, "a = 1", "a = 2")
 
 
+def test_replace_once_shows_the_closest_text_when_nothing_matches(tmp_path: Path):
+    """A model that copied old_string wrong needs the real text, not "copy exactly"."""
+    target = tmp_path / "a.py"
+    target.write_text("def f():\n    return 1\n\ndef g():\n    return 2\n")
+    with pytest.raises(WorkspaceError) as refusal:
+        replace_once(target, "def g():\n    return 3", "def g():\n    return 4")
+    assert "lines 4-5:\ndef g():\n    return 2\n" in str(refusal.value)
+
+
 def test_write_preserves_line_endings_verbatim(tmp_path: Path):
     target = tmp_path / "a.py"
     write_text(target, "a\r\nb\n")
