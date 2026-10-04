@@ -128,6 +128,14 @@ def test_replace_once_shows_the_closest_text_when_nothing_matches(tmp_path: Path
     assert "lines 4-5:\ndef g():\n    return 2\n" in str(refusal.value)
 
 
+def test_replace_once_names_the_lines_of_ambiguous_matches(tmp_path: Path):
+    """Gemma4 sent "break" (3 matches) without knowing which lines to widen around."""
+    target = tmp_path / "a.py"
+    target.write_text("break\nx = 1\n    break\n")
+    with pytest.raises(WorkspaceError, match="found 2, on lines 1, 3"):
+        replace_once(target, "break", "")
+
+
 def test_write_preserves_line_endings_verbatim(tmp_path: Path):
     target = tmp_path / "a.py"
     write_text(target, "a\r\nb\n")
