@@ -64,6 +64,17 @@ def test_comment_lines_skip_strings_and_tool_directives():
     assert adapter.comment_lines(source) == frozenset({1, 2, 3, 10})
 
 
+def test_uncommented_gives_each_comment_line_without_its_comment():
+    source = (
+        "const a = 1; // why\n"
+        "/* block\n"
+        "   continues */\n"
+        "const s = '// no';\n"
+        "// @ts-expect-error\n"
+    )
+    assert adapter.uncommented(source) == {1: "const a = 1;", 2: "", 3: ""}
+
+
 def test_definitions_are_the_top_level_declarations():
     source = (
         "export class Game {\n"
