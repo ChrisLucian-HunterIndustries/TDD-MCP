@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import io
+import re
 import sys
 import tempfile
 import tokenize
@@ -91,6 +92,11 @@ class PythonAdapter:
             for token in tokens
             if token.type == tokenize.COMMENT
             and not token.string[1:].lstrip().startswith(COMMENT_DIRECTIVES)
+        )
+
+    def definitions(self, source: str) -> frozenset[str]:
+        return frozenset(
+            re.findall(r"^(?:async\s+)?(?:def|class)\s+(\w+)", source, re.MULTILINE)
         )
 
     def run_tests(
