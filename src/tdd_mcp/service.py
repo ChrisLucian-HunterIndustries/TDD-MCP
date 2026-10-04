@@ -46,6 +46,8 @@ class History(Protocol):
 
     def rollback(self, root: Path, commit: str) -> str: ...
 
+    def set_aside(self, root: Path, paths: list[str]) -> None: ...
+
 
 @dataclass(frozen=True)
 class Report:
@@ -192,18 +194,34 @@ class TddService:
                 "return_to_red works only from the green phase; you are in the "
                 f"{session.phase} phase. {PHASE_GUIDANCE[session.phase]}"
             )
-        if changes := self._pending_changes(root):
+        changes = self._pending_changes(root)
+        paths = [line[3:] for line in changes]
+        history = self._history
+        production = all(
+            session.adapter.classify(PurePath(path)) is FileKind.PRODUCTION
+            for path in paths
+        )
+        if changes and not (production and history):
             raise TddError(
                 f"Uncommitted changes in {root}: "
                 f"{', '.join(line.strip() for line in changes)}. Undo your green "
                 "edits first (production files are still writable: edit them back), "
                 "then call return_to_red again. You are in the green phase."
             )
+        set_aside = ""
+        if changes and history:
+            history.set_aside(root, paths)
+            set_aside = (
+                f" Your uncommitted production changes ({', '.join(paths)}) were "
+                "set aside in git stash ('tdd-mcp return_to_red'); write the "
+                "production code again once the tests are fixed."
+            )
         session.phase = Phase.RED
         return Report(
             session.phase,
-            "Back in the red phase; tests are writable again and production code "
-            "is locked. Next: edit the existing tests that assert the old behaviour "
+            f"Back in the red phase.{set_aside} Tests are writable again and "
+            "production code is locked. Next: edit the existing tests that assert "
+            "the old behaviour "
             "so they pass without it (remove or loosen the obsolete assertions), "
             "or fix the new test if it's wrong (e.g. add a missing import); keep "
             "the new test failing for the behaviour it specifies. The first "
