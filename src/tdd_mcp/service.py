@@ -193,8 +193,9 @@ class TddService:
             session.phase,
             "Back in the red phase; tests are writable again and production code "
             "is locked. Next: edit the existing tests that assert the old behaviour "
-            "so they pass without it (remove or loosen the obsolete assertions); "
-            "your new failing test already specifies the new behaviour. The first "
+            "so they pass without it (remove or loosen the obsolete assertions), "
+            "or fix the new test if it's wrong (e.g. add a missing import); keep "
+            "the new test failing for the behaviour it specifies. The first "
             "edit returns you to green, but you can keep editing tests until you "
             "commit them ('. t'). Then change production code.",
         )
