@@ -42,9 +42,12 @@ PHASE_GUIDANCE: dict[Phase, str] = {
         "You are in the red phase. Production code is locked. "
         "Next: write exactly ONE new test that fails, with write_file or "
         "edit_file on a test file. A test that can't be collected yet, e.g. "
-        "because it imports code that doesn't exist, counts as failing. To move "
-        "on to green: exactly one new test must fail, because the behaviour it "
-        "checks doesn't exist yet; then commit it as '. t'."
+        "because it imports code that doesn't exist, counts as failing. Pick the "
+        "smallest behaviour of the task not tested yet (e.g. one winning row, not "
+        "every way to win). Keep cycling until every concern of the task has its "
+        "own test; the task isn't done before then. To move on to green: exactly "
+        "one new test must fail, because the behaviour it checks doesn't exist "
+        "yet; then commit it as '. t'."
     ),
     Phase.GREEN: (
         "You are in the green phase. Tests are locked. "
