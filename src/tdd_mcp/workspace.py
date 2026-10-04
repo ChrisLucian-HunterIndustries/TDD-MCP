@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 from pathlib import Path
 
 
@@ -58,6 +59,11 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
                 "new_string, so this edit looks already applied. Read the file "
                 "before retrying it."
             )
+        raise WorkspaceError(
+            "Expected exactly one match of old_string, found 0. "
+            f"{_closest_text(content, old)}Copy old_string from that text "
+            "exactly, or read the file again."
+        )
     if count != 1:
         raise WorkspaceError(
             f"Expected exactly one match of old_string, found {count}. Read the "
@@ -70,6 +76,22 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
 def _ignoring_trailing_whitespace(old: str) -> str:
     return r"[ \t]*\r?\n".join(
         re.escape(line.rstrip(" \t\r")) for line in old.split("\n")
+    )
+
+
+def _closest_text(content: str, old: str) -> str:
+    lines = content.splitlines()
+    wanted = old.strip().splitlines() or [""]
+    first = wanted[0].strip()
+    start = max(
+        range(len(lines)),
+        key=lambda i: SequenceMatcher(None, first, lines[i].strip()).ratio(),
+        default=0,
+    )
+    window = lines[start : start + len(wanted)]
+    return (
+        f"The closest text in the file, lines {start + 1}-{start + len(window)}:\n"
+        + "".join(f"{line}\n" for line in window)
     )
 
 
