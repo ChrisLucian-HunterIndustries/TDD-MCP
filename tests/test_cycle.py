@@ -67,6 +67,15 @@ def test_every_phase_says_what_moving_on_requires():
     assert "Fix a wrong test later" not in PHASE_GUIDANCE[Phase.GREEN]
 
 
+def test_red_says_to_keep_cycling_one_small_behaviour_at_a_time():
+    """Gemma4 tested three behaviours, wrote every win check at once, and called it done."""
+    assert (
+        "Pick the smallest behaviour of the task not tested yet (e.g. one winning "
+        "row, not every way to win). Keep cycling until every concern of the task "
+        "has its own test; the task isn't done before then."
+    ) in PHASE_GUIDANCE[Phase.RED]
+
+
 def test_coverage_required_says_retrying_edits_wont_help():
     """Locked out, weaker models retried the same edit many times instead of asking."""
     guidance = PHASE_GUIDANCE[Phase.COVERAGE_REQUIRED]
