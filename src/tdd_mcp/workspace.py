@@ -52,6 +52,12 @@ def replace_once(target: Path, old: str, new: str) -> Snapshot:
         if len(matches) == 1:
             start, end = matches[0].span()
             return write_text(target, content[:start] + new + content[end:])
+        if new.strip() and new in content:
+            raise WorkspaceError(
+                "old_string is not in the file, but the file already contains "
+                "new_string, so this edit looks already applied. Read the file "
+                "before retrying it."
+            )
     if count != 1:
         raise WorkspaceError(
             f"Expected exactly one match of old_string, found {count}. Read the "
