@@ -11,6 +11,7 @@ from pathlib import Path, PurePath
 from typing import Protocol
 
 from tdd_mcp.cycle import (
+    DONE,
     PHASE_GUIDANCE,
     FileKind,
     Outcome,
@@ -142,7 +143,7 @@ class TddService:
                 )
             guidance = (
                 f"You are still in the {session.phase} phase; the next cycle "
-                "starts once these lines are fixed and committed."
+                f"starts once these lines are fixed and committed. {DONE}"
             )
         if session.phase is Phase.RED and failing > 1:
             message += f" {failing} tests fail."
@@ -155,10 +156,12 @@ class TddService:
                 "production line exists because a test needed it. This is a routine "
                 "fix: simplify the code now with edit_file until only what your tests "
                 "need remains (deleting those lines, or replacing a body with the "
-                "simplest code that passes). Adding tests for them now is reverted, "
-                "so bring the behaviour back later, one failing test per cycle. Then "
-                "commit ('. r'), call advance_tdd_phase again, and carry "
-                "on with the task; don't stop or hand back to the user."
+                "simplest code that passes). Deleting this code is how you get to "
+                "test it: tests can only be added in red, and red starts once the "
+                "untested code is gone. The code quoted above is your copy: bring it "
+                "back in green, one tested behaviour per cycle. Then commit ('. r'), "
+                "call advance_tdd_phase again, and carry on with the task; don't stop "
+                "or hand back to the user."
             )
         if commented:
             message += (
