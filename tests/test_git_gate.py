@@ -131,6 +131,21 @@ def test_rollback_stashes_uncommitted_and_untracked_work(repo: Path):
     assert (repo / "new.py").read_text() == "x = 1\n"
 
 
+def test_set_aside_stashes_only_the_given_paths_including_new_files(repo: Path):
+    from tdd_mcp import git_gate
+
+    (repo / "a.txt").write_text("b")
+    (repo / "new.py").write_text("x = 1\n")
+    (repo / "keep.txt").write_text("kept")
+
+    git_gate.set_aside(repo, ["a.txt", "new.py"])
+
+    assert uncommitted_changes(repo) == ["?? keep.txt"]
+    _git(repo, "stash", "pop")
+    assert (repo / "a.txt").read_text() == "b"
+    assert (repo / "new.py").read_text() == "x = 1\n"
+
+
 def test_rollback_refuses_to_drop_changes_outside_the_project(repo: Path):
     from tdd_mcp import git_gate
 
