@@ -88,6 +88,7 @@ class TddService:
         # fnmatch patterns on root-relative POSIX paths; `*` also matches `/`.
         self.exempt = tuple(exempt)
         self._sessions: dict[Path, _Session] = {}
+        self._refused: tuple[str, ...] | None = None
 
     def status(self, location: str) -> Report:
         session = self._sessions.get(_root(location))
@@ -223,15 +224,41 @@ class TddService:
         )
 
     def write_file(self, location: str, path: str, content: str) -> Report:
-        return self._apply(location, path, lambda target: write_text(target, content))
+        return self._refusing_repeats(
+            ("write_file", location, path, content),
+            lambda: self._apply(
+                location, path, lambda target: write_text(target, content)
+            ),
+        )
 
     def edit_file(
         self, location: str, path: str, old_string: str, new_string: str
     ) -> Report:
-        require_file(resolve_inside(_root(location), path))
-        return self._apply(
-            location, path, lambda target: replace_once(target, old_string, new_string)
+        def edit() -> Report:
+            require_file(resolve_inside(_root(location), path))
+            return self._apply(
+                location,
+                path,
+                lambda target: replace_once(target, old_string, new_string),
+            )
+
+        return self._refusing_repeats(
+            ("edit_file", location, path, old_string, new_string), edit
         )
+
+    def _refusing_repeats(
+        self, call: tuple[str, ...], attempt: Callable[[], Report]
+    ) -> Report:
+        try:
+            return attempt()
+        except TddError as refusal:
+            if call == self._refused:
+                raise TddError(
+                    "This exact call was already refused, and retrying it "
+                    f"unchanged is refused the same way. {refusal}"
+                ) from refusal
+            self._refused = call
+            raise
 
     def run_tests(
         self, location: str, path: str | None = None, test_name: str | None = None
