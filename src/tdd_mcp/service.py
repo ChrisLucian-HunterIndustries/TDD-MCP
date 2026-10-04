@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from fnmatch import fnmatch
@@ -336,7 +337,7 @@ class TddService:
 
         if not may_write(phase, kind):
             if changes and may_write(session.phase, kind):
-                raise _uncommitted(root, changes, session.phase)
+                raise _uncommitted_step(root, changes, phase, session.phase)
             raise _locked(kind, phase, guidance)
 
         snapshot = change(target)
@@ -418,6 +419,27 @@ def _uncommitted(root: Path, changes: list[str], phase: Phase) -> TddError:
         "Commit them first (git add, then commit: '. t' for a new failing test, "
         "'^ f' for the code that passes it, '. r' for a refactoring), then retry "
         f"this edit. You are in the {phase} phase."
+    )
+
+
+_STEP_COMMITS = {
+    Phase.RED: ("'. t'", "test_only", "proven_safe"),
+    Phase.GREEN: ("'^ f'", "feature", "validated"),
+    Phase.REFACTOR: ("'. r'", "refactoring", "proven_safe"),
+}
+
+
+def _uncommitted_step(
+    root: Path, changes: list[str], step: Phase, phase: Phase
+) -> TddError:
+    notation, intention, risk = _STEP_COMMITS[step]
+    paths = json.dumps([line[3:] for line in changes])
+    return TddError(
+        f"Uncommitted changes in {root}: "
+        f"{', '.join(line.strip() for line in changes)}. They are the {step} "
+        f"step's changes: commit them as {notation} (racn intention {intention}, "
+        f"risk {risk}, paths {paths}), then retry this edit. You are in the "
+        f"{phase} phase."
     )
 
 
