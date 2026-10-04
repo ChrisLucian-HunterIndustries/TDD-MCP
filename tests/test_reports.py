@@ -47,6 +47,22 @@ def test_coverage_py_json_counts_partial_branch_lines_as_uncovered(tmp_path: Pat
     }
 
 
+def test_coverage_py_json_lists_lines_that_run_but_skip_a_branch(tmp_path: Path):
+    from tdd_mcp.reports import untaken_branches_from_coverage_py
+
+    report = json.dumps(
+        {
+            "files": {
+                "calc.py": {"missing_lines": [9], "missing_branches": [[3, 5], [9, -1]]},
+                "full.py": {"missing_lines": [], "missing_branches": []},
+            }
+        }
+    )
+    assert untaken_branches_from_coverage_py(report, tmp_path) == {
+        "calc.py": frozenset({3})
+    }
+
+
 def test_istanbul_json_lists_lines_of_unexecuted_statements(tmp_path: Path):
     def statement(line: int) -> dict:
         return {"start": {"line": line, "column": 0}, "end": {"line": line}}
