@@ -585,6 +585,29 @@ def test_a_blocked_advance_quotes_functions_that_never_run_as_whole_blocks(
     ) in report.message
 
 
+def test_a_green_write_that_passes_reports_lines_the_test_never_runs(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 wrote a 37-line class in green and heard about it only two steps later."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=1, failures=1)
+    service.write_file(str(tmp_path), "test_calc", "test")
+    adapter.outcome, adapter.counts = Outcome.PASSED, SuiteCounts(tests=1, failures=0)
+    history.changed = {"calc.code": frozenset({1, 2, 3})}
+    adapter.uncovered = {"calc.code": frozenset({3})}
+
+    report = service.write_file(str(tmp_path), "calc.code", "def add\n  used\n  extra\n")
+
+    assert report.phase is Phase.REFACTOR
+    assert (
+        " Your test doesn't run these production lines: calc.code: 3.\n"
+        "calc.code:3:   extra\n Delete them now with edit_file; this green step "
+        "stays open until you commit it as '^ f'."
+    ) in report.message
+
+
 def test_a_repeated_blocked_advance_says_nothing_changed(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
