@@ -409,6 +409,23 @@ def test_advancing_holds_the_phase_while_changed_lines_hold_comments(
     assert "\ncalc.code:2: # why\ntest_calc:1: # explains the test\n" in report.message
 
 
+def test_a_blocked_advance_in_red_keeps_the_cycle_start(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 committed flagged comments in red; the next advance then let them through."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _start(service, tmp_path)
+    (tmp_path / "test_calc").write_text("# explains the test\n")
+    history.changed = {"test_calc": frozenset({1})}
+    history.head = "comments committed"
+
+    _start(service, tmp_path)
+    report = _start(service, tmp_path)
+
+    assert "test_calc:1: # explains the test" in report.message
+
+
 def test_a_reset_past_the_cycle_start_resyncs_instead_of_flagging_old_code(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
