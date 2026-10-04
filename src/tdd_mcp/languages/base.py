@@ -44,6 +44,10 @@ class LanguageAdapter(Protocol):
         """Line numbers holding a comment, other than tool directives such as `# noqa`."""
         ...
 
+    def uncommented(self, source: str) -> dict[int, str]:
+        """Each comment line (as in `comment_lines`) with its comment removed."""
+        ...
+
     def definitions(self, source: str) -> frozenset[str]:
         """Names the source declares at its top level (classes, functions, constants)."""
         ...
