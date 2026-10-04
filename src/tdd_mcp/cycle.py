@@ -25,6 +25,12 @@ class Outcome(StrEnum):
     ERROR = "error"
 
 
+DONE = (
+    "The task is finished only when advance_tdd_phase reaches red with nothing "
+    "flagged and every requirement of the task has its own test; passing tests "
+    "alone don't mean it's done, so don't report it as complete before then."
+)
+
 PHASE_GUIDANCE: dict[Phase, str] = {
     Phase.COVERAGE_REQUIRED: (
         "You are in the coverage_required phase. Code files (tests and production) "
@@ -62,11 +68,11 @@ PHASE_GUIDANCE: dict[Phase, str] = {
     Phase.REFACTOR: (
         "You are in the refactor phase. Test and production code are writable; "
         "edits that break tests or add tests are reverted. "
-        "Next: optionally tidy the code, commit ('. r'), then call "
-        "advance_tdd_phase to start the next cycle. To start the next cycle, "
-        "advance_tdd_phase needs every test passing, every production line "
+        "Next: optionally tidy the code, commit ('. r') if git shows changes, "
+        "then call advance_tdd_phase to start the next cycle. To start the next "
+        "cycle, advance_tdd_phase needs every test passing, every production line "
         "changed this cycle run by a test, no comments on lines changed this "
-        "cycle, and everything committed."
+        "cycle, and everything committed. " + DONE
     ),
 }
 
