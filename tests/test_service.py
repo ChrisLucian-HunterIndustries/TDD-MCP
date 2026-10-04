@@ -608,6 +608,25 @@ def test_a_green_write_that_passes_reports_lines_the_test_never_runs(
     ) in report.message
 
 
+def test_an_edit_breaking_tests_after_green_passed_is_reverted(
+    service: TddService, adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4's half-deletion broke the passing test and was left in place, so it spiralled."""
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=1, failures=1)
+    service.write_file(str(tmp_path), "test_calc", "test")
+    adapter.outcome, adapter.counts = Outcome.PASSED, SuiteCounts(tests=1, failures=0)
+    service.write_file(str(tmp_path), "calc.code", "works")
+    tree.changes = [" M calc.code"]
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=1, failures=1)
+
+    report = service.edit_file(str(tmp_path), "calc.code", "works", "broken")
+
+    assert report.phase is Phase.REFACTOR
+    assert "calc.code was reverted" in report.message
+    assert (tmp_path / "calc.code").read_text() == "works"
+
+
 def test_a_repeated_blocked_advance_says_nothing_changed(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
