@@ -497,6 +497,9 @@ def test_write_file_refuses_content_that_drops_existing_definitions(
         "calc.code. Use edit_file to add, change or delete code"
     ) in str(refusal.value)
     assert (tmp_path / "calc.code").read_text() == "def add\ndef sub\n"
+    assert "Nothing was written. You are in the refactor phase." in str(
+        refusal.value
+    )
 
 
 class FakeHistory:
