@@ -392,9 +392,13 @@ class TddService:
         if transition.revert:
             restore(snapshot)
             message += f" {path} was reverted."
-        undefined = re.search(r"NameError: name '(\w+)' is not defined", run.output)
+        undefined = re.search(
+            r"NameError: name '(\w+)' is not defined|ReferenceError: (\w+) is not "
+            "defined",
+            run.output,
+        )
         if kind is FileKind.TEST and session.phase is Phase.GREEN and undefined:
-            name = undefined.group(1)
+            name = undefined.group(1) or undefined.group(2)
             message += (
                 f" The new test fails because {name} is not defined in it. "
                 f"Production code can't fix that: the test must import {name}. "
