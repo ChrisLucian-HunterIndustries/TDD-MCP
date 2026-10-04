@@ -512,6 +512,26 @@ class FakeHistory:
         self.set_aside_paths = paths
 
 
+def test_return_to_red_with_the_red_step_open_says_to_just_edit_the_test(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=1, failures=1)
+    service.write_file(str(tmp_path), "test_calc", "test")
+    tree.changes = ["?? test_calc"]
+
+    with pytest.raises(TddError) as refusal:
+        service.return_to_red(str(tmp_path))
+
+    assert (
+        "The red step's test changes (test_calc) aren't committed yet, so the "
+        "test is still editable: fix it with edit_file now, without return_to_red, "
+        "then commit it as '. t'."
+    ) in str(refusal.value)
+
+
 def test_return_to_red_sets_aside_new_production_files_it_cannot_ask_to_undo(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
