@@ -186,7 +186,8 @@ def write_file(location: str, path: str, content: str) -> str:
     Test files may be written in the red and refactor phases; production
     files in the green and refactor phases. The test results decide the
     next phase, shown on the reply's first line. In red, write one failing
-    test before any production code.
+    test before any production code. Overwriting an existing file must
+    keep its top-level definitions; use edit_file to change or delete code.
 
     Args:
         location: Path to the project root.

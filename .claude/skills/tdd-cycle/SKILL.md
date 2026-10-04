@@ -55,6 +55,10 @@ before running it. Coverage measures branches: an `if` with an untaken path is u
   around the one you mean. "found 0" quotes the closest text in the file: copy from it.
   Trailing-whitespace differences are tolerated, so they're never the cause.
 - "already contains new_string" — the edit is already applied; read the file and move on.
+- "write_file replaces the whole file, and this content drops ..." — overwriting a file must
+  keep its top-level definitions; delete code with `edit_file` instead.
+- Green, but the new test can't pass because the test itself is wrong (e.g. a NameError for
+  a name it never imports) — fix it before committing `. t`, or call `return_to_red` after.
 - The repository changed outside the server (e.g. `git reset`) — call `advance_tdd_phase`: it
   recomputes the phase (all pass: red; exactly one fails: green).
 - Green, but an existing test that's locked asserts the old behaviour — undo your uncommitted

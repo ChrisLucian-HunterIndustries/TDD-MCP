@@ -222,7 +222,7 @@
         }
     },
     {
-        "description": "Create or overwrite a file, if the current TDD phase allows it, then run the tests.\n\nTest files may be written in the red and refactor phases; production\nfiles in the green and refactor phases. The test results decide the\nnext phase, shown on the reply's first line. In red, write one failing\ntest before any production code.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    content: The complete new file content.\n",
+        "description": "Create or overwrite a file, if the current TDD phase allows it, then run the tests.\n\nTest files may be written in the red and refactor phases; production\nfiles in the green and refactor phases. The test results decide the\nnext phase, shown on the reply's first line. In red, write one failing\ntest before any production code. Overwriting an existing file must\nkeep its top-level definitions; use edit_file to change or delete code.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    content: The complete new file content.\n",
         "input_schema": {
             "properties": {
                 "content": {
