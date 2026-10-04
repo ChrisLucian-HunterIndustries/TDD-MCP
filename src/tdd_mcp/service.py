@@ -163,7 +163,8 @@ class TddService:
         if commented:
             message += (
                 " Lines changed this cycle hold comments: "
-                f"{_listing(commented)}.{_quoted(root, commented)} Next: remove "
+                f"{_listing(commented)}.{_quoted(root, commented)}"
+                f"{_kept_code(adapter, root, commented)} Next: remove "
                 "them, letting names say what the comments did, commit ('. r'), "
                 "then call advance_tdd_phase again."
             )
@@ -553,6 +554,26 @@ def _branch_blocks(root: Path, branches: dict[str, frozenset[int]]) -> str:
         f"condition is never true in any test):{_quoted(root, branches)} Remove each "
         "such condition together with the code it guards, then simplify what's left "
         "(e.g. an emptied loop) so the test still passes."
+    )
+
+
+def _kept_code(
+    adapter: LanguageAdapter, root: Path, commented: dict[str, frozenset[int]]
+) -> str:
+    kept = []
+    for path, lines in sorted(commented.items()):
+        source = (root / path).read_text(encoding="utf-8", errors="replace")
+        code = adapter.uncommented(source)
+        kept += [
+            f"{path}:{number}: {code[number]}\n"
+            for number in sorted(lines)
+            if code.get(number, "").strip()
+        ]
+    if not kept:
+        return ""
+    return (
+        " Keep the code on these lines and drop only the comment, so each line "
+        "becomes:\n" + "".join(kept)
     )
 
 
