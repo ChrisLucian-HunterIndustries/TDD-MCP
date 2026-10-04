@@ -431,8 +431,9 @@ class TddService:
                 message += (
                     " Your test doesn't run these production lines: "
                     f"{_untested_lines(session.adapter, root, untested, coverage.untaken)}"
-                    " Delete "
-                    "them now with edit_file; this green step stays open until you "
+                    " Simplify the code now with edit_file until only what your test "
+                    "needs remains, often the simplest code that passes (e.g. "
+                    "returning a constant); this green step stays open until you "
                     "commit it as '^ f'."
                 )
         return Report(
