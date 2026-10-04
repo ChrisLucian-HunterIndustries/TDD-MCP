@@ -72,6 +72,7 @@ class _Session:
     step: Phase | None = None
     last_failing: int = 0
     last_added: int = 0
+    last_block: tuple[dict[str, frozenset[int]], ...] | None = None
 
 
 class TddService:
@@ -127,8 +128,15 @@ class TddService:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
         guidance = _guidance(session.phase, failing, added)
+        repeated = blocked and session.last_block == (untested, commented)
+        session.last_block = (untested, commented) if blocked else None
         if blocked:
             message = "Tests passed, but the next cycle is blocked."
+            if repeated:
+                message += (
+                    " Nothing changed since your last advance_tdd_phase: the same "
+                    "lines are still flagged. Fix them before advancing again."
+                )
             guidance = (
                 f"You are still in the {session.phase} phase; the next cycle "
                 "starts once these lines are fixed and committed."
