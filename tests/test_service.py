@@ -435,6 +435,24 @@ def test_a_test_write_in_green_names_return_to_red_for_a_wrong_new_test(
     ) in str(refusal.value)
 
 
+def test_return_to_red_lets_a_wrong_new_test_be_fixed(
+    service: TddService, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    adapter.counts = SuiteCounts(tests=1, failures=1)
+    service.write_file(str(tmp_path), "test_calc", "missing import")
+
+    report = service.return_to_red(str(tmp_path))
+
+    assert "fix the new test if it's wrong (e.g. add a missing import)" in (
+        report.message
+    )
+    assert service.write_file(str(tmp_path), "test_calc", "with import").phase is (
+        Phase.GREEN
+    )
+
+
 class FakeHistory:
     def __init__(self) -> None:
         self.head = "base"
