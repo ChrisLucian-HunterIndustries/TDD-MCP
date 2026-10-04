@@ -770,6 +770,28 @@ def test_a_refactor_write_adding_code_no_test_runs_says_so_at_once(
     ) in report.message
 
 
+def test_a_blocked_advance_frames_deleting_as_the_way_to_test_it_and_says_not_done(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Gemma4 wouldn't delete its finished-looking engine, so it declared the kata done."""
+    from tdd_mcp.cycle import DONE
+
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    history.changed = {"calc.code": frozenset({3})}
+    adapter.uncovered = {"calc.code": frozenset({3})}
+
+    report = _start(service, tmp_path)
+
+    assert (
+        "Deleting this code is how you get to test it: tests can only be added in "
+        "red, and red starts once the untested code is gone. The code quoted above "
+        "is your copy: bring it back in green, one tested behaviour per cycle."
+    ) in report.message
+    assert DONE in report.message
+
+
 def test_a_repeated_blocked_advance_says_nothing_changed(
     adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
 ):
