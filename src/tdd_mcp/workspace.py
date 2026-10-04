@@ -90,7 +90,7 @@ def _ignoring_trailing_whitespace(old: str) -> str:
 
 def _closest_text(content: str, old: str) -> str:
     lines = content.splitlines()
-    wanted = old.strip().splitlines() or [""]
+    wanted = old.strip().splitlines()
     first = wanted[0].strip()
     start = max(
         range(len(lines)),
