@@ -19,6 +19,7 @@ class FakeAdapter:
         self.counts = SuiteCounts(tests=0, failures=0)
         self.uncovered: dict[str, frozenset[int]] = {}
         self.test_runs = 0
+        self.test_output = "test output"
         self.selections: list[tuple[str | None, str | None]] = []
 
     def classify(self, relative_path: PurePath) -> FileKind:
@@ -40,7 +41,7 @@ class FakeAdapter:
     ) -> SuiteRun:
         self.test_runs += 1
         self.selections.append((path, test_name))
-        return SuiteRun(self.outcome, "test output", self.counts)
+        return SuiteRun(self.outcome, self.test_output, self.counts)
 
     def run_coverage(self, root: Path) -> SuiteRun:
         return SuiteRun(self.outcome, "coverage output", self.counts, self.uncovered)
@@ -380,6 +381,27 @@ def test_retrying_a_refused_call_unchanged_says_it_will_be_refused_again(
         "This exact call was already refused, and retrying it unchanged is "
         "refused the same way. "
     )
+
+
+def test_a_new_test_failing_on_an_unimported_name_says_to_import_it(
+    service: TddService, adapter: FakeAdapter, tmp_path: Path
+):
+    """Gemma4's first test never imported TicTacToe; it rewrote production 5 times."""
+    _start(service, tmp_path)
+    adapter.outcome = Outcome.FAILED
+    adapter.counts = SuiteCounts(tests=1, failures=1)
+    adapter.test_output = (
+        "test_calc:4: in test_new_game\nE   NameError: name 'TicTacToe' is not defined\n"
+    )
+
+    report = service.write_file(str(tmp_path), "test_calc", "uses TicTacToe")
+
+    assert report.phase is Phase.GREEN
+    assert (
+        "The new test fails because TicTacToe is not defined in it. Production "
+        "code can't fix that: the test must import TicTacToe. Fix the test now; "
+        "it stays editable until you commit it as '. t'."
+    ) in report.message
 
 
 class FakeHistory:
