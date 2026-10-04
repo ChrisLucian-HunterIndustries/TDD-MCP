@@ -35,6 +35,20 @@ def uncovered_from_coverage_py(report: str, root: Path) -> dict[str, frozenset[i
     return uncovered
 
 
+def untaken_branches_from_coverage_py(
+    report: str, root: Path
+) -> dict[str, frozenset[int]]:
+    """Lines that run but never take one of their branches, from a coverage.py JSON report."""
+    untaken = {}
+    for name, data in json.loads(report)["files"].items():
+        lines = frozenset(
+            source for source, _ in data.get("missing_branches", [])
+        ) - set(data["missing_lines"])
+        if lines:
+            untaken[_relative(name, root)] = lines
+    return untaken
+
+
 def uncovered_from_istanbul(report: str, root: Path) -> dict[str, frozenset[int]]:
     """Start lines of unexecuted statements and untaken branches per file from an istanbul JSON report."""
     uncovered = {}
