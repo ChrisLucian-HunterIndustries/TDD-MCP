@@ -3,7 +3,7 @@ from pathlib import Path, PurePath
 import pytest
 
 from tdd_mcp.cycle import FileKind, Outcome, Phase
-from tdd_mcp.languages.base import SuiteRun
+from tdd_mcp.languages.base import Function, SuiteRun
 from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.service import Report, TddError, TddService
 from tdd_mcp.workspace import WorkspaceError
@@ -39,6 +39,15 @@ class FakeAdapter:
     def definitions(self, source: str) -> frozenset[str]:
         return frozenset(
             line.split()[1] for line in source.splitlines() if line.startswith("def ")
+        )
+
+    def functions(self, source: str) -> tuple[Function, ...]:
+        lines = source.splitlines()
+        starts = [n for n, line in enumerate(lines, 1) if line.startswith("def ")]
+        ends = [start - 1 for start in starts[1:]] + [len(lines)]
+        return tuple(
+            Function(lines[start - 1].split()[1], start=start, body=start + 1, end=end)
+            for start, end in zip(starts, ends)
         )
 
     def run_tests(
@@ -551,6 +560,29 @@ def test_a_blocked_advance_calls_the_fix_routine_and_says_to_carry_on(
     assert "carry on with the task; don't stop or hand back to the user." in (
         report.message
     )
+
+
+def test_a_blocked_advance_quotes_functions_that_never_run_as_whole_blocks(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    """Deleting only Gemma4's listed lines would leave bodiless defs, which reverts."""
+    history = FakeHistory()
+    service = TddService({"fake": adapter}, pending_changes=tree, history=history)
+    _to_refactor(service, adapter, tmp_path)
+    (tmp_path / "calc.code").write_text("def used\n  run\n  skipped\ndef dead\n  never\n")
+    history.changed = {"calc.code": frozenset({1, 2, 3, 4, 5})}
+    adapter.uncovered = {"calc.code": frozenset({3, 5})}
+
+    report = _start(service, tmp_path)
+
+    assert "\ncalc.code:3:   skipped\n" in report.message
+    assert "calc.code:5:" not in report.message
+    assert (
+        " These functions never run, so delete each one whole, its first line "
+        "included (edit_file with the quoted text as old_string and an empty "
+        "new_string; if that leaves a class or block empty, delete it too):\n"
+        "calc.code lines 4-5:\ndef dead\n  never\n"
+    ) in report.message
 
 
 def test_a_repeated_blocked_advance_says_nothing_changed(
