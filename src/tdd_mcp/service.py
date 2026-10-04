@@ -324,7 +324,7 @@ class TddService:
             session.step = session.phase
         elif session.step is None:
             if not exempt and not may_write(session.phase, kind):
-                raise _locked(kind, session.phase, guidance)
+                raise _locked(kind, session.phase, guidance, session.last_added)
             raise _uncommitted(root, changes, session.phase)
         phase = session.step
 
@@ -338,7 +338,7 @@ class TddService:
         if not may_write(phase, kind):
             if changes and may_write(session.phase, kind):
                 raise _uncommitted_step(root, changes, phase, session.phase)
-            raise _locked(kind, phase, guidance)
+            raise _locked(kind, phase, guidance, session.last_added)
 
         snapshot = change(target)
         if kind is FileKind.OTHER:
@@ -406,8 +406,19 @@ def _quoted(root: Path, lines_by_path: dict[str, frozenset[int]]) -> str:
     return "".join(f"\n{quote}" for quote in quotes) + "\n"
 
 
-def _locked(kind: FileKind, phase: Phase, guidance: str) -> TddError:
-    if kind is FileKind.PRODUCTION and phase is Phase.RED:
+def _locked(
+    kind: FileKind, phase: Phase, guidance: str, added: int = 0
+) -> TddError:
+    if kind is FileKind.PRODUCTION and phase is Phase.RED and added > 1:
+        guidance = (
+            f"Production is locked because {added} new tests were added; red "
+            f"needs exactly one. Next: delete {added - 1} of the new test "
+            "functions from the test file entirely and keep one. If it fails "
+            "because the production code doesn't exist yet (ModuleNotFoundError, "
+            "ImportError, NameError, AttributeError), that's the failure you "
+            "want: it moves you to green, where this write is allowed."
+        )
+    elif kind is FileKind.PRODUCTION and phase is Phase.RED:
         guidance += (
             " A test failing with ModuleNotFoundError, ImportError, NameError or "
             "AttributeError because the production code doesn't exist yet is the "
