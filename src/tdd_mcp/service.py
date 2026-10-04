@@ -226,11 +226,23 @@ class TddService:
         )
 
     def write_file(self, location: str, path: str, content: str) -> Report:
+        def write(target: Path) -> Snapshot:
+            if target.is_file():
+                adapter = self._sessions[_root(location)].adapter
+                existing = target.read_text(encoding="utf-8", errors="replace")
+                dropped = adapter.definitions(existing) - adapter.definitions(content)
+                if dropped:
+                    raise TddError(
+                        "write_file replaces the whole file, and this content drops "
+                        f"{', '.join(sorted(dropped))} from {path}. Use edit_file "
+                        "to add, change or delete code, or include everything the "
+                        "file should keep."
+                    )
+            return write_text(target, content)
+
         return self._refusing_repeats(
             ("write_file", location, path, content),
-            lambda: self._apply(
-                location, path, lambda target: write_text(target, content)
-            ),
+            lambda: self._apply(location, path, write),
         )
 
     def edit_file(
