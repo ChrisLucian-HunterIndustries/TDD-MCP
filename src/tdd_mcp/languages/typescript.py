@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import tempfile
 from dataclasses import replace
 from pathlib import Path, PurePath
@@ -16,6 +17,10 @@ CODE_SUFFIXES = frozenset(
 TEST_DIRECTORIES = frozenset({"__tests__", "test", "tests"})
 TEST_MARKERS = frozenset({"test", "spec"})
 QUOTES = frozenset("'\"`")
+DECLARATION = (
+    r"^(?:export\s+)?(?:default\s+)?(?:async\s+)?"
+    r"(?:function\*?|class|const|let|var|interface|type|enum)\s+(\w+)"
+)
 COMMENT_DIRECTIVES = (
     "/",
     "@ts-",
@@ -62,6 +67,9 @@ class TypeScriptAdapter:
             else:
                 i += 1
         return frozenset(lines)
+
+    def definitions(self, source: str) -> frozenset[str]:
+        return frozenset(re.findall(DECLARATION, source, re.MULTILINE))
 
     def run_tests(
         self, root: Path, path: str | None = None, test_name: str | None = None
