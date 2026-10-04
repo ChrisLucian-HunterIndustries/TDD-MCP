@@ -407,6 +407,14 @@ def _quoted(root: Path, lines_by_path: dict[str, frozenset[int]]) -> str:
 
 
 def _locked(kind: FileKind, phase: Phase, guidance: str) -> TddError:
+    if kind is FileKind.PRODUCTION and phase is Phase.RED:
+        guidance += (
+            " A test failing with ModuleNotFoundError, ImportError, NameError or "
+            "AttributeError because the production code doesn't exist yet is the "
+            "red failure you want; nothing is stuck. Don't define stand-ins for "
+            "the production code in the test file: they make the test pass. "
+            "Production files unlock in green, once exactly one test fails."
+        )
     return TddError(
         f"Writing {kind} files is not allowed in the {phase} phase. {guidance}"
     )
