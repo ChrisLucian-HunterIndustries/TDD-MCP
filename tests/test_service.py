@@ -608,8 +608,10 @@ def test_a_green_write_that_passes_reports_lines_the_test_never_runs(
     assert report.phase is Phase.REFACTOR
     assert (
         " Your test doesn't run these production lines: calc.code: 3.\n"
-        "calc.code:3:   extra\n Delete them now with edit_file; this green step "
-        "stays open until you commit it as '^ f'."
+        "calc.code:3:   extra\n Simplify the code now with edit_file until only "
+        "what your test needs remains, often the simplest code that passes (e.g. "
+        "returning a constant); this green step stays open until you commit it as "
+        "'^ f'."
     ) in report.message
 
 
