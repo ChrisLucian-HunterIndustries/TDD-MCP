@@ -150,9 +150,11 @@ class TddService:
                 " Production lines changed this cycle aren't covered by any test: "
                 f"{_untested_lines(adapter, root, untested, run.untaken)} In TDD every "
                 "production line exists because a test needed it. This is a routine "
-                "fix: delete those lines now with edit_file (adding tests for them "
-                "now is reverted; bring the behaviour back later, one failing test "
-                "per cycle), commit ('. r'), call advance_tdd_phase again, and carry "
+                "fix: simplify the code now with edit_file until only what your tests "
+                "need remains (deleting those lines, or replacing a body with the "
+                "simplest code that passes). Adding tests for them now is reverted, "
+                "so bring the behaviour back later, one failing test per cycle. Then "
+                "commit ('. r'), call advance_tdd_phase again, and carry "
                 "on with the task; don't stop or hand back to the user."
             )
         if commented:
