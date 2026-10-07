@@ -1373,3 +1373,20 @@ def test_a_planned_name_matches_ignoring_case_and_separators(
     report = planning.write_file(str(tmp_path), "test_calc", 'it("Adds Two Numbers")')
 
     assert report.phase is Phase.GREEN
+
+
+def test_a_planned_test_that_already_passes_is_checked_off(
+    planning, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS, NEGATIVE])
+    adapter.counts = SuiteCounts(tests=1, failures=0)
+
+    report = planning.write_file(str(tmp_path), "test_calc", "def test_adds")
+
+    assert report.phase is Phase.RED
+    assert "[x] adds\n[>] negative\n" in report.message
+    assert (
+        "'adds' already passes, so it's checked off: commit it ('. t'), then "
+        "call advance_tdd_phase."
+    ) in report.message
