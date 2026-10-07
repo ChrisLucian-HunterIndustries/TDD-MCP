@@ -485,7 +485,8 @@ class TddService:
         )
         planned = session.checklist.current if session.checklist else None
         content = target.read_text(encoding="utf-8", errors="replace")
-        if planned and transition.phase is Phase.GREEN and planned.name not in content:
+        named = planned and _key(planned.name) in _key(content)
+        if planned and transition.phase is Phase.GREEN and not named:
             transition = Transition(
                 Phase.RED,
                 revert=True,
@@ -550,6 +551,10 @@ class TddService:
             f"{_reminder(session)}",
             "" if run.outcome is Outcome.PASSED else run.output,
         )
+
+
+def _key(text: str) -> str:
+    return re.sub(r"[^0-9a-z]", "", text.lower())
 
 
 def _reminder(session: _Session) -> str:
