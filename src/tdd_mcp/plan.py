@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
+from tdd_mcp.cycle import Phase
+
 
 class PlanError(ValueError):
     """Raised when a test plan is incomplete or invalid."""

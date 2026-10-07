@@ -1,5 +1,6 @@
 import pytest
 
+from tdd_mcp.cycle import Phase
 from tdd_mcp.plan import Checklist, PlanError, PlannedTest
 
 ADDS = PlannedTest(
@@ -55,8 +56,6 @@ def test_a_planned_test_without_a_name_is_refused():
 
 
 def test_the_reminder_lists_the_plan_marking_done_and_current_tests():
-    from tdd_mcp.cycle import Phase
-
     checklist = Checklist([ADDS, REJECTS])
     checklist.check_off()
     assert checklist.reminder(Phase.RED).startswith(
