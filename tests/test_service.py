@@ -1359,3 +1359,17 @@ def test_a_red_test_not_named_after_the_planned_test_is_reverted(
     assert report.phase is Phase.RED
     assert not (tmp_path / "test_calc").exists()
     assert "isn't the planned test 'adds'" in report.message
+
+
+def test_a_planned_name_matches_ignoring_case_and_separators(
+    planning, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(planning, tmp_path)
+    planning.plan_tests(
+        str(tmp_path), [PlannedTest("adds two numbers", "-", "add 2 and 3", "5")]
+    )
+    adapter.outcome = Outcome.FAILED
+
+    report = planning.write_file(str(tmp_path), "test_calc", 'it("Adds Two Numbers")')
+
+    assert report.phase is Phase.GREEN
