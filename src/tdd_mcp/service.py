@@ -87,7 +87,9 @@ class TddService:
         pending_changes: Callable[[Path], list[str]],
         history: History | None = None,
         exempt: Sequence[str] = (),
+        require_plan: bool = False,
     ) -> None:
+        self.require_plan = require_plan
         self._adapters = adapters
         self._pending_changes = pending_changes
         self._history = history
@@ -125,6 +127,8 @@ class TddService:
             failing=failing,
             added=added,
         )
+        if self.require_plan and session.phase is Phase.RED:
+            session.phase = Phase.PLAN
         session.last_failing, session.last_added = failing, added
         if run.counts and restarts:
             session.tests = run.counts.tests
