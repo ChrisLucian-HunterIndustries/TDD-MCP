@@ -20,8 +20,8 @@ class Checklist:
         self.done = 0
 
     @property
-    def current(self) -> PlannedTest:
-        return self.tests[self.done]
+    def current(self) -> PlannedTest | None:
+        return self.tests[self.done] if self.done < len(self.tests) else None
 
     def check_off(self) -> None:
         self.done += 1
