@@ -144,7 +144,8 @@ class TddService:
         planned = session.checklist is not None
         if planned and finishing and session.phase is Phase.RED:
             session.checklist.check_off()
-        if self.require_plan and session.phase is Phase.RED and not planned:
+        waiting = planned and session.checklist.current is not None
+        if self.require_plan and session.phase is Phase.RED and not waiting:
             session.phase = Phase.PLAN
         session.last_failing, session.last_added = failing, added
         if run.counts and restarts:
