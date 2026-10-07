@@ -40,3 +40,11 @@ class Checklist:
 
     def check_off(self) -> None:
         self.done += 1
+
+    def reminder(self, phase: Phase) -> str:
+        lines = [f"Test plan ({self.done} of {len(self.tests)} done):"]
+        lines += [
+            f"{'[x]' if number < self.done else '[>]'} {test.name}"
+            for number, test in enumerate(self.tests)
+        ]
+        return "".join(f"{line}\n" for line in lines)
