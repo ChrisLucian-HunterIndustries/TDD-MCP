@@ -16,6 +16,7 @@ from tdd_mcp.cycle import (
     FileKind,
     Outcome,
     Phase,
+    Transition,
     after_coverage,
     after_write,
     may_write,
@@ -482,6 +483,18 @@ class TddService:
             failing=counts.failures,
             added=added,
         )
+        planned = session.checklist.current if session.checklist else None
+        content = target.read_text(encoding="utf-8", errors="replace")
+        if planned and transition.phase is Phase.GREEN and planned.name not in content:
+            transition = Transition(
+                Phase.RED,
+                revert=True,
+                reason=(
+                    f"The new test in {path} isn't the planned test "
+                    f"{planned.name!r}. Write only {planned.name!r} now, under "
+                    "that name."
+                ),
+            )
         session.phase = transition.phase
         session.last_failing, session.last_added = counts.failures, added
         if session.phase is Phase.REFACTOR and not transition.revert:
