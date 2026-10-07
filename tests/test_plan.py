@@ -52,3 +52,15 @@ def test_a_planned_test_without_a_name_is_refused():
     nameless = PlannedTest(" ", arrange="a calculator", act="add", assertion="5")
     with pytest.raises(PlanError, match="A planned test has no name"):
         Checklist([nameless])
+
+
+def test_the_reminder_lists_the_plan_marking_done_and_current_tests():
+    from tdd_mcp.cycle import Phase
+
+    checklist = Checklist([ADDS, REJECTS])
+    checklist.check_off()
+    assert checklist.reminder(Phase.RED).startswith(
+        "Test plan (1 of 2 done):\n"
+        "[x] adds two numbers\n"
+        "[>] rejects negative numbers\n"
+    )
