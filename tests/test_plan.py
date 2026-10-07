@@ -68,10 +68,11 @@ def test_the_reminder_marks_tests_after_the_current_one_as_waiting():
     assert "[>] adds two numbers\n[ ] rejects negative numbers\n" in reminder
 
 
-def test_red_reminds_to_write_only_the_current_test_from_its_plan():
+def test_red_reminds_to_name_the_test_after_the_plan():
     reminder = Checklist([ADDS, REJECTS]).reminder(Phase.RED)
     assert reminder.endswith(
-        "Next TDD step: write only the test 'adds two numbers', nothing else. "
+        "Next TDD step: write only the test 'adds two numbers', with that name in "
+        "its test name, nothing else. "
         "Arrange: a calculator. Act: add 2 and 3. Assert: the result is 5. "
         "Do only as much as this step needs, and no more."
     )
