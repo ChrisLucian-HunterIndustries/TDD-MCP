@@ -1247,15 +1247,10 @@ def test_advancing_ends_with_the_plan_and_its_next_step(planning, tmp_path: Path
 def test_finishing_a_cycle_checks_off_the_planned_test(
     planning, adapter: FakeAdapter, tmp_path: Path
 ):
-    location = str(tmp_path)
     _start(planning, tmp_path)
-    planning.plan_tests(location, [ADDS, NEGATIVE])
-    adapter.outcome = Outcome.FAILED
-    planning.write_file(location, "test_calc", "test")
-    adapter.outcome = Outcome.PASSED
-    planning.write_file(location, "calc.code", "impl")
+    planning.plan_tests(str(tmp_path), [ADDS, NEGATIVE])
 
-    report = _start(planning, tmp_path)
+    report = _finish_cycle(planning, adapter, tmp_path)
 
     assert report.phase is Phase.RED
     assert "[x] adds\n[>] negative\n" in report.message
