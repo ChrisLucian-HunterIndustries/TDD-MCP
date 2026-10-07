@@ -23,6 +23,8 @@ class Checklist:
         if not tests:
             raise PlanError("A plan needs at least one test.")
         for test in tests:
+            if not test.name.strip():
+                raise PlanError("A planned test has no name.")
             parts = {"arrange": test.arrange, "act": test.act, "assert": test.assertion}
             missing = [part for part, text in parts.items() if not text.strip()]
             if missing:
