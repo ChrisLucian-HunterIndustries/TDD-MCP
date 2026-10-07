@@ -32,6 +32,11 @@ def test_may_write(phase, kind, allowed):
     assert may_write(phase, kind) is allowed
 
 
+def test_plan_phase_locks_code_files_until_the_tests_are_planned():
+    writable = [kind for kind in FileKind if may_write(Phase.PLAN, kind)]
+    assert writable == [FileKind.OTHER]
+
+
 def test_every_phase_names_itself_and_the_next_step():
     """Weaker models lose track of the cycle, so every reply restates where they are."""
     for phase in Phase:
