@@ -1286,3 +1286,15 @@ def test_planning_more_tests_keeps_the_ones_already_done(
     report = planning.plan_tests(str(tmp_path), [NEGATIVE])
 
     assert report.message.startswith("Test plan (1 of 2 done):\n[x] adds\n[>] negative")
+
+
+def test_planning_no_more_tests_after_a_finished_plan_is_refused(
+    planning, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS])
+    _finish_cycle(planning, adapter, tmp_path)
+
+    with pytest.raises(ValueError, match="at least one test"):
+        planning.plan_tests(str(tmp_path), [])
+    assert planning.status(str(tmp_path)).phase is Phase.PLAN
