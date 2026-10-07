@@ -4,7 +4,7 @@ import pytest
 
 from tdd_mcp.cycle import FileKind, Outcome, Phase
 from tdd_mcp.languages.base import Function, SuiteRun
-from tdd_mcp.plan import PlannedTest
+from tdd_mcp.plan import Checklist, PlannedTest
 from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.service import Report, TddError, TddService
 from tdd_mcp.workspace import WorkspaceError
@@ -1233,3 +1233,12 @@ def test_advancing_with_planned_tests_waiting_stays_in_red(planning, tmp_path: P
     _start(planning, tmp_path)
     planning.plan_tests(str(tmp_path), [ADDS])
     assert _start(planning, tmp_path).phase is Phase.RED
+
+
+def test_advancing_ends_with_the_plan_and_its_next_step(planning, tmp_path: Path):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS, NEGATIVE])
+    report = _start(planning, tmp_path)
+    assert report.message.endswith(
+        Checklist([ADDS, NEGATIVE]).reminder(Phase.RED)
+    )
