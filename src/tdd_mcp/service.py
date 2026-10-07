@@ -496,6 +496,15 @@ class TddService:
                     "that name."
                 ),
             )
+        elif planned and phase is Phase.RED and run.outcome is Outcome.PASSED and named:
+            session.checklist.check_off()
+            transition = Transition(
+                Phase.RED,
+                reason=(
+                    f"{planned.name!r} already passes, so it's checked off: commit "
+                    "it ('. t'), then call advance_tdd_phase."
+                ),
+            )
         session.phase = transition.phase
         session.last_failing, session.last_added = counts.failures, added
         if session.phase is Phase.REFACTOR and not transition.revert:
