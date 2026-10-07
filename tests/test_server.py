@@ -72,6 +72,20 @@ def test_advance_tdd_phase_starts_the_cycle(repo: Path):
     assert server.advance_tdd_phase(str(repo)).startswith("Phase: red")
 
 
+def test_plan_tests_tool_takes_each_tests_arrange_act_and_assert(repo: Path):
+    location = str(repo)
+    server.service.require_plan = True
+    assert advance_tdd_phase(location).startswith("Phase: plan")
+
+    planned = server.plan_tests(
+        location,
+        [{"name": "adds", "arrange": "calc", "act": "add 1 and 2", "assert": "3"}],
+    )
+
+    assert planned.startswith("Phase: red")
+    assert "Arrange: calc. Act: add 1 and 2. Assert: 3." in planned
+
+
 def test_return_to_red_tool_reopens_tests_from_green(repo: Path):
     location = str(repo)
     advance_tdd_phase(location)
