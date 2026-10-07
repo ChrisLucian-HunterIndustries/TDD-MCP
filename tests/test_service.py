@@ -1220,3 +1220,10 @@ def test_planning_tests_moves_to_red_and_reminds_of_the_first_test(
     assert report.phase is Phase.RED
     assert "Next TDD step: write only the test 'adds'" in report.message
     assert planning.status(str(tmp_path)).phase is Phase.RED
+
+
+def test_planning_outside_the_plan_phase_is_refused(planning, tmp_path: Path):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS])
+    with pytest.raises(TddError, match="only in the plan phase; you are in the red"):
+        planning.plan_tests(str(tmp_path), [NEGATIVE])
