@@ -1,6 +1,6 @@
 import pytest
 
-from tdd_mcp.plan import Checklist, PlannedTest
+from tdd_mcp.plan import Checklist, PlanError, PlannedTest
 
 ADDS = PlannedTest(
     "adds two numbers",
@@ -33,7 +33,5 @@ def test_a_checklist_with_every_test_checked_off_has_no_current_test():
 
 
 def test_an_empty_plan_is_refused():
-    from tdd_mcp.plan import PlanError
-
     with pytest.raises(PlanError, match="at least one test"):
         Checklist([])
