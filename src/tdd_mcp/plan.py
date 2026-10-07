@@ -60,6 +60,11 @@ class Checklist:
                 f"assert needs ({test.assertion}); write nothing for the tests "
                 "still waiting."
             )
+        if phase is Phase.REFACTOR:
+            step = (
+                "tidy the code without adding behaviour, commit, then call "
+                f"advance_tdd_phase, which checks off {test.name!r}."
+            )
         step = f"Next TDD step: {step} {ONLY_WHAT_IS_NEEDED}"
         return "".join(f"{line}\n" for line in lines) + step
 
