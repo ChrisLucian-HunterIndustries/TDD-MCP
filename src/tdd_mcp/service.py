@@ -21,6 +21,7 @@ from tdd_mcp.cycle import (
     may_write,
 )
 from tdd_mcp.languages.base import Function, LanguageAdapter, SuiteRun
+from tdd_mcp.plan import Checklist, PlannedTest
 from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.workspace import (
     Snapshot,
@@ -77,6 +78,7 @@ class _Session:
     last_failing: int = 0
     last_added: int = 0
     last_block: tuple[dict[str, frozenset[int]], ...] | None = None
+    checklist: Checklist | None = None
 
 
 class TddService:
@@ -102,6 +104,12 @@ class TddService:
         session = self._sessions.get(_root(location))
         phase = session.phase if session else Phase.COVERAGE_REQUIRED
         return Report(phase, PHASE_GUIDANCE[phase])
+
+    def plan_tests(self, location: str, tests: Sequence[PlannedTest]) -> Report:
+        session = self._started(_root(location))
+        session.checklist = Checklist(tests)
+        session.phase = Phase.RED
+        return Report(session.phase, session.checklist.reminder(session.phase))
 
     def advance_tdd_phase(self, location: str, language: str) -> Report:
         root = _root(location)
