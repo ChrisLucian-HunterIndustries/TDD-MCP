@@ -92,6 +92,14 @@ def test_plan_tests_tool_takes_each_tests_arrange_act_and_assert(repo: Path):
     assert "Arrange: calc. Act: add 1 and 2. Assert: 3." in planned
 
 
+def test_plan_tests_says_every_test_must_fail_when_written():
+    description = " ".join(server.plan_tests.__doc__.split())
+    assert (
+        "Order them so each one fails when it is written: a test that would "
+        "already pass is redundant or out of order."
+    ) in description
+
+
 def test_return_to_red_tool_reopens_tests_from_green(repo: Path):
     location = str(repo)
     advance_tdd_phase(location)
