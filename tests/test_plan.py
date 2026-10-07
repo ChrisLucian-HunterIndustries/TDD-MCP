@@ -59,9 +59,7 @@ def test_the_reminder_lists_the_plan_marking_done_and_current_tests():
     checklist = Checklist([ADDS, REJECTS])
     checklist.check_off()
     assert checklist.reminder(Phase.RED).startswith(
-        "Test plan (1 of 2 done):\n"
-        "[x] adds two numbers\n"
-        "[>] rejects negative numbers\n"
+        "Test plan (1 of 2 done):\n[x] adds two numbers\n[>] rejects negative numbers\n"
     )
 
 

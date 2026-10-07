@@ -1216,7 +1216,9 @@ def test_writing_a_test_before_planning_is_refused(planning, tmp_path: Path):
 
 
 ADDS = PlannedTest("adds", arrange="a calculator", act="add 2 and 3", assertion="5")
-NEGATIVE = PlannedTest("negative", arrange="a calculator", act="add -1", assertion="error")
+NEGATIVE = PlannedTest(
+    "negative", arrange="a calculator", act="add -1", assertion="error"
+)
 
 
 def test_planning_tests_moves_to_red_and_reminds_of_the_first_test(
@@ -1246,9 +1248,7 @@ def test_advancing_ends_with_the_plan_and_its_next_step(planning, tmp_path: Path
     _start(planning, tmp_path)
     planning.plan_tests(str(tmp_path), [ADDS, NEGATIVE])
     report = _start(planning, tmp_path)
-    assert report.message.endswith(
-        Checklist([ADDS, NEGATIVE]).reminder(Phase.RED)
-    )
+    assert report.message.endswith(Checklist([ADDS, NEGATIVE]).reminder(Phase.RED))
 
 
 def test_finishing_a_cycle_checks_off_the_planned_test(

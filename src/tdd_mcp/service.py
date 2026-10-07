@@ -105,9 +105,7 @@ class TddService:
         if session is None:
             phase = Phase.COVERAGE_REQUIRED
             return Report(phase, PHASE_GUIDANCE[phase])
-        return Report(
-            session.phase, PHASE_GUIDANCE[session.phase] + _reminder(session)
-        )
+        return Report(session.phase, PHASE_GUIDANCE[session.phase] + _reminder(session))
 
     def plan_tests(self, location: str, tests: Sequence[PlannedTest]) -> Report:
         session = self._started(_root(location))
