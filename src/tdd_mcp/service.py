@@ -497,8 +497,8 @@ class TddService:
                     "that name."
                 ),
             )
-        elif planned and phase is Phase.RED and run.outcome is Outcome.PASSED and named:
-            session.checklist.check_off()
+        elif planned and run.outcome is Outcome.PASSED and named:
+            checked.check_off()
             transition = Transition(
                 Phase.RED,
                 reason=(
