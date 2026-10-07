@@ -65,6 +65,7 @@ def new_service() -> TddService:
         pending_changes=git_gate.uncommitted_changes,
         history=git_gate,
         exempt=[p.strip() for p in raw.split(",") if p.strip()],
+        require_plan=True,
     )
 
 
