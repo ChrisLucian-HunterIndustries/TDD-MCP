@@ -112,7 +112,9 @@ class TddService:
                 "plan_tests works only in the plan phase; you are in the "
                 f"{session.phase} phase. {PHASE_GUIDANCE[session.phase]}"
             )
-        session.checklist = Checklist(tests)
+        done = session.checklist.tests if session.checklist else ()
+        session.checklist = Checklist([*done, *tests])
+        session.checklist.done = len(done)
         session.phase = Phase.RED
         return Report(session.phase, session.checklist.reminder(session.phase))
 
