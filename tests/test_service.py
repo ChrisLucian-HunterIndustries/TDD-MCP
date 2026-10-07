@@ -1310,3 +1310,12 @@ def test_a_write_ends_with_the_plan_and_the_next_step_of_its_new_phase(
     report = planning.write_file(str(tmp_path), "test_calc", "test")
 
     assert report.message.endswith(Checklist([ADDS]).reminder(Phase.GREEN))
+
+
+def test_status_ends_with_the_plan_and_its_next_step(planning, tmp_path: Path):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS])
+
+    report = planning.status(str(tmp_path))
+
+    assert report.message.endswith(Checklist([ADDS]).reminder(Phase.RED))
