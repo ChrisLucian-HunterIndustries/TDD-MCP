@@ -107,6 +107,11 @@ class TddService:
 
     def plan_tests(self, location: str, tests: Sequence[PlannedTest]) -> Report:
         session = self._started(_root(location))
+        if session.phase is not Phase.PLAN:
+            raise TddError(
+                "plan_tests works only in the plan phase; you are in the "
+                f"{session.phase} phase. {PHASE_GUIDANCE[session.phase]}"
+            )
         session.checklist = Checklist(tests)
         session.phase = Phase.RED
         return Report(session.phase, session.checklist.reminder(session.phase))
