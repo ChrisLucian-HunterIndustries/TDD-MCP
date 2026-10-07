@@ -1227,3 +1227,9 @@ def test_planning_outside_the_plan_phase_is_refused(planning, tmp_path: Path):
     planning.plan_tests(str(tmp_path), [ADDS])
     with pytest.raises(TddError, match="only in the plan phase; you are in the red"):
         planning.plan_tests(str(tmp_path), [NEGATIVE])
+
+
+def test_advancing_with_planned_tests_waiting_stays_in_red(planning, tmp_path: Path):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS])
+    assert _start(planning, tmp_path).phase is Phase.RED
