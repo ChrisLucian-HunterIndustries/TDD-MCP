@@ -108,8 +108,10 @@ def plan_tests(location: str, tests: list[PlannedTestSpec]) -> str:
     """Plan every test the task needs before writing any code: a TDD session's first step.
 
     List the tests that cover the task completely, and no more, smallest
-    behaviour first. Give each a unique name, its arrange (the setup), its act
-    (the one thing it does) and its assert (the exact expected result).
+    behaviour first. Order them so each one fails when it is written: a test
+    that would already pass is redundant or out of order. Give each a unique
+    name, its arrange (the setup), its act (the one thing it does) and its
+    assert (the exact expected result).
     Allowed only in the plan phase. Each later reply then reminds you of the
     next step for the current test. Once every planned test is done you are
     back in the plan phase: plan only the tests the task still lacks, or stop.
