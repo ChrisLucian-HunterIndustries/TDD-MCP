@@ -1259,3 +1259,23 @@ def test_finishing_a_cycle_checks_off_the_planned_test(
 
     assert report.phase is Phase.RED
     assert "[x] adds\n[>] negative\n" in report.message
+
+
+def _finish_cycle(service: TddService, adapter: FakeAdapter, root: Path) -> Report:
+    adapter.outcome = Outcome.FAILED
+    service.write_file(str(root), "test_calc", "test")
+    adapter.outcome = Outcome.PASSED
+    service.write_file(str(root), "calc.code", "impl")
+    return _start(service, root)
+
+
+def test_finishing_the_last_planned_test_returns_to_the_plan_phase(
+    planning, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS])
+
+    report = _finish_cycle(planning, adapter, tmp_path)
+
+    assert report.phase is Phase.PLAN
+    assert "every planned test is done" in report.message
