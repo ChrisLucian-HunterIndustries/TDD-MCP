@@ -63,3 +63,8 @@ def test_the_reminder_lists_the_plan_marking_done_and_current_tests():
         "[x] adds two numbers\n"
         "[>] rejects negative numbers\n"
     )
+
+
+def test_the_reminder_marks_tests_after_the_current_one_as_waiting():
+    reminder = Checklist([ADDS, REJECTS]).reminder(Phase.RED)
+    assert "[>] adds two numbers\n[ ] rejects negative numbers\n" in reminder
