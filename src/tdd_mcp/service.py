@@ -103,7 +103,8 @@ class TddService:
     def status(self, location: str) -> Report:
         session = self._sessions.get(_root(location))
         if session is None:
-            return Report(Phase.COVERAGE_REQUIRED, PHASE_GUIDANCE[Phase.COVERAGE_REQUIRED])
+            phase = Phase.COVERAGE_REQUIRED
+            return Report(phase, PHASE_GUIDANCE[phase])
         return Report(
             session.phase, PHASE_GUIDANCE[session.phase] + _reminder(session)
         )
