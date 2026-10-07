@@ -1298,3 +1298,15 @@ def test_planning_no_more_tests_after_a_finished_plan_is_refused(
     with pytest.raises(ValueError, match="at least one test"):
         planning.plan_tests(str(tmp_path), [])
     assert planning.status(str(tmp_path)).phase is Phase.PLAN
+
+
+def test_a_write_ends_with_the_plan_and_the_next_step_of_its_new_phase(
+    planning, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS])
+    adapter.outcome = Outcome.FAILED
+
+    report = planning.write_file(str(tmp_path), "test_calc", "test")
+
+    assert report.message.endswith(Checklist([ADDS]).reminder(Phase.GREEN))
