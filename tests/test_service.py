@@ -1319,3 +1319,22 @@ def test_status_ends_with_the_plan_and_its_next_step(planning, tmp_path: Path):
     report = planning.status(str(tmp_path))
 
     assert report.message.endswith(Checklist([ADDS]).reminder(Phase.RED))
+
+
+def test_rolling_back_a_planned_cycle_keeps_the_plan(
+    adapter: FakeAdapter, tree: FakeTree, tmp_path: Path
+):
+    history = FakeHistory()
+    planning = TddService(
+        {"fake": adapter}, pending_changes=tree, history=history, require_plan=True
+    )
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS])
+    adapter.outcome = Outcome.FAILED
+    planning.write_file(str(tmp_path), "test_calc", "test")
+    adapter.outcome = Outcome.PASSED
+
+    report = planning.rollback_cycle(str(tmp_path))
+
+    assert report.phase is Phase.RED
+    assert report.message.endswith(Checklist([ADDS]).reminder(Phase.RED))
