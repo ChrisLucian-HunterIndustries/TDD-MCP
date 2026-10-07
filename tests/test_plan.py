@@ -95,3 +95,13 @@ def test_refactor_reminds_that_advancing_checks_off_the_current_test():
         "call advance_tdd_phase, which checks off 'adds two numbers'. Do only "
         "as much as this step needs, and no more."
     )
+
+
+def test_a_finished_plan_reminds_to_plan_only_missing_tests_or_finish():
+    checklist = Checklist([ADDS])
+    checklist.check_off()
+    assert checklist.reminder(Phase.PLAN).endswith(
+        "Next TDD step: every planned test is done. If the task still lacks a "
+        "test, call plan_tests with only the missing ones; otherwise the task "
+        "is finished. Do only as much as this step needs, and no more."
+    )
