@@ -1274,3 +1274,15 @@ def test_finishing_the_last_planned_test_returns_to_the_plan_phase(
 
     assert report.phase is Phase.PLAN
     assert "every planned test is done" in report.message
+
+
+def test_planning_more_tests_keeps_the_ones_already_done(
+    planning, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS])
+    _finish_cycle(planning, adapter, tmp_path)
+
+    report = planning.plan_tests(str(tmp_path), [NEGATIVE])
+
+    assert report.message.startswith("Test plan (1 of 2 done):\n[x] adds\n[>] negative")
