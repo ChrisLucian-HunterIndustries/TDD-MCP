@@ -51,10 +51,16 @@ class Checklist:
         ]
         test = self.current
         step = (
-            f"Next TDD step: write only the test {test.name!r}, nothing else. "
-            f"Arrange: {test.arrange}. Act: {test.act}. Assert: {test.assertion}. "
-            f"{ONLY_WHAT_IS_NEEDED}"
+            f"write only the test {test.name!r}, nothing else. "
+            f"Arrange: {test.arrange}. Act: {test.act}. Assert: {test.assertion}."
         )
+        if phase is Phase.GREEN:
+            step = (
+                f"make {test.name!r} pass with only the production code its "
+                f"assert needs ({test.assertion}); write nothing for the tests "
+                "still waiting."
+            )
+        step = f"Next TDD step: {step} {ONLY_WHAT_IS_NEEDED}"
         return "".join(f"{line}\n" for line in lines) + step
 
 
