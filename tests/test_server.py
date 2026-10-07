@@ -236,6 +236,8 @@ def test_exempt_patterns_come_from_environment(monkeypatch, value, patterns):
 def test_server_instructions_explain_the_cycle():
     assert mcp.instructions is not None
     for word in (
+        "plan_tests",
+        "arrange",
         "run_coverage",
         "run_tests",
         "write_file",
