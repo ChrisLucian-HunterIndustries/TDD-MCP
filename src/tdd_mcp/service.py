@@ -189,7 +189,11 @@ class TddService:
                 "them, letting names say what the comments did, commit ('. r'), "
                 "then call advance_tdd_phase again."
             )
-        return Report(session.phase, f"{message} {guidance}", run.output)
+        return Report(
+            session.phase,
+            f"{message} {guidance}{_reminder(session)}",
+            run.output,
+        )
 
     def run_coverage(self, location: str, language: str) -> Report:
         run = self._adapter(language).run_coverage(_root(location))
@@ -522,6 +526,12 @@ class TddService:
             f"{message} {_guidance(session.phase, counts.failures, added)}",
             "" if run.outcome is Outcome.PASSED else run.output,
         )
+
+
+def _reminder(session: _Session) -> str:
+    if session.checklist is None:
+        return ""
+    return f"\n\n{session.checklist.reminder(session.phase)}"
 
 
 def _guidance(phase: Phase, failing: int, added: int) -> str:
