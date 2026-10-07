@@ -77,3 +77,12 @@ def test_red_reminds_to_write_only_the_current_test_from_its_plan():
         "Arrange: a calculator. Act: add 2 and 3. Assert: the result is 5. "
         "Do only as much as this step needs, and no more."
     )
+
+
+def test_green_reminds_to_write_only_the_code_the_current_assert_needs():
+    reminder = Checklist([ADDS, REJECTS]).reminder(Phase.GREEN)
+    assert reminder.endswith(
+        "Next TDD step: make 'adds two numbers' pass with only the production "
+        "code its assert needs (the result is 5); write nothing for the tests "
+        "still waiting. Do only as much as this step needs, and no more."
+    )
