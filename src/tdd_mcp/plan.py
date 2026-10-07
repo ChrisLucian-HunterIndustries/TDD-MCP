@@ -22,6 +22,11 @@ class Checklist:
     def __init__(self, tests: Sequence[PlannedTest]) -> None:
         if not tests:
             raise PlanError("A plan needs at least one test.")
+        for test in tests:
+            parts = {"arrange": test.arrange, "act": test.act, "assert": test.assertion}
+            missing = [part for part, text in parts.items() if not text.strip()]
+            if missing:
+                raise PlanError(f"{test.name!r} has no {' or '.join(missing)}.")
         self.tests = tuple(tests)
         self.done = 0
 
