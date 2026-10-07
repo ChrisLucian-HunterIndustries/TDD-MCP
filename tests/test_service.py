@@ -1192,3 +1192,16 @@ def test_render_shows_phase_message_and_output_tail():
 
 def test_render_without_output():
     assert Report(Phase.RED, "Write a test.").render() == "Phase: red\nWrite a test."
+
+
+@pytest.fixture
+def planning(adapter: FakeAdapter, tree: FakeTree) -> TddService:
+    return TddService({"fake": adapter}, pending_changes=tree, require_plan=True)
+
+
+def test_a_session_that_requires_a_plan_starts_in_the_plan_phase(
+    planning, tmp_path: Path
+):
+    report = _start(planning, tmp_path)
+    assert report.phase is Phase.PLAN
+    assert "call plan_tests" in report.message
