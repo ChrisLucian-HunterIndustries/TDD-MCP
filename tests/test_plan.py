@@ -22,3 +22,9 @@ def test_checking_off_the_current_test_moves_on_to_the_next():
     checklist = Checklist([ADDS, REJECTS])
     checklist.check_off()
     assert checklist.current == REJECTS
+
+
+def test_a_checklist_with_every_test_checked_off_has_no_current_test():
+    checklist = Checklist([ADDS])
+    checklist.check_off()
+    assert checklist.current is None
