@@ -65,7 +65,12 @@ def _mark(number: int, done: int) -> str:
     return "[>]" if number == done else "[ ]"
 
 
-def _step(phase: Phase, test: PlannedTest) -> str:
+def _step(phase: Phase, test: PlannedTest | None) -> str:
+    if test is None:
+        return (
+            "every planned test is done. If the task still lacks a test, call "
+            "plan_tests with only the missing ones; otherwise the task is finished."
+        )
     if phase is Phase.GREEN:
         return (
             f"make {test.name!r} pass with only the production code its assert "
