@@ -8,9 +8,11 @@ from contextlib import contextmanager
 
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
+from typing_extensions import TypedDict
 
 from tdd_mcp import git_gate
 from tdd_mcp.languages import ADAPTERS, LanguageName
+from tdd_mcp.plan import PlannedTest
 from tdd_mcp.service import TddService
 
 # Comma-separated fnmatch patterns of project paths that skip the TDD cycle.
@@ -87,6 +89,36 @@ def tdd_status(location: str) -> str:
     """
     with _refusals_as_tool_errors():
         return service.status(location).render()
+
+
+PlannedTestSpec = TypedDict(
+    "PlannedTestSpec", {"name": str, "arrange": str, "act": str, "assert": str}
+)
+
+
+@mcp.tool()
+def plan_tests(location: str, tests: list[PlannedTestSpec]) -> str:
+    """Plan every test the task needs before writing any code: a TDD session's first step.
+
+    List the tests that cover the task completely, and no more, smallest
+    behaviour first. Give each a unique name, its arrange (the setup), its act
+    (the one thing it does) and its assert (the exact expected result).
+    Allowed only in the plan phase. Each later reply then reminds you of the
+    next step for the current test. Once every planned test is done you are
+    back in the plan phase: plan only the tests the task still lacks, or stop.
+
+    Args:
+        location: Path to the project root.
+        tests: The tests in the order to write them, each with a name, arrange, act and assert.
+    """
+    with _refusals_as_tool_errors():
+        return service.plan_tests(
+            location,
+            [
+                PlannedTest(t["name"], t["arrange"], t["act"], t["assert"])
+                for t in tests
+            ],
+        ).render()
 
 
 @mcp.tool()
