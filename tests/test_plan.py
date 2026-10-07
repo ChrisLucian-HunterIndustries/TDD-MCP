@@ -1,3 +1,5 @@
+import pytest
+
 from tdd_mcp.plan import Checklist, PlannedTest
 
 ADDS = PlannedTest(
@@ -28,3 +30,10 @@ def test_a_checklist_with_every_test_checked_off_has_no_current_test():
     checklist = Checklist([ADDS])
     checklist.check_off()
     assert checklist.current is None
+
+
+def test_an_empty_plan_is_refused():
+    from tdd_mcp.plan import PlanError
+
+    with pytest.raises(PlanError, match="at least one test"):
+        Checklist([])
