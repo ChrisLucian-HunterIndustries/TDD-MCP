@@ -7,24 +7,41 @@ allows each kind of change when the cycle permits it:
 ```mermaid
 stateDiagram-v2
     [*] --> coverage_required
-    coverage_required --> red: advance_tdd_phase, all tests pass
+    coverage_required --> plan: advance_tdd_phase, all tests pass, no planned test left
+    plan --> red: plan_tests accepts every test's name, arrange, act and assert
+    coverage_required --> red: advance_tdd_phase, all tests pass, a planned test waiting
     coverage_required --> green: advance_tdd_phase, exactly one test fails
     red --> green: a test write leaves exactly one failing test, or the run errors
     green --> refactor: a production write makes the suite pass
     green --> red: return_to_red, with the green edits undone
-    refactor --> red: advance_tdd_phase passes and every changed production line is covered
+    refactor --> red: advance_tdd_phase passes, every changed production line is covered, and a planned test is left
+    refactor --> plan: the same, after the last planned test is checked off
     refactor --> refactor: edit keeps tests passing and adds none (or is reverted)
 ```
 
 | Phase | Test files | Production files | Leaves when |
 |---|---|---|---|
-| `coverage_required` | locked | locked | `advance_tdd_phase` passes (red) or finds exactly one failing test (green) |
+| `coverage_required` | locked | locked | `advance_tdd_phase` passes (plan, or red while a planned test is left) or finds exactly one failing test (green) |
+| `plan` | locked | locked | `plan_tests` accepts a plan in which every test has a name, an arrange, an act and an assert (red) |
 | `red` | writable | locked | a test write leaves exactly one failing test, or the tests can't be collected or run, with at most one test added since the cycle started |
 | `green` | locked | writable | a production write makes the suite pass, or `return_to_red` (see below) |
 | `refactor` | writable | writable | `advance_tdd_phase` passes and covers every production line changed this cycle; any write that breaks tests or adds a test is reverted |
 
 Every reply starts with `Phase: <phase>` and ends with what to do next, and every refusal says how
 to get unstuck, so agents (including small local models) always know where they are in the cycle.
+
+### Plan the tests first
+
+A session starts in `plan`, with every code file locked. The agent decides every test the task
+needs to be covered completely, and no more, and calls `plan_tests` with each test's name,
+arrange, act and assert. Every later reply ends with the checklist (`[x]` done, `[>]` current,
+`[ ]` waiting) and the next step for the current test: in red, write only that test from its
+arrange, act and assert; in green, write only the production code its assert needs; in refactor,
+tidy, commit and advance. Each step tells the agent to do only as much as it needs and no more.
+Finishing a cycle (refactor, then a clean `advance_tdd_phase`) checks off the current test. After
+the last one the session is back in `plan`: plan only the tests the task still lacks, or stop.
+Plans with no tests, duplicate or blank names, or a missing arrange, act or assert are refused, and
+`plan_tests` is refused outside the plan phase.
 
 ### One test at a time, no speculative code
 
@@ -53,6 +70,8 @@ trigger a test run.
 ## Tools
 
 - `tdd_status(location)` — current phase and what it allows.
+- `plan_tests(location, tests)` — in the plan phase, set the checklist of tests to write, each a
+  `{name, arrange, act, assert}`; moves to red. After a finished plan, adds tests to it.
 - `advance_tdd_phase(location, language="python")` — run the whole suite with coverage and move to
   the next phase; the only tool that starts a cycle. `language` is `python` or `typescript`.
 - `return_to_red(location)` — go back from green to red, once the uncommitted green edits are
@@ -63,8 +82,9 @@ trigger a test run.
 - `write_file(location, path, content)` — create or overwrite a file, then run the tests.
 - `edit_file(location, path, old_string, new_string)` — replace exactly one occurrence, then run the tests.
 
-Paths must resolve inside `location`. Cycle state is kept in memory per project, so restarting the
-server starts again at `coverage_required`.
+Paths must resolve inside `location`. Cycle state, including the test plan, is kept in memory per
+project, so restarting the server starts again at `coverage_required` and needs a new plan.
+`rollback_cycle` keeps the plan.
 
 ### Resyncing after changes outside the server
 

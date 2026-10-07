@@ -7,8 +7,14 @@ description: Use when changing code files in a repository that has the `tdd` MCP
 
 Every reply starts with `Phase: <phase>` and ends with `Next: ...`. Follow the Next line.
 
+0. **Plan**: a session starts in the plan phase with every code file locked. Decide every test
+   the task needs to be covered completely, and no more, smallest behaviour first, then call
+   `plan_tests(location, tests)` with each test's `name`, `arrange`, `act` and `assert`. Every
+   reply then ends with the checklist and the next step for the current test; do exactly that
+   step and nothing more. Finishing a cycle checks the test off. Back in plan after the last
+   one: plan only tests the task still lacks, or stop.
 1. `advance_tdd_phase(location)` — the only tool that starts a cycle or moves to the next
-   phase. All tests pass: red. Read the Missing column: untested lines are candidates for the
+   phase. All tests pass: red (or plan, when no planned test is left). Read the Missing column: untested lines are candidates for the
    next test. (`run_coverage` shows the same report but never changes the phase.)
 2. **Red**: add exactly **one** test that fails, before any production code. Red only advances
    when exactly one test fails and at most one test was added since the cycle started, so never
@@ -35,6 +41,9 @@ calls. Commit before the next phase's edits; `advance_tdd_phase` also ends the s
 before running it. Coverage measures branches: an `if` with an untaken path is uncovered.
 
 ## When refused or stuck
+
+- "not allowed in the plan phase" — call `plan_tests` first. A refused plan names what's
+  missing (no tests, a blank name, a duplicate name, no arrange/act/assert): fix just that.
 
 - "Uncommitted changes in ..." — commit the listed changes (sequentially: `git add`, then the
   racn `commit` tool), then retry the edit.
