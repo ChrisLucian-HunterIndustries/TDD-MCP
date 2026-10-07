@@ -6,6 +6,10 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 
+class PlanError(ValueError):
+    """Raised when a test plan is incomplete or invalid."""
+
+
 @dataclass(frozen=True)
 class PlannedTest:
     name: str
@@ -16,6 +20,8 @@ class PlannedTest:
 
 class Checklist:
     def __init__(self, tests: Sequence[PlannedTest]) -> None:
+        if not tests:
+            raise PlanError("A plan needs at least one test.")
         self.tests = tuple(tests)
         self.done = 0
 
