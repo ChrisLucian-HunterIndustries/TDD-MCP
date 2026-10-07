@@ -11,7 +11,9 @@ from tdd_mcp.server import advance_tdd_phase, edit_file, mcp, tdd_status, write_
 
 @pytest.fixture(autouse=True)
 def fresh_service(monkeypatch):
-    monkeypatch.setattr(server, "service", server.new_service())
+    service = server.new_service()
+    service.require_plan = False
+    monkeypatch.setattr(server, "service", service)
 
 
 def _git(cwd: Path, *args: str) -> None:
@@ -70,6 +72,10 @@ def test_python_red_green_refactor_cycle(repo: Path):
 
 def test_advance_tdd_phase_starts_the_cycle(repo: Path):
     assert server.advance_tdd_phase(str(repo)).startswith("Phase: red")
+
+
+def test_the_server_makes_planning_the_tests_its_first_step():
+    assert server.new_service().require_plan
 
 
 def test_plan_tests_tool_takes_each_tests_arrange_act_and_assert(repo: Path):
