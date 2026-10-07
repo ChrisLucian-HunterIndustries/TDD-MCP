@@ -41,3 +41,8 @@ def test_a_planned_test_without_an_act_or_assert_is_refused():
     vague = PlannedTest("adds", arrange="a calculator", act=" ", assertion="")
     with pytest.raises(PlanError, match="'adds' has no act or assert"):
         Checklist([ADDS, vague])
+
+
+def test_planning_the_same_test_name_twice_is_refused():
+    with pytest.raises(PlanError, match="'adds two numbers' is planned twice"):
+        Checklist([ADDS, REJECTS, ADDS])
