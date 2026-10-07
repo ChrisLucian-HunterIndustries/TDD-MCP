@@ -1265,7 +1265,7 @@ def test_finishing_a_cycle_checks_off_the_planned_test(
 
 def _finish_cycle(service: TddService, adapter: FakeAdapter, root: Path) -> Report:
     adapter.outcome = Outcome.FAILED
-    service.write_file(str(root), "test_calc", "test")
+    service.write_file(str(root), "test_calc", "def test_adds")
     adapter.outcome = Outcome.PASSED
     service.write_file(str(root), "calc.code", "impl")
     return _start(service, root)
@@ -1314,7 +1314,7 @@ def test_a_write_ends_with_the_plan_and_the_next_step_of_its_new_phase(
     planning.plan_tests(str(tmp_path), [ADDS])
     adapter.outcome = Outcome.FAILED
 
-    report = planning.write_file(str(tmp_path), "test_calc", "test")
+    report = planning.write_file(str(tmp_path), "test_calc", "def test_adds")
 
     assert report.message.endswith(Checklist([ADDS]).reminder(Phase.GREEN))
 
@@ -1338,10 +1338,24 @@ def test_rolling_back_a_planned_cycle_keeps_the_plan(
     _start(planning, tmp_path)
     planning.plan_tests(str(tmp_path), [ADDS])
     adapter.outcome = Outcome.FAILED
-    planning.write_file(str(tmp_path), "test_calc", "test")
+    planning.write_file(str(tmp_path), "test_calc", "def test_adds")
     adapter.outcome = Outcome.PASSED
 
     report = planning.rollback_cycle(str(tmp_path))
 
     assert report.phase is Phase.RED
     assert report.message.endswith(Checklist([ADDS]).reminder(Phase.RED))
+
+
+def test_a_red_test_not_named_after_the_planned_test_is_reverted(
+    planning, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS, NEGATIVE])
+    adapter.outcome = Outcome.FAILED
+
+    report = planning.write_file(str(tmp_path), "test_calc", "def test_negative")
+
+    assert report.phase is Phase.RED
+    assert not (tmp_path / "test_calc").exists()
+    assert "isn't the planned test 'adds'" in report.message
