@@ -4,6 +4,7 @@ import pytest
 
 from tdd_mcp.cycle import FileKind, Outcome, Phase
 from tdd_mcp.languages.base import Function, SuiteRun
+from tdd_mcp.plan import PlannedTest
 from tdd_mcp.reports import SuiteCounts
 from tdd_mcp.service import Report, TddError, TddService
 from tdd_mcp.workspace import WorkspaceError
@@ -1205,3 +1206,17 @@ def test_a_session_that_requires_a_plan_starts_in_the_plan_phase(
     report = _start(planning, tmp_path)
     assert report.phase is Phase.PLAN
     assert "call plan_tests" in report.message
+
+
+ADDS = PlannedTest("adds", arrange="a calculator", act="add 2 and 3", assertion="5")
+NEGATIVE = PlannedTest("negative", arrange="a calculator", act="add -1", assertion="error")
+
+
+def test_planning_tests_moves_to_red_and_reminds_of_the_first_test(
+    planning, tmp_path: Path
+):
+    _start(planning, tmp_path)
+    report = planning.plan_tests(str(tmp_path), [ADDS, NEGATIVE])
+    assert report.phase is Phase.RED
+    assert "Next TDD step: write only the test 'adds'" in report.message
+    assert planning.status(str(tmp_path)).phase is Phase.RED
