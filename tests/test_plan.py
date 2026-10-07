@@ -86,3 +86,12 @@ def test_green_reminds_to_write_only_the_code_the_current_assert_needs():
         "code its assert needs (the result is 5); write nothing for the tests "
         "still waiting. Do only as much as this step needs, and no more."
     )
+
+
+def test_refactor_reminds_that_advancing_checks_off_the_current_test():
+    reminder = Checklist([ADDS, REJECTS]).reminder(Phase.REFACTOR)
+    assert reminder.endswith(
+        "Next TDD step: tidy the code without adding behaviour, commit, then "
+        "call advance_tdd_phase, which checks off 'adds two numbers'. Do only "
+        "as much as this step needs, and no more."
+    )
