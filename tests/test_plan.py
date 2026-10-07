@@ -46,3 +46,9 @@ def test_a_planned_test_without_an_act_or_assert_is_refused():
 def test_planning_the_same_test_name_twice_is_refused():
     with pytest.raises(PlanError, match="'adds two numbers' is planned twice"):
         Checklist([ADDS, REJECTS, ADDS])
+
+
+def test_a_planned_test_without_a_name_is_refused():
+    nameless = PlannedTest(" ", arrange="a calculator", act="add", assertion="5")
+    with pytest.raises(PlanError, match="A planned test has no name"):
+        Checklist([nameless])
