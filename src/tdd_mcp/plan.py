@@ -46,7 +46,13 @@ class Checklist:
     def reminder(self, phase: Phase) -> str:
         lines = [f"Test plan ({self.done} of {len(self.tests)} done):"]
         lines += [
-            f"{'[x]' if number < self.done else '[>]'} {test.name}"
+            f"{_mark(number, self.done)} {test.name}"
             for number, test in enumerate(self.tests)
         ]
         return "".join(f"{line}\n" for line in lines)
+
+
+def _mark(number: int, done: int) -> str:
+    if number < done:
+        return "[x]"
+    return "[>]" if number == done else "[ ]"
