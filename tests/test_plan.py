@@ -35,3 +35,9 @@ def test_a_checklist_with_every_test_checked_off_has_no_current_test():
 def test_an_empty_plan_is_refused():
     with pytest.raises(PlanError, match="at least one test"):
         Checklist([])
+
+
+def test_a_planned_test_without_an_act_or_assert_is_refused():
+    vague = PlannedTest("adds", arrange="a calculator", act=" ", assertion="")
+    with pytest.raises(PlanError, match="'adds' has no act or assert"):
+        Checklist([ADDS, vague])
