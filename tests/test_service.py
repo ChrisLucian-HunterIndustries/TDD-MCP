@@ -1208,6 +1208,13 @@ def test_a_session_that_requires_a_plan_starts_in_the_plan_phase(
     assert "call plan_tests" in report.message
 
 
+def test_writing_a_test_before_planning_is_refused(planning, tmp_path: Path):
+    _start(planning, tmp_path)
+    with pytest.raises(TddError, match="not allowed in the plan phase.*plan_tests"):
+        planning.write_file(str(tmp_path), "test_calc", "test")
+    assert not (tmp_path / "test_calc").exists()
+
+
 ADDS = PlannedTest("adds", arrange="a calculator", act="add 2 and 3", assertion="5")
 NEGATIVE = PlannedTest("negative", arrange="a calculator", act="add -1", assertion="error")
 
