@@ -16,3 +16,9 @@ REJECTS = PlannedTest(
 
 def test_the_first_planned_test_is_the_current_one():
     assert Checklist([ADDS, REJECTS]).current == ADDS
+
+
+def test_checking_off_the_current_test_moves_on_to_the_next():
+    checklist = Checklist([ADDS, REJECTS])
+    checklist.check_off()
+    assert checklist.current == REJECTS
