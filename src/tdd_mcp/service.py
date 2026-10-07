@@ -483,7 +483,8 @@ class TddService:
             failing=counts.failures,
             added=added,
         )
-        planned = session.checklist.current if session.checklist else None
+        checked = session.checklist if phase is Phase.RED else None
+        planned = checked.current if checked else None
         content = target.read_text(encoding="utf-8", errors="replace")
         named = planned and _key(planned.name) in _key(content)
         if planned and transition.phase is Phase.GREEN and not named:
