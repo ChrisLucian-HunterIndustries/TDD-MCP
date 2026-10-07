@@ -49,7 +49,16 @@ class Checklist:
             f"{_mark(number, self.done)} {test.name}"
             for number, test in enumerate(self.tests)
         ]
-        return "".join(f"{line}\n" for line in lines)
+        test = self.current
+        step = (
+            f"Next TDD step: write only the test {test.name!r}, nothing else. "
+            f"Arrange: {test.arrange}. Act: {test.act}. Assert: {test.assertion}. "
+            f"{ONLY_WHAT_IS_NEEDED}"
+        )
+        return "".join(f"{line}\n" for line in lines) + step
+
+
+ONLY_WHAT_IS_NEEDED = "Do only as much as this step needs, and no more."
 
 
 def _mark(number: int, done: int) -> str:
