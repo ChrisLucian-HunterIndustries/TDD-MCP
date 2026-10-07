@@ -49,24 +49,11 @@ class Checklist:
             f"{_mark(number, self.done)} {test.name}"
             for number, test in enumerate(self.tests)
         ]
-        test = self.current
-        step = (
-            f"write only the test {test.name!r}, nothing else. "
-            f"Arrange: {test.arrange}. Act: {test.act}. Assert: {test.assertion}."
+        step = _step(phase, self.current)
+        return (
+            "".join(f"{line}\n" for line in lines)
+            + f"Next TDD step: {step} {ONLY_WHAT_IS_NEEDED}"
         )
-        if phase is Phase.GREEN:
-            step = (
-                f"make {test.name!r} pass with only the production code its "
-                f"assert needs ({test.assertion}); write nothing for the tests "
-                "still waiting."
-            )
-        if phase is Phase.REFACTOR:
-            step = (
-                "tidy the code without adding behaviour, commit, then call "
-                f"advance_tdd_phase, which checks off {test.name!r}."
-            )
-        step = f"Next TDD step: {step} {ONLY_WHAT_IS_NEEDED}"
-        return "".join(f"{line}\n" for line in lines) + step
 
 
 ONLY_WHAT_IS_NEEDED = "Do only as much as this step needs, and no more."
@@ -76,3 +63,20 @@ def _mark(number: int, done: int) -> str:
     if number < done:
         return "[x]"
     return "[>]" if number == done else "[ ]"
+
+
+def _step(phase: Phase, test: PlannedTest) -> str:
+    if phase is Phase.GREEN:
+        return (
+            f"make {test.name!r} pass with only the production code its assert "
+            f"needs ({test.assertion}); write nothing for the tests still waiting."
+        )
+    if phase is Phase.REFACTOR:
+        return (
+            "tidy the code without adding behaviour, commit, then call "
+            f"advance_tdd_phase, which checks off {test.name!r}."
+        )
+    return (
+        f"write only the test {test.name!r}, nothing else. "
+        f"Arrange: {test.arrange}. Act: {test.act}. Assert: {test.assertion}."
+    )
