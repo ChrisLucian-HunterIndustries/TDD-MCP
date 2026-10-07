@@ -8,6 +8,7 @@ from enum import StrEnum
 
 class Phase(StrEnum):
     COVERAGE_REQUIRED = "coverage_required"
+    PLAN = "plan"
     RED = "red"
     GREEN = "green"
     REFACTOR = "refactor"
@@ -44,6 +45,13 @@ PHASE_GUIDANCE: dict[Phase, str] = {
         "advance_tdd_phase must be able to run the tests; all passing starts the "
         "cycle in red."
     ),
+    Phase.PLAN: (
+        "You are in the plan phase. Code files (tests and production) are "
+        "locked. Next: decide every test needed to cover the task completely, "
+        "no more, then call plan_tests with each one's name, arrange, act and "
+        "assert. To move on to red: plan_tests must accept a plan in which every "
+        "test has a name, an arrange, an act and an assert."
+    ),
     Phase.RED: (
         "You are in the red phase. Production code is locked. "
         "Next: write exactly ONE new test that fails, with write_file or "
@@ -78,6 +86,7 @@ PHASE_GUIDANCE: dict[Phase, str] = {
 
 _WRITABLE: dict[Phase, frozenset[FileKind]] = {
     Phase.COVERAGE_REQUIRED: frozenset({FileKind.OTHER}),
+    Phase.PLAN: frozenset({FileKind.OTHER}),
     Phase.RED: frozenset({FileKind.OTHER, FileKind.TEST}),
     Phase.GREEN: frozenset({FileKind.OTHER, FileKind.PRODUCTION}),
     Phase.REFACTOR: frozenset(FileKind),
