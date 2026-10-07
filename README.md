@@ -43,6 +43,12 @@ the last one the session is back in `plan`: plan only the tests the task still l
 Plans with no tests, duplicate or blank names, or a missing arrange, act or assert are refused, and
 `plan_tests` is refused outside the plan phase.
 
+Red holds the agent to the plan. A red write that would reach green is reverted unless the
+written test file contains the current planned test's name (compared ignoring case and
+separators, so `adds two numbers` matches `test_adds_two_numbers` and `it("Adds two numbers")`).
+A planned test that passes as soon as it's written is checked off, with a reminder to commit it
+and call `advance_tdd_phase`; `plan_tests` asks for an order in which every test fails first.
+
 ### One test at a time, no speculative code
 
 The server counts tests from the runner's JUnit report. Red only advances when exactly one test
