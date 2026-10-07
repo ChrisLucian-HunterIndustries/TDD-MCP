@@ -30,7 +30,7 @@
         }
     },
     {
-        "description": "Plan every test the task needs before writing any code: a TDD session's first step.\n\nList the tests that cover the task completely, and no more, smallest\nbehaviour first. Give each a unique name, its arrange (the setup), its act\n(the one thing it does) and its assert (the exact expected result).\nAllowed only in the plan phase. Each later reply then reminds you of the\nnext step for the current test. Once every planned test is done you are\nback in the plan phase: plan only the tests the task still lacks, or stop.\n\nArgs:\n    location: Path to the project root.\n    tests: The tests in the order to write them, each with a name, arrange, act and assert.\n",
+        "description": "Plan every test the task needs before writing any code: a TDD session's first step.\n\nList the tests that cover the task completely, and no more, smallest\nbehaviour first. Order them so each one fails when it is written: a test\nthat would already pass is redundant or out of order. Give each a unique\nname, its arrange (the setup), its act (the one thing it does) and its\nassert (the exact expected result).\nAllowed only in the plan phase. Each later reply then reminds you of the\nnext step for the current test. Once every planned test is done you are\nback in the plan phase: plan only the tests the task still lacks, or stop.\n\nArgs:\n    location: Path to the project root.\n    tests: The tests in the order to write them, each with a name, arrange, act and assert.\n",
         "input_schema": {
             "$defs": {
                 "PlannedTestSpec": {
