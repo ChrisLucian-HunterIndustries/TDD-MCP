@@ -17,7 +17,11 @@ class PlannedTest:
 class Checklist:
     def __init__(self, tests: Sequence[PlannedTest]) -> None:
         self.tests = tuple(tests)
+        self.done = 0
 
     @property
     def current(self) -> PlannedTest:
-        return self.tests[0]
+        return self.tests[self.done]
+
+    def check_off(self) -> None:
+        self.done += 1
