@@ -156,7 +156,8 @@ class TddService:
         session.last_failing, session.last_added = failing, added
         if run.counts and restarts:
             session.tests = run.counts.tests
-        if session.phase is Phase.RED and restarts and not blocked and self._history:
+        starting = session.phase in (Phase.RED, Phase.PLAN)
+        if starting and restarts and not blocked and self._history:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
         guidance = _guidance(session.phase, failing, added)
@@ -293,7 +294,7 @@ class TddService:
                 "call advance_tdd_phase; it records one whenever every test passes."
             )
         backup = self._history.rollback(root, base)
-        del self._sessions[root]
+        self._sessions[root] = _Session(session.adapter, checklist=session.checklist)
         report = self.advance_tdd_phase(location, session.adapter.name)
         return Report(
             report.phase,
