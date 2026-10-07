@@ -1390,3 +1390,17 @@ def test_a_planned_test_that_already_passes_is_checked_off(
         "'adds' already passes, so it's checked off: commit it ('. t'), then "
         "call advance_tdd_phase."
     ) in report.message
+
+
+def test_a_failing_green_write_under_a_plan_is_kept(
+    planning, adapter: FakeAdapter, tmp_path: Path
+):
+    _start(planning, tmp_path)
+    planning.plan_tests(str(tmp_path), [ADDS])
+    adapter.outcome = Outcome.FAILED
+    planning.write_file(str(tmp_path), "test_calc", "def test_adds")
+
+    report = planning.write_file(str(tmp_path), "calc.code", "impl")
+
+    assert report.phase is Phase.GREEN
+    assert (tmp_path / "calc.code").exists()
