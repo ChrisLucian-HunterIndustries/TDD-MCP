@@ -133,6 +133,7 @@ class TddService:
         failing = run.counts.failures if run.counts else 0
         restarts = fresh or run.outcome is Outcome.PASSED
         added = run.counts.tests - session.tests if run.counts and not restarts else 0
+        finishing = session.phase is Phase.REFACTOR
         session.phase = after_coverage(
             session.phase,
             run.outcome,
@@ -141,6 +142,8 @@ class TddService:
             added=added,
         )
         planned = session.checklist is not None
+        if planned and finishing and session.phase is Phase.RED:
+            session.checklist.check_off()
         if self.require_plan and session.phase is Phase.RED and not planned:
             session.phase = Phase.PLAN
         session.last_failing, session.last_added = failing, added
