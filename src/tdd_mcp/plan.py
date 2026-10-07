@@ -82,6 +82,7 @@ def _step(phase: Phase, test: PlannedTest | None) -> str:
             f"advance_tdd_phase, which checks off {test.name!r}."
         )
     return (
-        f"write only the test {test.name!r}, nothing else. "
+        f"write only the test {test.name!r}, with that name in its test name, "
+        "nothing else. "
         f"Arrange: {test.arrange}. Act: {test.act}. Assert: {test.assertion}."
     )
