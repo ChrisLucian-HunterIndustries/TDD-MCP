@@ -92,6 +92,20 @@ def test_plan_tests_tool_takes_each_tests_arrange_act_and_assert(repo: Path):
     assert "Arrange: calc. Act: add 1 and 2. Assert: 3." in planned
 
 
+def test_plan_tests_tool_accepts_a_misspelt_key(repo: Path):
+    location = str(repo)
+    server.service.require_plan = True
+    advance_tdd_phase(location)
+
+    planned = server.plan_tests(
+        location,
+        [{"name": "adds", "arrang": "calc", "act": "add 1 and 2", "assert": "3"}],
+    )
+
+    assert planned.startswith("Phase: red")
+    assert "Arrange: calc." in planned
+
+
 def test_plan_tests_says_every_test_must_fail_when_written():
     description = " ".join(server.plan_tests.__doc__.split())
     assert (
