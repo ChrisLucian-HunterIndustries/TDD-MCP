@@ -343,6 +343,19 @@ def test_a_failed_edit_says_nothing_was_written_and_what_the_phase_needs(
     assert "To move on to green:" in str(refusal.value)
 
 
+def test_a_refused_write_says_first_that_nothing_was_written(
+    service: TddService, tmp_path: Path
+):
+    """Gemma4 skimmed past a mid-paragraph 'Nothing was written' and assumed its edit landed."""
+    (tmp_path / "test_calc").write_text("x = 1\n")
+    _start(service, tmp_path)
+
+    with pytest.raises(WorkspaceError) as refusal:
+        service.edit_file(str(tmp_path), "test_calc", "y = 2", "y = 3")
+
+    assert str(refusal.value).startswith("Not written: test_calc is unchanged.")
+
+
 def test_editing_a_missing_file_says_so_before_any_phase_refusal(
     service: TddService, tree: FakeTree, tmp_path: Path
 ):
