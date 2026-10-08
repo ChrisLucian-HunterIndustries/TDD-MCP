@@ -362,11 +362,11 @@ class TddService:
         except TddError as refusal:
             if call == self._refused:
                 raise TddError(
-                    "This exact call was already refused, and retrying it "
-                    f"unchanged is refused the same way. {refusal}"
+                    f"{unchanged} This exact call was already refused, and retrying "
+                    f"it unchanged is refused the same way. {refusal}"
                 ) from refusal
             self._refused = call
-            raise
+            raise TddError(f"{unchanged} {refusal}") from refusal
         except WorkspaceError as error:
             session = self._sessions.get(Path(call[1]).resolve())
             phase = session.phase if session else Phase.COVERAGE_REQUIRED
