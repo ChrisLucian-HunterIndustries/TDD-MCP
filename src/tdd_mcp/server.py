@@ -99,7 +99,9 @@ def tdd_status(location: str) -> str:
 
 
 PlannedTestSpec = TypedDict(
-    "PlannedTestSpec", {"name": str, "arrange": str, "act": str, "assert": str}
+    "PlannedTestSpec",
+    {"name": str, "arrange": str, "act": str, "assert": str},
+    total=False,
 )
 
 
