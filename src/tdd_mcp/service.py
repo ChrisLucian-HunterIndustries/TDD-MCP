@@ -328,7 +328,7 @@ class TddService:
                         "write_file replaces the whole file, and this content drops "
                         f"{', '.join(sorted(dropped))} from {path}. Use edit_file "
                         "to add, change or delete code, or include everything the "
-                        "file should keep. Nothing was written. "
+                        "file should keep. "
                         f"{PHASE_GUIDANCE[session.phase]}"
                     )
             return write_text(target, content)
