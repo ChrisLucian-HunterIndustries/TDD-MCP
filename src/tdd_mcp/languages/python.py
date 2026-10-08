@@ -181,6 +181,8 @@ class PythonAdapter:
                     # Otherwise one import error hides every other test from the count.
                     "--continue-on-collection-errors",
                     "--color=no",
+                    "-q",
+                    "--tb=short",
                     f"--junitxml={junit}",
                     *args,
                 ],
