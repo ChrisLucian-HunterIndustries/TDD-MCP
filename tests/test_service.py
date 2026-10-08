@@ -356,6 +356,21 @@ def test_a_refused_write_says_first_that_nothing_was_written(
     assert str(refusal.value).startswith("Not written: test_calc is unchanged.")
 
 
+def test_advance_in_green_with_no_uncommitted_edits_says_no_edit_landed(
+    service: TddService, adapter: FakeAdapter, tmp_path: Path
+):
+    """Gemma4 believed its refused edits had landed and re-ran advance_tdd_phase 6 times."""
+    _start(service, tmp_path)
+    adapter.outcome, adapter.counts = Outcome.FAILED, SuiteCounts(tests=1, failures=1)
+    service.write_file(str(tmp_path), "test_calc", "test")
+
+    report = _start(service, tmp_path)
+
+    assert report.phase is Phase.GREEN
+    assert "No edit has landed since your last commit" in report.message
+    assert "Read the production file" in report.message
+
+
 def test_editing_a_missing_file_says_so_before_any_phase_refusal(
     service: TddService, tree: FakeTree, tmp_path: Path
 ):
