@@ -1214,9 +1214,17 @@ def test_sessions_are_per_location(service, tmp_path: Path):
 def test_render_shows_phase_message_and_output_tail():
     report = Report(Phase.RED, "Write a test.", "x" * 10_000 + "END")
     rendered = report.render()
-    assert rendered.startswith("Phase: red\nWrite a test.\n\n")
-    assert rendered.endswith("END")
+    assert rendered.startswith("Phase: red\n")
+    assert "Write a test." in rendered
+    assert "END" in rendered
     assert len(rendered) < 7_000
+
+
+def test_render_puts_the_output_before_the_message():
+    """Small models attend most to a reply's start and end; end it with the next step."""
+    rendered = Report(Phase.RED, "Write a test.", "OUTPUT").render()
+
+    assert rendered == "Phase: red\n\nOUTPUT\n\nWrite a test."
 
 
 def test_render_without_output():
