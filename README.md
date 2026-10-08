@@ -27,8 +27,14 @@ stateDiagram-v2
 | `green` | locked | writable | a production write makes the suite pass, or `return_to_red` (see below) |
 | `refactor` | writable | writable | `advance_tdd_phase` passes and covers every production line changed this cycle; any write that breaks tests or adds a test is reverted |
 
-Every reply starts with `Phase: <phase>` and ends with what to do next, and every refusal says how
-to get unstuck, so agents (including small local models) always know where they are in the cycle.
+Every reply starts with `Phase: <phase>`, then the test output, and ends with what to do next, so
+the next step is the last thing the agent reads. Every refusal of a `write_file` or `edit_file`
+starts with `Not written: <path> is unchanged.` and says how to get unstuck, and an
+`advance_tdd_phase` that stays in green with nothing uncommitted says no edit has landed, so
+agents (including small local models) don't build on edits that never happened. Test output is
+kept short: pytest runs with `-q --tb=short`, and the coverage table lists only files that aren't
+fully covered. `plan_tests` accepts a misspelt key (`arrang` for `arrange`) and names the keys it
+got when one is missing.
 
 ### Plan the tests first
 

@@ -41,6 +41,21 @@ Python files, so agents must go through the cycle and commit with RACN. See [CLA
 3. Add tests like `tests/test_python_adapter.py`, then re-approve `tests/manifest.approved.json`
    (the `language` parameter's enum changes).
 
+## Writing text for the model
+
+Every reply, refusal, tool description and the server instructions are read by an agent, often a
+small local model (Gemma 4) with weak attention to the middle of long text. When changing them:
+
+- Put the state first and the next action last. `Report.render` puts the test output between the
+  `Phase:` line and the message, so the message's closing `Next:` is what the model reads last.
+- Lead a refusal with what didn't happen (`Not written: <path> is unchanged.`). Models that miss
+  a refusal build on edits that never landed.
+- One instruction per sentence, imperative, with the exact tool name. Name the one next call.
+- Cut what the model doesn't need: duplicate phrasing, test-runner headers, rows for fully covered
+  files. Tool descriptions and instructions are sent on every request, so they cost the most.
+- Keep the lesson, not the wording. Tests pinning guidance cite the Gemma failure that motivated
+  them in their docstrings; reword freely, but keep what each one guards against.
+
 ## Tests
 
 `tests/manifest.approved.json` is an [approval test](https://approvaltests.com/) of the tool
