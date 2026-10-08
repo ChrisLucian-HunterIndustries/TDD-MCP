@@ -424,11 +424,11 @@ def test_a_production_write_in_red_leads_with_the_extra_tests_to_delete(
         service.write_file(str(tmp_path), "calc.code", "impl")
 
     message = str(refusal.value)
-    assert (
-        "Writing production files is not allowed in the red phase. Production is "
-        "locked because 3 new tests were added; red needs exactly one. Next: "
-        "delete 2 of the new test functions"
-    ) in message
+    assert message.startswith(
+        "Not written: calc.code is unchanged. Writing production files is not "
+        "allowed in the red phase. Production is locked because 3 new tests were "
+        "added; red needs exactly one. Next: delete 2 of the new test functions"
+    )
     assert "rollback_cycle" not in message
 
 
@@ -444,10 +444,10 @@ def test_retrying_a_refused_call_unchanged_says_it_will_be_refused_again(
         service.write_file(str(tmp_path), "calc.code", "impl")
 
     assert "already refused" not in str(first.value)
-    assert (
-        "This exact call was already refused, and retrying it unchanged is "
-        "refused the same way. "
-    ) in str(retry.value)
+    assert str(retry.value).startswith(
+        "Not written: calc.code is unchanged. This exact call was already "
+        "refused, and retrying it unchanged is refused the same way. "
+    )
 
 
 def test_a_locked_write_says_first_that_nothing_was_written(
