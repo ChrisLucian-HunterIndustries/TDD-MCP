@@ -106,6 +106,15 @@ def test_plan_tests_tool_accepts_a_misspelt_key(repo: Path):
     assert "Arrange: calc." in planned
 
 
+def test_plan_tests_schema_requires_no_test_keys():
+    tools = {tool.name: tool for tool in asyncio.run(mcp.list_tools())}
+
+    spec = tools["plan_tests"].input_schema["$defs"]["PlannedTestSpec"]
+
+    assert set(spec["properties"]) == {"name", "arrange", "act", "assert"}
+    assert "required" not in spec
+
+
 def test_plan_tests_says_every_test_must_fail_when_written():
     description = " ".join(server.plan_tests.__doc__.split())
     assert (
