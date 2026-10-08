@@ -151,6 +151,19 @@ def _two_test_files(tmp_path: Path) -> Path:
     return tmp_path
 
 
+def test_pytest_output_is_quiet_with_short_tracebacks(tmp_path: Path):
+    """Every reply carries the test output; headers and whole test bodies cost tokens."""
+    (tmp_path / "test_a.py").write_text(
+        "def test_fails():\n    marker = 1\n    assert marker == 2\n"
+    )
+
+    output = adapter.run_tests(tmp_path).output
+
+    assert "test session starts" not in output
+    assert "marker = 1" not in output
+    assert "test_fails" in output
+
+
 def test_run_tests_in_one_file(tmp_path: Path):
     run = adapter.run_tests(_two_test_files(tmp_path), path="tests/test_good.py")
     assert run.outcome is Outcome.PASSED
