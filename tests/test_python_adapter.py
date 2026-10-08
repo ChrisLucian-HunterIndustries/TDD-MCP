@@ -164,6 +164,23 @@ def test_pytest_output_is_quiet_with_short_tracebacks(tmp_path: Path):
     assert "test_fails" in output
 
 
+def test_coverage_report_skips_fully_covered_files(tmp_path: Path):
+    """A row per fully covered file buries the one that needs attention."""
+    (tmp_path / "done.py").write_text("def one():\n    return 1\n")
+    (tmp_path / "partial.py").write_text(
+        "def two(x):\n    if x:\n        return 2\n    return 0\n"
+    )
+    (tmp_path / "test_a.py").write_text(
+        "from done import one\nfrom partial import two\n\n\n"
+        "def test_both():\n    assert one() == 1\n    assert two(1) == 2\n"
+    )
+
+    output = adapter.run_coverage(tmp_path).output
+
+    assert "partial.py" in output
+    assert "done.py" not in output
+
+
 def test_run_tests_in_one_file(tmp_path: Path):
     run = adapter.run_tests(_two_test_files(tmp_path), path="tests/test_good.py")
     assert run.outcome is Outcome.PASSED
