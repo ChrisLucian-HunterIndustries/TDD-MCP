@@ -21,45 +21,29 @@ EXEMPT_ENV_VAR = "TDD_MCP_EXEMPT"
 mcp = MCPServer(
     "test-driven-development",
     instructions=(
-        "Enforces the test-driven development cycle when writing code files. "
-        "Write every code file through this server's `write_file` or "
-        "`edit_file` tools, never with other editing tools. Every reply starts "
-        "with 'Phase: <phase>' and says what to do next; follow it. A session "
-        "starts in the plan phase, with every code file locked: decide every "
-        "test the task needs to be covered completely, and no more, then call "
-        "`plan_tests` with each test's name, arrange, act and assert. Each "
-        "reply then ends with the plan and the next step for its current test; "
-        "do only what that step needs. Each cycle: "
-        "(1) call `advance_tdd_phase` — it runs all tests with coverage and is "
-        "the only tool that starts a cycle or moves to the next phase; when "
-        "all tests pass you are in red, and finishing a cycle checks off the "
-        "current planned test. Call it again whenever the repository "
-        "changed outside this server (e.g. a git reset) to resync the phase. "
-        "(2) Red: write exactly ONE new failing test before any production "
-        "code (production code is locked until exactly one test fails, and "
-        "adding more than one test keeps you in red). A test that can't be "
-        "collected yet, e.g. because it imports code that doesn't exist, "
-        "counts as failing. "
-        "(3) Green: write production code until the tests pass (tests are "
-        "locked meanwhile). If older tests then fail because they assert the "
-        "old behaviour, undo your production edits and call `return_to_red` to "
-        "update them. (4) Refactor: refactor test or production code — "
-        "any edit that breaks the tests or adds a test is automatically "
-        "reverted; then call `advance_tdd_phase` to start the next cycle, which "
-        "also requires every production line changed this cycle to be covered, "
-        "so don't write code for tests that don't exist yet, and refuses while "
-        "any line changed this cycle holds a comment (tool directives such as "
-        "`# noqa` are fine), so say it with names instead. Call `tdd_status` "
-        "any time to see the current phase and what is allowed. `run_coverage` "
-        "(a coverage report) and `run_tests` (all tests, a file or folder, or a "
-        "single test, without coverage) never change the phase. Non-code files "
-        "(docs, config) can be written in any phase and don't run the tests. "
-        "Neither do paths matching the server's `TDD_MCP_EXEMPT` patterns. "
-        "Coverage includes branches. Commit each step before the next phase's "
-        "edits (e.g. '. t' for a new failing test, then '^ f' for the code that "
-        "passes it); repeat edits within one phase amend the uncommitted step, "
-        "and `advance_tdd_phase` ends it. Stuck with no way to the next phase? "
-        "Call `rollback_cycle` to undo the cycle and restart it in red."
+        "Enforces test-driven development. Change code files only with this "
+        "server's `write_file` and `edit_file`. Each reply starts with "
+        "'Phase: <phase>' and ends with the next step: do that step and nothing "
+        "more.\n"
+        "1. plan: call `plan_tests` with every test the task needs, each with a "
+        "name, arrange, act and assert.\n"
+        "2. red: write ONE failing test; a test that imports code that doesn't "
+        "exist yet counts as failing. Commit it as '. t'.\n"
+        "3. green: write the simplest production code that makes every test "
+        "pass. Commit it as '^ f'. If an older test asserts the old behaviour, "
+        "call `return_to_red`.\n"
+        "4. refactor: tidy without adding behaviour; commit each step as '. r'.\n"
+        "`advance_tdd_phase` runs every test with coverage and is the only tool "
+        "that starts a cycle or changes phase. It needs every production line "
+        "changed in the cycle to run in a test, with no comments on those lines. "
+        "Call it again after changing the repository outside this server (e.g. "
+        "git reset).\n"
+        "A refused `write_file` or `edit_file` changes nothing: read the file "
+        "before trying again.\n"
+        "`run_tests` and `run_coverage` never change the phase. `tdd_status` "
+        "shows what is allowed now. Stuck? `rollback_cycle` restarts the cycle "
+        "in red. Non-code files and paths matching `TDD_MCP_EXEMPT` skip the "
+        "cycle."
     ),
 )
 
@@ -89,7 +73,7 @@ def _refusals_as_tool_errors() -> Iterator[None]:
 
 @mcp.tool()
 def tdd_status(location: str) -> str:
-    """Show the current TDD phase for a project and what may be written in it.
+    """Show the current TDD phase and what may be written in it.
 
     Args:
         location: Path to the project root.
@@ -107,20 +91,18 @@ PlannedTestSpec = TypedDict(
 
 @mcp.tool()
 def plan_tests(location: str, tests: list[PlannedTestSpec]) -> str:
-    """Plan every test the task needs before writing any code: a TDD session's first step.
+    """Plan the task's tests: a TDD session's first step, allowed only in the plan phase.
 
-    List the tests that cover the task completely, and no more, smallest
-    behaviour first. Order them so each one fails when it is written: a test
-    that would already pass is redundant or out of order. Give each a unique
-    name, its arrange (the setup), its act (the one thing it does) and its
-    assert (the exact expected result).
-    Allowed only in the plan phase. Each later reply then reminds you of the
-    next step for the current test. Once every planned test is done you are
-    back in the plan phase: plan only the tests the task still lacks, or stop.
+    List every test the task needs, and no more, smallest behaviour first.
+    Order them so each one fails when it is written: a test that would
+    already pass is redundant or out of order. Give each a unique name, an
+    arrange (the setup), an act (the one call) and an assert (the exact
+    expected result). Once every planned test is done you are back in the
+    plan phase: plan only what the task still lacks, or stop.
 
     Args:
         location: Path to the project root.
-        tests: The tests in the order to write them, each with a name, arrange, act and assert.
+        tests: The tests in the order to write them.
     """
     with _refusals_as_tool_errors():
         return service.plan_tests(
@@ -130,16 +112,12 @@ def plan_tests(location: str, tests: list[PlannedTestSpec]) -> str:
 
 @mcp.tool()
 def advance_tdd_phase(location: str, language: LanguageName = "python") -> str:
-    """Check the whole test suite (with coverage) and move to the next TDD phase.
+    """Run every test with coverage and move to the phase the results call for.
 
-    The only tool that starts a cycle. Call it first, after each refactor, and
-    whenever the repository was changed outside this server (e.g. a git reset):
-    the phase is recomputed from the tests. All tests pass: red, write the
-    current planned test next, or the plan phase when none is left (call
-    plan_tests). Finishing a cycle checks off the current planned test.
-    Exactly one test fails: green, make it pass. Several
-    fail, or the cycle added several tests: red, edit the tests until exactly
-    one new test fails.
+    The only tool that starts a cycle or changes phase. Call it first, after
+    each refactor, and after any change made outside this server (e.g. a git
+    reset). All pass: red, or plan once every planned test is done. Exactly
+    one fails: green. Several fail: red, edit the tests until one fails.
 
     Args:
         location: Path to the project root.
@@ -151,13 +129,11 @@ def advance_tdd_phase(location: str, language: LanguageName = "python") -> str:
 
 @mcp.tool()
 def return_to_red(location: str) -> str:
-    """Go back from green to red to fix tests no production change can satisfy.
+    """Go back from green to red to fix tests that no production change can satisfy.
 
-    Use it when your production change makes other, older tests fail because
-    they still expect the old behaviour, or when the new test itself is wrong
-    (e.g. it doesn't import what it uses). Uncommitted production changes are
-    set aside in git stash for you. Back in red, fix those tests, keeping your
-    new test failing.
+    Use it when older tests still assert the old behaviour, or the new test
+    itself is wrong (e.g. a missing import). Uncommitted production changes
+    go to git stash.
 
     Args:
         location: Path to the project root.
@@ -168,12 +144,10 @@ def return_to_red(location: str) -> str:
 
 @mcp.tool()
 def rollback_cycle(location: str) -> str:
-    """Undo the current cycle when you're stuck, then restart it in red.
+    """Undo the current cycle and restart it in red, when no other tool gets you on.
 
-    Resets the project to the commit where this cycle started (every test
-    passed), dropping the cycle's commits and uncommitted changes. Nothing is
-    lost: dropped commits stay under a refs/tdd-mcp/ ref, uncommitted work in
-    git stash. Use it when no other tool gets you to the next phase.
+    Resets to the commit where the cycle started. Dropped commits stay under
+    refs/tdd-mcp/, uncommitted work in git stash.
 
     Args:
         location: Path to the project root.
@@ -184,10 +158,7 @@ def rollback_cycle(location: str) -> str:
 
 @mcp.tool()
 def run_coverage(location: str, language: LanguageName = "python") -> str:
-    """Run the full test suite with coverage and show untested lines. Never changes the TDD phase.
-
-    Use it to find untested code. To start a cycle or move to the next phase,
-    call `advance_tdd_phase` instead.
+    """Run every test with coverage and list untested lines. Never changes the phase.
 
     Args:
         location: Path to the project root.
@@ -201,16 +172,10 @@ def run_coverage(location: str, language: LanguageName = "python") -> str:
 def run_tests(
     location: str, path: str | None = None, test_name: str | None = None
 ) -> str:
-    """Run tests without coverage: faster, for iterating. Never changes the TDD phase.
+    """Run tests without coverage to check progress. Never changes the phase.
 
-    Use this to check progress while writing a test or code. Only `advance_tdd_phase`
-    and the test runs that `write_file`/`edit_file` trigger advance the cycle, so
-    a passing or failing result here unlocks nothing.
-
-    Runs the whole suite by default. Narrow it with `path` (a test file or
-    folder) and/or `test_name` (matched against test names: pytest `-k`,
-    vitest `-t`) to run all tests in a file or folder, or a single test.
-    Requires a cycle started with `advance_tdd_phase`.
+    Runs every test by default; narrow it with `path` (a test file or folder)
+    and/or `test_name` (pytest -k, vitest -t).
 
     Args:
         location: Path to the project root.
@@ -223,13 +188,11 @@ def run_tests(
 
 @mcp.tool()
 def write_file(location: str, path: str, content: str) -> str:
-    """Create or overwrite a file, if the current TDD phase allows it, then run the tests.
+    """Create or overwrite a whole file if the phase allows it, then run the tests.
 
-    Test files may be written in the red and refactor phases; production
-    files in the green and refactor phases. The test results decide the
-    next phase, shown on the reply's first line. In red, write one failing
-    test before any production code. Overwriting an existing file must
-    keep its top-level definitions; use edit_file to change or delete code.
+    Tests are writable in red and refactor, production code in green and
+    refactor. Overwriting must keep the file's top-level definitions; to
+    change part of a file, use edit_file.
 
     Args:
         location: Path to the project root.
@@ -242,14 +205,15 @@ def write_file(location: str, path: str, content: str) -> str:
 
 @mcp.tool()
 def edit_file(location: str, path: str, old_string: str, new_string: str) -> str:
-    """Replace exactly one occurrence of `old_string` in a file, if the TDD phase allows it.
+    """Replace one exact occurrence of `old_string` if the phase allows it, then run the tests.
 
-    Same phase rules and test run as `write_file`.
+    Copy `old_string` from the file as it is now; read the file first if
+    unsure.
 
     Args:
         location: Path to the project root.
         path: File path, relative to `location` (or absolute, inside it).
-        old_string: Exact text to replace; must occur exactly once in the file.
+        old_string: Exact current text; must occur exactly once in the file.
         new_string: Replacement text.
     """
     with _refusals_as_tool_errors():

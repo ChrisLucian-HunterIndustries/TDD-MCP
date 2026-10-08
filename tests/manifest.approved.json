@@ -1,6 +1,6 @@
 [
     {
-        "description": "Show the current TDD phase for a project and what may be written in it.\n\nArgs:\n    location: Path to the project root.\n",
+        "description": "Show the current TDD phase and what may be written in it.\n\nArgs:\n    location: Path to the project root.\n",
         "input_schema": {
             "properties": {
                 "location": {
@@ -30,7 +30,7 @@
         }
     },
     {
-        "description": "Plan every test the task needs before writing any code: a TDD session's first step.\n\nList the tests that cover the task completely, and no more, smallest\nbehaviour first. Order them so each one fails when it is written: a test\nthat would already pass is redundant or out of order. Give each a unique\nname, its arrange (the setup), its act (the one thing it does) and its\nassert (the exact expected result).\nAllowed only in the plan phase. Each later reply then reminds you of the\nnext step for the current test. Once every planned test is done you are\nback in the plan phase: plan only the tests the task still lacks, or stop.\n\nArgs:\n    location: Path to the project root.\n    tests: The tests in the order to write them, each with a name, arrange, act and assert.\n",
+        "description": "Plan the task's tests: a TDD session's first step, allowed only in the plan phase.\n\nList every test the task needs, and no more, smallest behaviour first.\nOrder them so each one fails when it is written: a test that would\nalready pass is redundant or out of order. Give each a unique name, an\narrange (the setup), an act (the one call) and an assert (the exact\nexpected result). Once every planned test is done you are back in the\nplan phase: plan only what the task still lacks, or stop.\n\nArgs:\n    location: Path to the project root.\n    tests: The tests in the order to write them.\n",
         "input_schema": {
             "$defs": {
                 "PlannedTestSpec": {
@@ -92,7 +92,7 @@
         }
     },
     {
-        "description": "Check the whole test suite (with coverage) and move to the next TDD phase.\n\nThe only tool that starts a cycle. Call it first, after each refactor, and\nwhenever the repository was changed outside this server (e.g. a git reset):\nthe phase is recomputed from the tests. All tests pass: red, write the\ncurrent planned test next, or the plan phase when none is left (call\nplan_tests). Finishing a cycle checks off the current planned test.\nExactly one test fails: green, make it pass. Several\nfail, or the cycle added several tests: red, edit the tests until exactly\none new test fails.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
+        "description": "Run every test with coverage and move to the phase the results call for.\n\nThe only tool that starts a cycle or changes phase. Call it first, after\neach refactor, and after any change made outside this server (e.g. a git\nreset). All pass: red, or plan once every planned test is done. Exactly\none fails: green. Several fail: red, edit the tests until one fails.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
         "input_schema": {
             "properties": {
                 "language": {
@@ -131,7 +131,7 @@
         }
     },
     {
-        "description": "Go back from green to red to fix tests no production change can satisfy.\n\nUse it when your production change makes other, older tests fail because\nthey still expect the old behaviour, or when the new test itself is wrong\n(e.g. it doesn't import what it uses). Uncommitted production changes are\nset aside in git stash for you. Back in red, fix those tests, keeping your\nnew test failing.\n\nArgs:\n    location: Path to the project root.\n",
+        "description": "Go back from green to red to fix tests that no production change can satisfy.\n\nUse it when older tests still assert the old behaviour, or the new test\nitself is wrong (e.g. a missing import). Uncommitted production changes\ngo to git stash.\n\nArgs:\n    location: Path to the project root.\n",
         "input_schema": {
             "properties": {
                 "location": {
@@ -161,7 +161,7 @@
         }
     },
     {
-        "description": "Undo the current cycle when you're stuck, then restart it in red.\n\nResets the project to the commit where this cycle started (every test\npassed), dropping the cycle's commits and uncommitted changes. Nothing is\nlost: dropped commits stay under a refs/tdd-mcp/ ref, uncommitted work in\ngit stash. Use it when no other tool gets you to the next phase.\n\nArgs:\n    location: Path to the project root.\n",
+        "description": "Undo the current cycle and restart it in red, when no other tool gets you on.\n\nResets to the commit where the cycle started. Dropped commits stay under\nrefs/tdd-mcp/, uncommitted work in git stash.\n\nArgs:\n    location: Path to the project root.\n",
         "input_schema": {
             "properties": {
                 "location": {
@@ -191,7 +191,7 @@
         }
     },
     {
-        "description": "Run the full test suite with coverage and show untested lines. Never changes the TDD phase.\n\nUse it to find untested code. To start a cycle or move to the next phase,\ncall `advance_tdd_phase` instead.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
+        "description": "Run every test with coverage and list untested lines. Never changes the phase.\n\nArgs:\n    location: Path to the project root.\n    language: The project's language, which decides how tests are run.\n",
         "input_schema": {
             "properties": {
                 "language": {
@@ -230,7 +230,7 @@
         }
     },
     {
-        "description": "Run tests without coverage: faster, for iterating. Never changes the TDD phase.\n\nUse this to check progress while writing a test or code. Only `advance_tdd_phase`\nand the test runs that `write_file`/`edit_file` trigger advance the cycle, so\na passing or failing result here unlocks nothing.\n\nRuns the whole suite by default. Narrow it with `path` (a test file or\nfolder) and/or `test_name` (matched against test names: pytest `-k`,\nvitest `-t`) to run all tests in a file or folder, or a single test.\nRequires a cycle started with `advance_tdd_phase`.\n\nArgs:\n    location: Path to the project root.\n    path: Test file or folder, relative to `location` (or absolute, inside it).\n    test_name: Name, or part of a name, of the test(s) to run.\n",
+        "description": "Run tests without coverage to check progress. Never changes the phase.\n\nRuns every test by default; narrow it with `path` (a test file or folder)\nand/or `test_name` (pytest -k, vitest -t).\n\nArgs:\n    location: Path to the project root.\n    path: Test file or folder, relative to `location` (or absolute, inside it).\n    test_name: Name, or part of a name, of the test(s) to run.\n",
         "input_schema": {
             "properties": {
                 "location": {
@@ -284,7 +284,7 @@
         }
     },
     {
-        "description": "Create or overwrite a file, if the current TDD phase allows it, then run the tests.\n\nTest files may be written in the red and refactor phases; production\nfiles in the green and refactor phases. The test results decide the\nnext phase, shown on the reply's first line. In red, write one failing\ntest before any production code. Overwriting an existing file must\nkeep its top-level definitions; use edit_file to change or delete code.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    content: The complete new file content.\n",
+        "description": "Create or overwrite a whole file if the phase allows it, then run the tests.\n\nTests are writable in red and refactor, production code in green and\nrefactor. Overwriting must keep the file's top-level definitions; to\nchange part of a file, use edit_file.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    content: The complete new file content.\n",
         "input_schema": {
             "properties": {
                 "content": {
@@ -324,7 +324,7 @@
         }
     },
     {
-        "description": "Replace exactly one occurrence of `old_string` in a file, if the TDD phase allows it.\n\nSame phase rules and test run as `write_file`.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    old_string: Exact text to replace; must occur exactly once in the file.\n    new_string: Replacement text.\n",
+        "description": "Replace one exact occurrence of `old_string` if the phase allows it, then run the tests.\n\nCopy `old_string` from the file as it is now; read the file first if\nunsure.\n\nArgs:\n    location: Path to the project root.\n    path: File path, relative to `location` (or absolute, inside it).\n    old_string: Exact current text; must occur exactly once in the file.\n    new_string: Replacement text.\n",
         "input_schema": {
             "properties": {
                 "location": {
