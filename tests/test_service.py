@@ -339,7 +339,7 @@ def test_a_failed_edit_says_nothing_was_written_and_what_the_phase_needs(
     with pytest.raises(WorkspaceError) as refusal:
         service.edit_file(str(tmp_path), "test_calc", "y = 2", "y = 3")
 
-    assert "Nothing was written. You are in the red phase." in str(refusal.value)
+    assert "You are in the red phase." in str(refusal.value)
     assert "To move on to green:" in str(refusal.value)
 
 

@@ -359,7 +359,7 @@ class TddService:
             session = self._sessions.get(Path(call[1]).resolve())
             phase = session.phase if session else Phase.COVERAGE_REQUIRED
             raise WorkspaceError(
-                f"{unchanged} {error} Nothing was written. {PHASE_GUIDANCE[phase]}"
+                f"{unchanged} {error} {PHASE_GUIDANCE[phase]}"
             ) from error
 
     def run_tests(
