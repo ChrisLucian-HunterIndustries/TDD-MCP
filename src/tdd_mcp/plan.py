@@ -20,6 +20,10 @@ class PlannedTest:
     assertion: str
 
 
+def planned_test_from(spec: Mapping[str, str]) -> PlannedTest:
+    return PlannedTest(spec["name"], spec["arrange"], spec["act"], spec["assert"])
+
+
 class Checklist:
     def __init__(self, tests: Sequence[PlannedTest]) -> None:
         if not tests:
