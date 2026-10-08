@@ -26,13 +26,20 @@ SPEC_KEYS = ("name", "arrange", "act", "assert")
 
 def planned_test_from(spec: Mapping[str, str]) -> PlannedTest:
     fields = {_spec_key(key): text for key, text in spec.items()}
+    missing = [key for key in SPEC_KEYS if key not in fields]
+    if missing:
+        raise PlanError(
+            f"{fields.get('name')!r} has no "
+            f"{' or '.join(repr(key) for key in missing)} key; "
+            f"it has {', '.join(repr(key) for key in spec)}."
+        )
     return PlannedTest(
         fields["name"], fields["arrange"], fields["act"], fields["assert"]
     )
 
 
 def _spec_key(key: str) -> str:
-    return difflib.get_close_matches(key, SPEC_KEYS, n=1, cutoff=0.8)[0]
+    return (difflib.get_close_matches(key, SPEC_KEYS, n=1, cutoff=0.8) or [key])[0]
 
 
 class Checklist:
