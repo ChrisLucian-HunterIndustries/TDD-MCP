@@ -153,7 +153,7 @@ class PythonAdapter:
                 root,
                 "--cov",
                 "--cov-branch",
-                "--cov-report=term-missing",
+                "--cov-report=term-missing:skip-covered",
                 f"--cov-report=json:{report}",
                 extra_env={"COVERAGE_FILE": str(Path(data_dir) / ".coverage")},
             )
