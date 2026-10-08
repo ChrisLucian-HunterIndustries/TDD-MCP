@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import difflib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
@@ -20,8 +21,18 @@ class PlannedTest:
     assertion: str
 
 
+SPEC_KEYS = ("name", "arrange", "act", "assert")
+
+
 def planned_test_from(spec: Mapping[str, str]) -> PlannedTest:
-    return PlannedTest(spec["name"], spec["arrange"], spec["act"], spec["assert"])
+    fields = {_spec_key(key): text for key, text in spec.items()}
+    return PlannedTest(
+        fields["name"], fields["arrange"], fields["act"], fields["assert"]
+    )
+
+
+def _spec_key(key: str) -> str:
+    return difflib.get_close_matches(key, SPEC_KEYS, n=1, cutoff=0.8)[0]
 
 
 class Checklist:
