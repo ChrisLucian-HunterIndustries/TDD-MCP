@@ -60,10 +60,10 @@ class Report:
     output: str = ""
 
     def render(self) -> str:
-        text = f"Phase: {self.phase}\n{self.message}"
+        text = f"Phase: {self.phase}\n"
         if self.output:
-            text += f"\n\n{self.output[-OUTPUT_TAIL_CHARS:]}"
-        return text
+            text += f"\n{self.output[-OUTPUT_TAIL_CHARS:].strip()}\n\n"
+        return text + self.message
 
 
 @dataclass
