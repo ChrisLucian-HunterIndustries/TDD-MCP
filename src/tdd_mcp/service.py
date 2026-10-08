@@ -344,6 +344,7 @@ class TddService:
     def _refusing_repeats(
         self, call: tuple[str, ...], attempt: Callable[[], Report]
     ) -> Report:
+        unchanged = f"Not written: {call[2]} is unchanged."
         try:
             return attempt()
         except TddError as refusal:
@@ -358,7 +359,7 @@ class TddService:
             session = self._sessions.get(Path(call[1]).resolve())
             phase = session.phase if session else Phase.COVERAGE_REQUIRED
             raise WorkspaceError(
-                f"{error} Nothing was written. {PHASE_GUIDANCE[phase]}"
+                f"{unchanged} {error} Nothing was written. {PHASE_GUIDANCE[phase]}"
             ) from error
 
     def run_tests(
