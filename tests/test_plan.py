@@ -110,3 +110,9 @@ def test_planned_test_from_reads_name_arrange_act_and_assert():
     spec = {"name": "adds", "arrange": "calc", "act": "add 1 and 2", "assert": "3"}
 
     assert planned_test_from(spec) == PlannedTest("adds", "calc", "add 1 and 2", "3")
+
+
+def test_planned_test_from_accepts_a_misspelt_key():
+    spec = {"name": "adds", "arrang": "calc", "act": "add 1 and 2", "assert": "3"}
+
+    assert planned_test_from(spec).arrange == "calc"
