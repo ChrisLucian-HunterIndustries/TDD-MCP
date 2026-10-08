@@ -12,7 +12,7 @@ from typing_extensions import TypedDict
 
 from tdd_mcp import git_gate
 from tdd_mcp.languages import ADAPTERS, LanguageName
-from tdd_mcp.plan import PlannedTest
+from tdd_mcp.plan import planned_test_from
 from tdd_mcp.service import TddService
 
 # Comma-separated fnmatch patterns of project paths that skip the TDD cycle.
@@ -122,11 +122,7 @@ def plan_tests(location: str, tests: list[PlannedTestSpec]) -> str:
     """
     with _refusals_as_tool_errors():
         return service.plan_tests(
-            location,
-            [
-                PlannedTest(t["name"], t["arrange"], t["act"], t["assert"])
-                for t in tests
-            ],
+            location, [planned_test_from(t) for t in tests]
         ).render()
 
 
