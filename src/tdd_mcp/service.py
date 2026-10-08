@@ -161,7 +161,11 @@ class TddService:
         if starting and restarts and not blocked and self._history:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
-        if was_green and session.phase is Phase.GREEN and not self._pending_changes(root):
+        if (
+            was_green
+            and session.phase is Phase.GREEN
+            and not self._pending_changes(root)
+        ):
             message += (
                 " No edit has landed since your last commit: the production code "
                 "is as it was when this test failed, so any edit you believe you "
