@@ -424,11 +424,11 @@ def test_a_production_write_in_red_leads_with_the_extra_tests_to_delete(
         service.write_file(str(tmp_path), "calc.code", "impl")
 
     message = str(refusal.value)
-    assert message.startswith(
+    assert (
         "Writing production files is not allowed in the red phase. Production is "
         "locked because 3 new tests were added; red needs exactly one. Next: "
         "delete 2 of the new test functions"
-    )
+    ) in message
     assert "rollback_cycle" not in message
 
 
@@ -444,9 +444,24 @@ def test_retrying_a_refused_call_unchanged_says_it_will_be_refused_again(
         service.write_file(str(tmp_path), "calc.code", "impl")
 
     assert "already refused" not in str(first.value)
-    assert str(retry.value).startswith(
+    assert (
         "This exact call was already refused, and retrying it unchanged is "
         "refused the same way. "
+    ) in str(retry.value)
+
+
+def test_a_locked_write_says_first_that_nothing_was_written(
+    service: TddService, tmp_path: Path
+):
+    """Gemma4 took a refused write_file for a done one and built on code never written."""
+    _start(service, tmp_path)
+
+    with pytest.raises(TddError) as refusal:
+        service.write_file(str(tmp_path), "calc.code", "impl")
+
+    assert str(refusal.value).startswith(
+        "Not written: calc.code is unchanged. Writing production files is not "
+        "allowed in the red phase."
     )
 
 
