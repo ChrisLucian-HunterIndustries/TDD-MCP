@@ -73,8 +73,9 @@ def test_every_phase_says_what_moving_on_requires():
 def test_red_says_to_keep_cycling_one_small_behaviour_at_a_time():
     """Gemma4 tested three behaviours, wrote every win check at once, and called it done."""
     guidance = PHASE_GUIDANCE[Phase.RED]
-    assert "the smallest untested behaviour (one winning row, not every way to win)" in (
-        guidance
+    assert (
+        "the smallest untested behaviour (one winning row, not every way to win)"
+        in (guidance)
     )
     assert "Keep cycling until every behaviour has its own test." in guidance
 
