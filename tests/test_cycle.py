@@ -47,14 +47,36 @@ def test_every_phase_names_itself_and_the_next_step():
 
 def test_every_phase_says_what_moving_on_requires():
     """Gemma4 kept guessing what each phase wanted; say exactly what unlocks the next one."""
-    for phase in (Phase.COVERAGE_REQUIRED, Phase.RED, Phase.GREEN):
-        assert "To move on" in PHASE_GUIDANCE[phase]
+    expected = {
+        Phase.COVERAGE_REQUIRED: (
+            "To move on: advance_tdd_phase runs the tests; all passing starts red."
+        ),
+        Phase.RED: (
+            "To move on to green: exactly one new test fails; commit it as '. t'."
+        ),
+        Phase.GREEN: (
+            "writing the simplest code that does what the test asserts, even if it "
+            "looks too simple. To move on to refactor: every test passes; commit it "
+            "as '^ f'."
+        ),
+        Phase.REFACTOR: (
+            "It starts the next cycle once every test passes, every production line "
+            "changed this cycle runs in a test, those lines hold no comments, and "
+            "everything is committed."
+        ),
+    }
+    for phase, requirement in expected.items():
+        assert requirement in PHASE_GUIDANCE[phase]
     assert "Fix a wrong test later" not in PHASE_GUIDANCE[Phase.GREEN]
 
 
 def test_red_says_to_keep_cycling_one_small_behaviour_at_a_time():
     """Gemma4 tested three behaviours, wrote every win check at once, and called it done."""
-    assert "not every way to win" in PHASE_GUIDANCE[Phase.RED]
+    guidance = PHASE_GUIDANCE[Phase.RED]
+    assert "the smallest untested behaviour (one winning row, not every way to win)" in (
+        guidance
+    )
+    assert "Keep cycling until every behaviour has its own test." in guidance
 
 
 def test_refactor_says_when_the_task_is_done_and_to_commit_only_changes():
@@ -69,7 +91,7 @@ def test_refactor_says_when_the_task_is_done_and_to_commit_only_changes():
 def test_coverage_required_says_retrying_edits_wont_help():
     """Locked out, weaker models retried the same edit many times instead of asking."""
     guidance = PHASE_GUIDANCE[Phase.COVERAGE_REQUIRED]
-    assert "won't help" in guidance
+    assert "retrying write_file or edit_file won't help" in guidance
 
 
 @pytest.mark.parametrize(
