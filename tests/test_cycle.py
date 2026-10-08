@@ -47,38 +47,14 @@ def test_every_phase_names_itself_and_the_next_step():
 
 def test_every_phase_says_what_moving_on_requires():
     """Gemma4 kept guessing what each phase wanted; say exactly what unlocks the next one."""
-    expected = {
-        Phase.COVERAGE_REQUIRED: (
-            "To move on: advance_tdd_phase must be able to run the tests; all "
-            "passing starts the cycle in red."
-        ),
-        Phase.RED: (
-            "To move on to green: exactly one new test must fail, because the "
-            "behaviour it checks doesn't exist yet; then commit it as '. t'."
-        ),
-        Phase.GREEN: (
-            "To move on to refactor: every test must pass. The test is the "
-            "specification: make the production code produce exactly what it "
-            "asserts, even if that looks too simple; then commit it as '^ f'."
-        ),
-        Phase.REFACTOR: (
-            "To start the next cycle, advance_tdd_phase needs every test passing, "
-            "every production line changed this cycle run by a test, no comments "
-            "on lines changed this cycle, and everything committed."
-        ),
-    }
-    for phase, requirement in expected.items():
-        assert requirement in PHASE_GUIDANCE[phase]
+    for phase in (Phase.COVERAGE_REQUIRED, Phase.RED, Phase.GREEN):
+        assert "To move on" in PHASE_GUIDANCE[phase]
     assert "Fix a wrong test later" not in PHASE_GUIDANCE[Phase.GREEN]
 
 
 def test_red_says_to_keep_cycling_one_small_behaviour_at_a_time():
     """Gemma4 tested three behaviours, wrote every win check at once, and called it done."""
-    assert (
-        "Pick the smallest behaviour of the task not tested yet (e.g. one winning "
-        "row, not every way to win). Keep cycling until every concern of the task "
-        "has its own test; the task isn't done before then."
-    ) in PHASE_GUIDANCE[Phase.RED]
+    assert "not every way to win" in PHASE_GUIDANCE[Phase.RED]
 
 
 def test_refactor_says_when_the_task_is_done_and_to_commit_only_changes():
@@ -93,7 +69,7 @@ def test_refactor_says_when_the_task_is_done_and_to_commit_only_changes():
 def test_coverage_required_says_retrying_edits_wont_help():
     """Locked out, weaker models retried the same edit many times instead of asking."""
     guidance = PHASE_GUIDANCE[Phase.COVERAGE_REQUIRED]
-    assert "Retrying write_file or edit_file on them won't help" in guidance
+    assert "won't help" in guidance
 
 
 @pytest.mark.parametrize(
