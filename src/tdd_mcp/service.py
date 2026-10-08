@@ -140,6 +140,7 @@ class TddService:
         restarts = fresh or run.outcome is Outcome.PASSED
         added = run.counts.tests - session.tests if run.counts and not restarts else 0
         finishing = session.phase is Phase.REFACTOR
+        was_green = session.phase is Phase.GREEN
         session.phase = after_coverage(
             session.phase,
             run.outcome,
@@ -160,6 +161,13 @@ class TddService:
         if starting and restarts and not blocked and self._history:
             session.base = self._history.head_commit(root)
         message = f"Coverage run {run.outcome}."
+        if was_green and session.phase is Phase.GREEN and not self._pending_changes(root):
+            message += (
+                " No edit has landed since your last commit: the production code "
+                "is as it was when this test failed, so any edit you believe you "
+                "made was refused. Read the production file, then change it with "
+                "write_file or edit_file."
+            )
         guidance = _guidance(session.phase, failing, added)
         repeated = blocked and session.last_block == (untested, commented)
         session.last_block = (untested, commented) if blocked else None
