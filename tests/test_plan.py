@@ -116,3 +116,13 @@ def test_planned_test_from_accepts_a_misspelt_key():
     spec = {"name": "adds", "arrang": "calc", "act": "add 1 and 2", "assert": "3"}
 
     assert planned_test_from(spec).arrange == "calc"
+
+
+def test_planned_test_from_names_the_keys_it_got_when_one_is_missing():
+    spec = {"name": "adds", "setup": "calc", "act": "add 1 and 2", "assert": "3"}
+
+    with pytest.raises(
+        PlanError,
+        match="'adds' has no 'arrange' key; it has 'name', 'setup', 'act', 'assert'",
+    ):
+        planned_test_from(spec)
