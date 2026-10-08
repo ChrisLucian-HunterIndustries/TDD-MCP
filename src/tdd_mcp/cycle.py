@@ -27,60 +27,45 @@ class Outcome(StrEnum):
 
 
 DONE = (
-    "The task is finished only when advance_tdd_phase reaches red with nothing "
-    "flagged and every requirement of the task has its own test; passing tests "
-    "alone don't mean it's done, so don't report it as complete before then."
+    "The task is done only when advance_tdd_phase moves on with nothing flagged "
+    "and every behaviour has its own test; don't report it done before then."
 )
 
 PHASE_GUIDANCE: dict[Phase, str] = {
     Phase.COVERAGE_REQUIRED: (
-        "You are in the coverage_required phase. Code files (tests and production) "
-        "are locked. Retrying write_file or edit_file on them won't help. "
-        "Next: call advance_tdd_phase, which runs every test with coverage. "
-        "All passing starts the cycle in red; exactly one failing resumes green; "
-        "several failing returns to red to fix or remove the extra tests. "
-        "If the test runner can't run (see the output, e.g. pytest-cov or vitest "
-        "not installed), you can't fix it with these tools: stop and ask the user "
-        "to fix it, then call advance_tdd_phase again. To move on: "
-        "advance_tdd_phase must be able to run the tests; all passing starts the "
-        "cycle in red."
+        "You are in the coverage_required phase. Code files are locked; retrying "
+        "write_file or edit_file won't help. Next: call advance_tdd_phase. If it "
+        "can't run the tests (e.g. pytest-cov or vitest is missing), stop and ask "
+        "the user to fix that. To move on: advance_tdd_phase runs the tests; all "
+        "passing starts red."
     ),
     Phase.PLAN: (
-        "You are in the plan phase. Code files (tests and production) are "
-        "locked. Next: decide every test needed to cover the task completely, "
-        "no more, then call plan_tests with each one's name, arrange, act and "
-        "assert. To move on to red: plan_tests must accept a plan in which every "
-        "test has a name, an arrange, an act and an assert."
+        "You are in the plan phase. Code files are locked. Next: call plan_tests "
+        "with every test the task needs, and no more, each with a name, arrange, "
+        "act and assert."
     ),
     Phase.RED: (
-        "You are in the red phase. Production code is locked. "
-        "Next: write exactly ONE new test that fails, with write_file or "
-        "edit_file on a test file. A test that can't be collected yet, e.g. "
-        "because it imports code that doesn't exist, counts as failing. Pick the "
-        "smallest behaviour of the task not tested yet (e.g. one winning row, not "
-        "every way to win). Keep cycling until every concern of the task has its "
-        "own test; the task isn't done before then. To move on to green: exactly "
-        "one new test must fail, because the behaviour it checks doesn't exist "
-        "yet; then commit it as '. t'."
+        "You are in the red phase. Production code is locked. Next: write exactly "
+        "ONE new test that fails, for the smallest untested behaviour (one winning "
+        "row, not every way to win). A test that imports code that doesn't exist "
+        "yet counts as failing. To move on to green: exactly one new test fails; "
+        "commit it as '. t'. Keep cycling until every behaviour has its own test."
     ),
     Phase.GREEN: (
-        "You are in the green phase. Tests are locked. "
-        "Next: change production code, as little as possible, until every test "
-        "passes. To move on to refactor: every test must pass. The test is the "
-        "specification: make the production code produce exactly what it "
-        "asserts, even if that looks too simple; then commit it as '^ f'. If an "
-        "existing test asserts the old behaviour, or the new test can't pass "
-        "whatever the code does (e.g. a missing import), call return_to_red to "
-        "fix the tests."
+        "You are in the green phase. Tests are locked. Next: change production "
+        "code until every test passes, writing the simplest code that does what "
+        "the test asserts, even if it looks too simple. To move on to refactor: "
+        "every test passes; commit it as '^ f'. If an older test asserts the old "
+        "behaviour, or the new test can't pass whatever the code does (e.g. a "
+        "missing import), call return_to_red."
     ),
     Phase.REFACTOR: (
-        "You are in the refactor phase. Test and production code are writable; "
-        "edits that break tests or add tests are reverted. "
-        "Next: optionally tidy the code, commit ('. r') if git shows changes, "
-        "then call advance_tdd_phase to start the next cycle. To start the next "
-        "cycle, advance_tdd_phase needs every test passing, every production line "
-        "changed this cycle run by a test, no comments on lines changed this "
-        "cycle, and everything committed. " + DONE
+        "You are in the refactor phase. Tests and production code are writable; "
+        "an edit that breaks a test or adds one is reverted. Next: optionally "
+        "tidy, commit ('. r') if git shows changes, then call advance_tdd_phase. "
+        "It starts the next cycle once every test passes, every production line "
+        "changed this cycle runs in a test, those lines hold no comments, and "
+        "everything is committed. " + DONE
     ),
 }
 
