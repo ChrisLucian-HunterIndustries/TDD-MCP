@@ -104,3 +104,11 @@ def test_a_finished_plan_reminds_to_plan_only_missing_tests_or_finish():
         "test, call plan_tests with only the missing ones; otherwise the task "
         "is finished. Do only as much as this step needs, and no more."
     )
+
+
+def test_planned_test_from_reads_name_arrange_act_and_assert():
+    from tdd_mcp.plan import planned_test_from
+
+    spec = {"name": "adds", "arrange": "calc", "act": "add 1 and 2", "assert": "3"}
+
+    assert planned_test_from(spec) == PlannedTest("adds", "calc", "add 1 and 2", "3")
