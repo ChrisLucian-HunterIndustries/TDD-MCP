@@ -1,10 +1,10 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.14'",
     "python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform == 'emscripten'",
-    "(python_full_version < '3.14' and sys_platform != 'emscripten') or (python_full_version < '3.12' and sys_platform == 'emscripten')",
+    "python_full_version < '3.12' or (python_full_version >= '3.12' and python_full_version < '3.14' and sys_platform != 'emscripten')",
 ]
 
 [[package]]
@@ -40,19 +40,19 @@ wheels = [
 
 [[package]]
 name = "approval-utilities"
-version = "19.1.1"
+version = "21.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e1/9c/4dcc7cd6c1fa317551b277e3a1be8a4d25c8f6d34bbaa51096f1211670f9/approval_utilities-19.1.1.tar.gz", hash = "sha256:33bd42b568bddae052f97e4d2b2061835b2ddba2262b857dedd895bde975f450", size = 37282, upload-time = "2026-08-02T19:04:41.783Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9b/3e/b724a6dd46ea8ed3d6a21bc65ca68c7dc30e6a269580b86aa4bf0bddb045/approval_utilities-21.1.0.tar.gz", hash = "sha256:9b1ca94e51c345332917e593d8a696ea6c53fedcc72388ad86a31efc81fec73b", size = 39177, upload-time = "2026-11-22T19:03:32.109Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b6/b0/82d773072afb0c609eccf46094bbad8273ca2aba9cac5944d97b66fd5ddc/approval_utilities-19.1.1-py3-none-any.whl", hash = "sha256:1c4e3dbf62d94da0bfc4da1199474744f7389b191d69b3d7c2a3eae524b0f97c", size = 19814, upload-time = "2026-08-02T19:04:40.621Z" },
+    { url = "https://files.pythonhosted.org/packages/87/91/e7b1ae7e49c2e2c2872b5362b861c790f8b5542d2ecfc02d20234fb91b2d/approval_utilities-21.1.0-py3-none-any.whl", hash = "sha256:365070aebebd3883680042af018edef80641eb7a1619317ae100c9ba8904e456", size = 19801, upload-time = "2026-11-22T19:03:31.242Z" },
 ]
 
 [[package]]
 name = "approvaltests"
-version = "19.1.1"
+version = "21.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "allpairspy" },
@@ -66,9 +66,9 @@ dependencies = [
     { name = "testfixtures" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3a/a1/40de2221002e3b600ded229e2850ad4204036ffc98e585f0ba19de373f9e/approvaltests-19.1.1.tar.gz", hash = "sha256:0b049a815e5c8462a8dfde2b781bb5956c822e980b8ddd8c270a657a4d78dda3", size = 66644, upload-time = "2026-08-02T19:04:47.884Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/5b/dfe4c82dd8e3cb7a539b060e5d4d29f635c1262637191834a19b821f2f21/approvaltests-21.1.0.tar.gz", hash = "sha256:e55a93777d1d25ec9a29711e0bb0d2364fb98ca3eb3aba69e945e4cf9e5906dd", size = 69937, upload-time = "2026-11-22T19:03:36.814Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6d/f0/acac29783503bae6204032d6f36a973db44fd92208db956ae549e4cca851/approvaltests-19.1.1-py3-none-any.whl", hash = "sha256:b31c288107038742580105dbe0445524a86ae09add10271ba2342aef3a939045", size = 68678, upload-time = "2026-08-02T19:04:46.43Z" },
+    { url = "https://files.pythonhosted.org/packages/52/2a/7da9ec153b602341bc2777f8e51a3f657f090a8f86b8adec9accc1729811/approvaltests-21.1.0-py3-none-any.whl", hash = "sha256:702ed840dbe938dad426ca70dedb951c1c95735eb09e3f9bbd9ebc9c1ab221ba", size = 71457, upload-time = "2026-11-22T19:03:35.807Z" },
 ]
 
 [[package]]
